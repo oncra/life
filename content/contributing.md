@@ -1,6 +1,6 @@
 ---
-title: Contributing and running your own instance
-summary: Repository layout, how to run the stack, how to propose a method change, and the house rules.
+title: "Contributing and running your own instance"
+summary: "Repository layout, how to run the stack, how to propose a method change, and the house rules."
 order: 11
 ---
 

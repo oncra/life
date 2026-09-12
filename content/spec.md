@@ -1,6 +1,6 @@
 ---
-title: Specification v0.1
-summary: Data model, the seven readings with their exact rules, the verdict, confidence and maturity, the API, and what is specified but not yet built.
+title: "Specification v0.1"
+summary: "Data model, the seven readings with their exact rules, the verdict, confidence and maturity, the API, and what is specified but not yet built."
 order: 2
 ---
 

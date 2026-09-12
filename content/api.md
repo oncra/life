@@ -1,6 +1,6 @@
 ---
-title: API
-summary: Endpoints, authentication, and examples for reading verdicts and delivering data. Machine-readable spec at /api/v1/openapi.json.
+title: "API"
+summary: "Endpoints, authentication, and examples for reading verdicts and delivering data. Machine-readable spec at /api/v1/openapi.json."
 order: 9
 ---
 

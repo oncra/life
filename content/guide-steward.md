@@ -1,6 +1,6 @@
 ---
-title: Steward guide: from zero to seven readings
-summary: Register a place, watch the satellite readings arrive, add a recorder and a probe, deliver the data. Step by step, with the exact commands.
+title: "Steward guide: from zero to seven readings"
+summary: "Register a place, watch the satellite readings arrive, add a recorder and a probe, deliver the data. Step by step, with the exact commands."
 order: 4
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: Green paper: an oracle for Life
-summary: Why a living place needs its own way of answering, and how three cheap data streams become seven readings and one verdict.
+title: "Green paper: an oracle for Life"
+summary: "Why a living place needs its own way of answering, and how three cheap data streams become seven readings and one verdict."
 order: 1
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: Roles and user profiles
-summary: Who does what in a life-oracle network: steward, installer, verifier, consumer, methodologist, operator, and software agents.
+title: "Roles and user profiles"
+summary: "Who does what in a life-oracle network: steward, installer, verifier, consumer, methodologist, operator, and software agents."
 order: 8
 ---
 

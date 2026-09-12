@@ -1,6 +1,6 @@
 ---
-title: Hardware guide: what to buy
-summary: Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, and the three standard kits.
+title: "Hardware guide: what to buy"
+summary: "Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, and the three standard kits."
 order: 3
 ---
 
