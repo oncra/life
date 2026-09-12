@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf6;
+  --foreground: #1b1f1a;
+  --accent: #2f6b3a;
+  --muted: #6b7268;
+  --line: #e4e2d9;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body { background: var(--background); color: var(--foreground); }
+
+.prose h1 { font-size: 2rem; font-weight: 700; margin: 0 0 1rem; line-height: 1.15; }
+.prose h2 { font-size: 1.4rem; font-weight: 700; margin: 2.2rem 0 0.8rem; }
+.prose h3 { font-size: 1.1rem; font-weight: 700; margin: 1.6rem 0 0.5rem; }
+.prose p { margin: 0.7rem 0; line-height: 1.6; }
+.prose ul, .prose ol { margin: 0.7rem 0 0.7rem 1.4rem; line-height: 1.6; }
+.prose ul { list-style: disc; } .prose ol { list-style: decimal; }
+.prose li { margin: 0.25rem 0; }
+.prose a { color: var(--accent); text-decoration: underline; }
+.prose code { background: #f1efe6; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.9em; }
+.prose pre { background: #1b1f1a; color: #eef; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-size: 0.85rem; line-height: 1.5; }
+.prose pre code { background: transparent; padding: 0; color: inherit; }
+.prose table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; display: block; overflow-x: auto; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
+.prose th { background: #f1efe6; }
+.prose blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--muted); margin: 1rem 0; }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+.prose img { max-width: 100%; }

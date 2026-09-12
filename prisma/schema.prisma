@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DeviceKind {
+  SOUND
+  SOIL
+  CAMERA
+  OTHER
+}
+
+enum Dimension {
+  PRODUCTIVITY
+  DIVERSITY
+  STRUCTURE
+  RENEWAL
+  CYCLING
+  RESILIENCE
+  AUTONOMY
+}
+
+enum Direction {
+  RISING
+  HOLDING
+  FALLING
+  UNKNOWN
+}
+
+enum VisitKind {
+  BASELINE
+  RANDOM
+  TRIGGERED
+}
+
+enum KeyRole {
+  ADMIN
+  STEWARD
+  VERIFIER
+  CONSUMER
+}
+
+model Place {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  description    String?
+  geometry       Json
+  centroidLat    Float
+  centroidLon    Float
+  areaHa         Float
+  country        String?
+  biome          String?
+  landUse        String?
+  stewardName    String?
+  stewardContact String?
+  public         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  devices   Device[]
+  satellite SatelliteObs[]
+  readings  Reading[]
+  visits    Visit[]
+  apiKeys   ApiKey[]
+  jobs      Job[]
+}
+
+model Device {
+  id          String     @id @default(cuid())
+  placeId     String
+  place       Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  kind        DeviceKind
+  model       String
+  serial      String?
+  devEui      String?    @unique
+  lat         Float?
+  lon         Float?
+  heightM     Float?
+  depthCm     Int?
+  installedAt DateTime?
+  tokenHash   String     @unique
+  mapping     Json?
+  notes       String?
+  lastSeenAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  soundDetections SoundDetection[]
+  acousticIndices AcousticIndex[]
+  soilReadings    SoilReading[]
+
+  @@index([placeId])
+}
+
+model SoundDetection {
+  id         BigInt   @id @default(autoincrement())
+  deviceId   String
+  device     Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts         DateTime
+  species    String
+  scientific String?
+  confidence Float
+  detector   String
+  durationS  Float?
+
+  @@index([deviceId, ts])
+  @@index([species])
+}
+
+model AcousticIndex {
+  id          BigInt   @id @default(autoincrement())
+  deviceId    String
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts          DateTime
+  windowS     Int
+  aci         Float?
+  adi         Float?
+  aei         Float?
+  bio         Float?
+  ndsi        Float?
+  biophony    Float?
+  anthrophony Float?
+  spl         Float?
+
+  @@index([deviceId, ts])
+}
+
+model SoilReading {
+  id       BigInt   @id @default(autoincrement())
+  deviceId String
+  device   Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts       DateTime
+  depthCm  Int
+  vwc      Float?
+  tempC    Float?
+  ec       Float?
+  co2Ppm   Float?
+  fluxUmol Float?
+  raw      Json?
+
+  @@index([deviceId, ts])
+}
+
+model SatelliteObs {
+  id            BigInt   @id @default(autoincrement())
+  placeId       String
+  place         Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  date          DateTime
+  source        String
+  sceneId       String
+  ndviMean      Float
+  ndviP10       Float?
+  ndviP90       Float?
+  validFraction Float
+  cloudCover    Float?
+  pixelCount    Int
+
+  @@unique([placeId, sceneId])
+  @@index([placeId, date])
+}
+
+model Reading {
+  id         String    @id @default(cuid())
+  placeId    String
+  place      Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  period     String
+  dimension  Dimension
+  direction  Direction
+  confidence Float
+  maturity   Int       @default(0)
+  evidence   Json?
+  computedAt DateTime  @default(now())
+
+  @@unique([placeId, period, dimension])
+}
+
+model Visit {
+  id       String    @id @default(cuid())
+  placeId  String
+  place    Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  date     DateTime
+  kind     VisitKind
+  verifier String?
+  findings Json?
+  notes    String?
+
+  @@index([placeId, date])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  role       KeyRole
+  keyHash    String    @unique
+  placeId    String?
+  place      Place?    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  kind       String
+  placeId    String?
+  place      Place?    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  status     String    @default("queued")
+  attempts   Int       @default(0)
+  error      String?
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  @@index([status, createdAt])
+}

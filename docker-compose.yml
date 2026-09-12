@@ -1,0 +1,56 @@
+# Production stack: Postgres (PostGIS image, ready for spatial queries later), app, worker, Caddy (auto TLS).
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: life
+      POSTGRES_USER: life
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U life -d life"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://life:${POSTGRES_PASSWORD}@db:5432/life?schema=public
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL}
+    expose: ["3000"]
+
+  worker:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://life:${POSTGRES_PASSWORD}@db:5432/life?schema=public
+      SAT_CONCURRENCY: "4"
+    command: ["npx", "tsx", "scripts/worker.ts"]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      SITE_HOST: ${SITE_HOST}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+
+volumes:
+  dbdata:
+  caddy_data:
+  caddy_config:
