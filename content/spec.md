@@ -39,6 +39,10 @@ Raw audio is never uploaded to the oracle. Processing happens at the edge (BirdN
 
 A device of kind SOIL delivers `{ts, depthCm, vwc %, tempC, ec µS/cm, co2Ppm?, fluxUmol?}`. LoRaWAN devices deliver through The Things Stack webhooks to `/api/v1/ingest/ttn`; decoded payloads from Dragino, Milesight, Seeed SenseCAP and Decentlab are recognised automatically, and a per-device `mapping` overrides the heuristics.
 
+### 2.3b Context layers (built: SoilGrids; specified: the rest)
+
+At registration and yearly, each place is enriched from open global layers, stored as `place.context` and used by the readings. Built: ISRIC SoilGrids v2.0 at the centroid (clay, sand, silt, organic carbon, pH, bulk density, WRB class; 250 m; CC BY 4.0), setting the Cycling model's moisture optimum from clay fraction. Specified: ETH 10 m canopy height 2020 (Structure witness), Walker et al. potential carbon and Bastin potential tree cover (distance to potential for Productivity and Structure), Hansen tree-cover loss and ESRI 10 m land cover (land-use context), NASA FIRMS and OPERA disturbance alerts (dated shocks for Resilience), RESOLVE ecoregion (neighbour-crowd stratum). Rationale and the Restor assessment: [Coupling with Restor](/docs/restor).
+
 ### 2.4 Visits (built: storage; specified: scheduler)
 
 A **visit** is `{date, kind BASELINE|RANDOM|TRIGGERED, verifier, findings, notes}`. Specified: 5% of places per year drawn by a public random beacon (drand or the NIST beacon), plus a visit for every place whose streams disagree (see 4.2). Findings carry soil cores, eDNA results, insect counts and photos.
