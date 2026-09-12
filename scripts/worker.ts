@@ -79,6 +79,9 @@ async function schedule() {
 
 async function main() {
   log(`worker up, concurrency ${CONCURRENCY}`);
+  // jobs left "running" by a previous worker process (restart, deploy) go back to the queue
+  const reset = await prisma.job.updateMany({ where: { status: "running" }, data: { status: "queued" } });
+  if (reset.count) log(`re-queued ${reset.count} interrupted job(s)`);
   for (;;) {
     try {
       await schedule();

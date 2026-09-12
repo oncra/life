@@ -23,7 +23,7 @@ export interface StacItem {
   assets: Record<string, { href: string; "proj:epsg"?: number; "proj:code"?: string; "raster:bands"?: { scale?: number; offset?: number; nodata?: number }[] }>;
 }
 
-export async function searchScenes(geom: PlaceGeometry, from: string, to: string, maxCloud = 70, limit = 500): Promise<StacItem[]> {
+export async function searchScenes(geom: PlaceGeometry, from: string, to: string, maxCloud = 70, limit = 3000): Promise<StacItem[]> {
   const items: StacItem[] = [];
   let body: Record<string, unknown> = {
     collections: [STAC_COLLECTION],
@@ -33,7 +33,7 @@ export async function searchScenes(geom: PlaceGeometry, from: string, to: string
     limit: 100,
     sortby: [{ field: "properties.datetime", direction: "asc" }],
   };
-  for (let page = 0; page < 10 && items.length < limit; page++) {
+  for (let page = 0; page < 40 && items.length < limit; page++) {
     const r = await fetch(`${STAC_URL}/search`, {
       method: "POST",
       headers: { "content-type": "application/json" },
