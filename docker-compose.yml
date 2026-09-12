@@ -17,6 +17,7 @@ services:
 
   app:
     build: .
+    image: life-oracle:local
     restart: unless-stopped
     depends_on:
       db:
@@ -28,7 +29,7 @@ services:
     expose: ["3000"]
 
   worker:
-    build: .
+    image: life-oracle:local
     restart: unless-stopped
     depends_on:
       db:
