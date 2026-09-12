@@ -1,0 +1,7 @@
+[Unit]
+Description=Life node soil readings every 20 minutes
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=20min
+[Install]
+WantedBy=timers.target

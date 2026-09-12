@@ -1,0 +1,7 @@
+[Unit]
+Description=Life node: push BirdNET detections to the oracle
+After=network-online.target
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-push

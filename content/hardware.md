@@ -6,7 +6,7 @@ order: 4
 
 # Hardware guide
 
-> Looking for the one standard set? See [The kit](/docs/kit). This page is the wider market scan behind it.
+> The standard set is now a single solar 4G box: [The kit: Life node v1](/docs/kit). This page is the wider market scan behind it, and the distributed set (PUC + LoRaWAN) for places with WiFi at the field edge.
 
 Prices were checked live on 2026-09-12 and include VAT where the shop shows it. They will drift; the repository is the place to correct them. Everything here was chosen on one criterion: **install once, leave it for years, data comes out without a visit.** Where that is not possible yet (offline recorders), the guide says so.
 
