@@ -7,6 +7,7 @@ import { prisma } from "../src/lib/db";
 import { defaultFrom, ndviForScene, searchScenes } from "../src/lib/satellite";
 import { computeReadings } from "../src/lib/compute";
 import type { PlaceGeometry } from "../src/lib/geo";
+import { pollBirdWeather } from "../src/lib/birdweather";
 
 const CONCURRENCY = Number(process.env.SAT_CONCURRENCY ?? 4);
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
@@ -64,9 +65,17 @@ async function runJob(job: { id: string; kind: string; placeId: string | null })
   }
 }
 
-let lastSchedule = 0;
+let lastSchedule = 0, lastPoll = 0;
 async function schedule() {
   const now = Date.now();
+  if (now - lastPoll >= 3600e3) {
+    lastPoll = now;
+    await pollBirdWeather(log);
+    for (const p of await prisma.place.findMany({ where: { devices: { some: { kind: "SOUND" } } }, select: { id: true } })) {
+      const open = await prisma.job.findFirst({ where: { placeId: p.id, status: { in: ["queued", "running"] } } });
+      if (!open) await prisma.job.create({ data: { kind: "readings.recompute", placeId: p.id } });
+    }
+  }
   if (now - lastSchedule < 6 * 3600e3) return;
   lastSchedule = now;
   const places = await prisma.place.findMany({ select: { id: true } });

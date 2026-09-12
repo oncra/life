@@ -53,7 +53,13 @@ The push script reads BirdNET's CSV output, derives the timestamp of each detect
 
 ### From a BirdWeather PUC
 
-Give the operator your BirdWeather station id (or add it to the device `notes` as `birdweather:<id>`). A scheduled job polls BirdWeather's public API hourly and posts to your device. Specified, not yet built; until then, export CSV from BirdWeather and post it with `clients/audiomoth-birdnet-push.py --birdweather-csv`.
+Register the device with model `BirdWeather PUC` and the station id as `serial` (the number in your BirdWeather station URL). The oracle polls BirdWeather's public API every hour and stores new detections on the device; nothing runs on the farm. Built.
+
+```bash
+curl -X POST https://life.oncra.org/api/v1/places/<slug>/devices \
+  -H "Authorization: Bearer lo_key_…" -H "content-type: application/json" \
+  -d '{"kind":"SOUND","model":"BirdWeather PUC","serial":"6435","lat":52.16,"lon":4.40,"heightM":1.8}'
+```
 
 ## Soil: direct
 

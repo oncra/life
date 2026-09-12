@@ -33,7 +33,7 @@ A **device** of kind SOUND delivers either or both of:
 - **detections**: `{ts, species, scientific?, confidence 0..1, detector, durationS?}`. Species strings follow the detector's label set (BirdNET common names for birds; BattyBirdNET or BatDetect2 for bats; your own labels for insects, frogs, machines). Machine classes (engine, vehicle, siren, chainsaw, tractor) are recognised by name for the Autonomy reading.
 - **acoustic indices** over a window: `{ts, windowS, aci, adi, aei, bio, ndsi, biophony, anthrophony, spl}` as defined in scikit-maad.
 
-Raw audio is never uploaded to the oracle. Processing happens at the edge (BirdNET-Pi, BirdWeather PUC) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
+Raw audio is never uploaded to the oracle. Processing happens at the edge (BirdNET-Pi, BirdWeather PUC) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
 
 ### 2.3 Soil (built)
 
