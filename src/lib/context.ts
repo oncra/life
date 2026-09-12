@@ -39,7 +39,7 @@ export async function fetchSoilGrids(lat: number, lon: number): Promise<SoilCont
   return {
     source: "soilgrids-v2.0", fetchedAt: new Date().toISOString(), lat, lon,
     clayPct: Math.round(mean("clay") * 10) / 10, sandPct: Math.round(mean("sand") * 10) / 10, siltPct: Math.round(mean("silt") * 10) / 10,
-    socPct: Math.round(mean("soc") * 100) / 100, ph: Math.round(mean("phh2o") * 10) / 10, bulkDensity: Math.round(mean("bdod") * 100) / 100,
+    socPct: Math.round(mean("soc") * 10) / 100, ph: Math.round(mean("phh2o") * 10) / 10, bulkDensity: Math.round(mean("bdod") * 100) / 100, // soc: dg/kg -> g/kg (factor 10) -> % (/10)
     wrbClass: wrb, depthsCm: depths,
   };
 }
