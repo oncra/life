@@ -103,6 +103,10 @@ Does not yet: compare a place against its neighbour crowd (the regional referenc
 - Leakage: handled by nested ledgers (specified, not built).
 - The oracle becoming the goal: handled by self-audit and "unknown" as a real answer. Never fully solved. Watched, not fixed.
 
+## Related work
+
+A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, with an account of what here is inherited and what is new, is in [Prior art](/docs/prior-art). Short form: the weakest-link verdict has ancestors in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; the fused three-stream verdict, disagreement-triggered visits and the published drift ledger do not.
+
 ## Join
 
 Register a place. Put a recorder on a post. Sink a probe. Propose a change to a reading. All of it is at [github.com/oncra/life](https://github.com/oncra/life).

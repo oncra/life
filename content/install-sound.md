@@ -1,7 +1,7 @@
 ---
 title: "Installation protocol: sound recorder"
 summary: "Height, orientation, spacing, schedule and maintenance for each kit, so that recordings from different places are comparable."
-order: 5
+order: 6
 ---
 
 # Installation protocol: sound recorder

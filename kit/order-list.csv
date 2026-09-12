@@ -1,0 +1,21 @@
+item,product,supplier,url,unit_price_eur_incl_vat,qty,line_total_eur,verified
+Sound recorder,BirdWeather PUC,Veldshop.nl,https://www.veldshop.nl/en/birdweather-puc.html,289.00,1,289.00,yes 2026-09-12
+Always-on battery,Voltaic V75 72 Wh (V-BATT-V75),SeeSense.eu,https://seesense.eu/products/power/batteries/battery-voltaic-v75-71wh-lithium-with-always-on-capability/,110.70,1,110.70,yes 2026-09-12
+Solar panel,Voltaic 10 W ETFE panel P110 + bracket BK103,Voltaic Systems (US),https://voltaicsystems.com/10-watt-panel-etfe/,90.00,1,90.00,estimate incl shipping
+Enclosure,IP65 box ~200x150x75 mm,Hornbach / Conrad,,15.00,1,15.00,estimate
+Cable,USB-A to USB-C 1 m,any,,8.00,1,8.00,estimate
+Batteries,3x AA lithium,any,,8.00,1,8.00,estimate
+Outdoor WiFi,TP-Link Omada EAP225-Outdoor,Megekko.nl,https://www.megekko.nl/product/2105/229846/Accesspoint/TP-LINK-Omada-Access-Point-EAP225-Outdoor,79.95,1,79.95,yes 2026-09-12
+Ethernet,Outdoor Cat6 30 m,Hornbach / Allekabels,,20.00,1,20.00,estimate
+Soil probe,Dragino SE01-LB-EU868,Antratek,https://www.antratek.com/se01-lb-lorawan-soil-sensor,120.94,2,241.88,yes 2026-09-12
+Gateway,Dragino LPS8N-868,Antratek,https://www.antratek.com/lps8n-indoor-lorawan-gateway,152.41,1,152.41,yes 2026-09-12 (listing shows 139.95; check cart)
+Post,Steel tube 42.4x2 mm 200 cm (Kaiserthal 7810857) or wooden fence post,Hornbach.nl,https://www.hornbach.nl/p/kaiserthal-ronde-buis-o-42-4x2-mm-rvs-200-cm/7810857/,40.00,1,40.00,estimate
+Hose clamps,Stainless 40-60 mm,Toolstation / Hornbach,https://www.toolstation.nl/search?q=slangklem+40-60,2.66,2,5.32,snippet
+Cable ties,HAUPA UV 250x4.8 mm 100 pcs (6094001),Hornbach.nl,https://www.hornbach.nl/p/haupa-kabelbinder-uv-bestendig-250x4-8-mm-zwart-100-stuks/6094001/,6.45,1,6.45,snippet
+Cable lock,Stahlex 10 mm x 1 m,bol.com,https://www.bol.com/nl/nl/p/stahlex-fietsslot-kabelslot-cijferslot-10mm-x-1m-zwart/9200000056628311/,8.62,1,8.62,snippet
+Conduit,PMFLEX 25 mm flexible 25 m roll (5005538),Hornbach.nl,https://www.hornbach.nl/p/pmflex-elektrabuis-flexibel-25-mm-grijs-25-meter/5005538/,10.90,1,10.90,snippet (one roll serves 12 kits)
+Silica gel,10x 5 g sachets,bol.com,https://www.bol.com/nl/nl/p/pro-deals-10-x-zakjes-premium-silicagel-droogmiddel-5-gram-per-droogzakje-silica-gel-desiccant-vocht-absorberend/9300000088030415/,13.95,1,13.95,snippet
+Stake,Wooden stake 50x75x1000 mm (8238913),Hornbach.nl,https://www.hornbach.nl/p/vuren-piketpaal-50-x-75-x-1000-mm-1-stuk/8238913/,4.73,1,4.73,snippet
+Labels,Waterproof cable labels 240 pcs,bol.com,https://www.bol.com/nl/nl/p/240-stuks-kabellabels-zelfklevende-kabellabelstickers-waterdicht-scheurvast-gemakkelijk-te-identificeren-snoer-draadlabels-handgeschreven-kabelidentificatielabels-voor-identificatie-van-draadkabels/9300000195166308/,7.45,1,7.45,snippet
+OPTIONAL 4G router,Teltonika RUT241,Reichelt,https://www.reichelt.com/de/de/shop/suche/rut241,161.90,0,0,yes 2026-09-12 (DE VAT)
+OPTIONAL data SIM,1-2 GB/month data-only,KPN / Simyo,,7.50,0,0,estimate per month

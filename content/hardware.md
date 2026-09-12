@@ -1,10 +1,12 @@
 ---
 title: "Hardware guide: what to buy"
 summary: "Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, and the three standard kits."
-order: 3
+order: 4
 ---
 
 # Hardware guide
+
+> Looking for the one standard set? See [The kit](/docs/kit). This page is the wider market scan behind it.
 
 Prices were checked live on 2026-09-12 and include VAT where the shop shows it. They will drift; the repository is the place to correct them. Everything here was chosen on one criterion: **install once, leave it for years, data comes out without a visit.** Where that is not possible yet (offline recorders), the guide says so.
 
