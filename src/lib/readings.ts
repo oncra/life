@@ -152,13 +152,14 @@ export function autonomy(idx: IdxPoint[], dets: DetPoint[]): ReadingOut {
  * and is limited by moisture (a simple hump around field capacity). We report a
  * relative activity index per year; direction compares the last two years.
  */
-export function cycling(soil: SoilPoint[]): ReadingOut {
+export function cycling(soil: SoilPoint[], optimumVwc = 30): ReadingOut {
   const ok = soil.filter((s) => s.tempC !== null && s.vwc !== null);
   if (ok.length === 0) return { dimension: "CYCLING", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "no soil stream yet: install a moisture and temperature probe" } };
   const activity = (t: number, vwc: number) => {
     const q10 = Math.pow(2, (t - 10) / 10);
     const m = vwc / 100; // vwc given in percent
-    const moist = Math.max(0, 1 - Math.pow((m - 0.3) / 0.25, 2)); // peak near 30% VWC, zero at 5% and 55%
+    const opt = optimumVwc / 100;
+    const moist = Math.max(0, 1 - Math.pow((m - opt) / 0.25, 2)); // hump peaking at the texture-dependent optimum, zero 25 points either side
     return q10 * moist;
   };
   const byYear = new Map<number, number[]>();
@@ -167,7 +168,7 @@ export function cycling(soil: SoilPoint[]): ReadingOut {
   const years = Object.keys(idx).map(Number).sort();
   if (years.length < 2) return { dimension: "CYCLING", direction: "UNKNOWN", confidence: 0.1, maturity: 0, evidence: { note: "one year of soil data; need a second", activityIndexByYear: idx } };
   const rel = (idx[years[years.length - 1]] - idx[years[years.length - 2]]) / Math.max(1e-6, idx[years[years.length - 2]]);
-  return { dimension: "CYCLING", direction: rel > 0.1 ? "RISING" : rel < -0.1 ? "FALLING" : "HOLDING", confidence: 0.3, maturity: 1, evidence: { activityIndexByYear: idx, model: "Q10=2 temperature response x moisture hump (peak 30% VWC)" } };
+  return { dimension: "CYCLING", direction: rel > 0.1 ? "RISING" : rel < -0.1 ? "FALLING" : "HOLDING", confidence: 0.3, maturity: 1, evidence: { activityIndexByYear: idx, model: `Q10=2 temperature response x moisture hump (peak ${optimumVwc}% VWC, from soil texture)` } };
 }
 
 export type Verdict = "thriving" | "holding" | "declining" | "insufficient";

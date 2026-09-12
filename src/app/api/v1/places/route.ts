@@ -69,6 +69,7 @@ export async function POST(req: Request) {
   });
   const stewardKey = newKey("lo_key");
   await prisma.apiKey.create({ data: { name: `steward:${place.slug}`, role: "STEWARD", keyHash: hashKey(stewardKey), placeId: place.id } });
+  await queueJob("context.enrich", place.id);
   await queueJob("satellite.backfill", place.id);
   return json({ place, stewardKey, note: "Store the steward key now; it is not shown again. Satellite backfill queued." }, 201);
 }

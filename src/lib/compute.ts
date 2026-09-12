@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { autonomy, cycling, diversity, periodLabel, productivity, renewal, resilience, structure, verdict, type ReadingOut } from "./readings";
+import { moistureOptimum } from "./context";
 
 export async function computeReadings(placeId: string) {
   const place = await prisma.place.findUniqueOrThrow({ where: { id: placeId } });
@@ -16,7 +17,7 @@ export async function computeReadings(placeId: string) {
     diversity(dets, year),
     structure(idx),
     renewal(dets, place.centroidLat),
-    cycling(soil),
+    cycling(soil, moistureOptimum(((place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct))),
     resilience(pts, place.centroidLat),
     autonomy(idx, dets),
   ];

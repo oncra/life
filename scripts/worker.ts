@@ -8,6 +8,7 @@ import { defaultFrom, ndviForScene, searchScenes } from "../src/lib/satellite";
 import { computeReadings } from "../src/lib/compute";
 import type { PlaceGeometry } from "../src/lib/geo";
 import { pollBirdWeather } from "../src/lib/birdweather";
+import { enrichPlaceContext } from "../src/lib/context";
 
 const CONCURRENCY = Number(process.env.SAT_CONCURRENCY ?? 4);
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
@@ -55,6 +56,7 @@ async function runJob(job: { id: string; kind: string; placeId: string | null })
     if (job.kind === "satellite.backfill" && job.placeId) await satellite(job.placeId, defaultFrom());
     else if (job.kind === "satellite.update" && job.placeId) await satellite(job.placeId, new Date(Date.now() - 45 * 86400e3).toISOString().slice(0, 10));
     else if (job.kind === "readings.recompute" && job.placeId) await computeReadings(job.placeId);
+    else if (job.kind === "context.enrich" && job.placeId) { const s = await enrichPlaceContext(job.placeId); log(`context ${job.placeId}: clay ${s.clayPct}% soc ${s.socPct}% pH ${s.ph} ${s.wrbClass ?? ""}`); }
     else throw new Error(`unknown job ${job.kind}`);
     await prisma.job.update({ where: { id: job.id }, data: { status: "done", finishedAt: new Date(), error: null } });
   } catch (e) {
@@ -78,8 +80,9 @@ async function schedule() {
   }
   if (now - lastSchedule < 6 * 3600e3) return;
   lastSchedule = now;
-  const places = await prisma.place.findMany({ select: { id: true } });
+  const places = await prisma.place.findMany({ select: { id: true, context: true } });
   for (const p of places) {
+    if (!p.context) { const open = await prisma.job.findFirst({ where: { placeId: p.id, kind: "context.enrich", status: { in: ["queued", "running"] } } }); if (!open) await prisma.job.create({ data: { kind: "context.enrich", placeId: p.id } }); }
     const open = await prisma.job.findFirst({ where: { placeId: p.id, kind: { in: ["satellite.update", "satellite.backfill"] }, status: { in: ["queued", "running"] } } });
     if (!open) await prisma.job.create({ data: { kind: "satellite.update", placeId: p.id } });
   }

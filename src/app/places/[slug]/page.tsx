@@ -63,6 +63,9 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
             <li>Soil probes: {devices.filter((d) => d.kind === "SOIL").length}</li>
             <li>Visits: {visits.length}</li>
           </ul>
+          {(() => { const soil = (place.context as { soil?: { clayPct: number; sandPct: number; siltPct: number; socPct: number; ph: number; wrbClass: string | null } } | null)?.soil; return soil ? (
+            <div className="mt-3 text-xs text-muted">Soil (SoilGrids 250 m, ISRIC, CC BY 4.0): {soil.wrbClass ?? "class unknown"}, clay {soil.clayPct}% · sand {soil.sandPct}% · silt {soil.siltPct}% · organic carbon {soil.socPct}% · pH {soil.ph}</div>
+          ) : null; })()}
           {jobs[0] && <div className="mt-3 text-xs text-muted">Last job: {jobs[0].kind} · {jobs[0].status}{jobs[0].error ? ` · ${jobs[0].error.slice(0, 80)}` : ""}</div>}
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <a className="underline" href={`/api/v1/places/${place.slug}`}>JSON</a>

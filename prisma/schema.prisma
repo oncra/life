@@ -59,6 +59,7 @@ model Place {
   stewardName    String?
   stewardContact String?
   public         Boolean  @default(true)
+  context        Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
