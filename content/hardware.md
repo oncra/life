@@ -1,7 +1,7 @@
 ---
 title: "Hardware guide: what to buy"
 summary: "The market behind the standard kit: sound recorders, soil probes, gateways and ready-made devices available today, with prices, where to buy in Europe, and the three alternative sets for places the single 4G node does not suit."
-order: 5
+order: 6
 ---
 
 # Hardware guide

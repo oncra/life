@@ -1,7 +1,7 @@
 ---
 title: "Satellite stream: how it is computed"
 summary: "Exactly what the oracle does with Sentinel-2 for each place, which free sources it uses, and the gotchas it handles."
-order: 12
+order: 13
 ---
 
 # Satellite stream
@@ -33,6 +33,23 @@ Copernicus **Sentinel-2 Level-2A** (surface reflectance, 10 m), found through th
 
 ## Known limits and what comes next
 
+Three of these are limits of ten-metre optical imagery itself, not of this implementation, and the published evidence is
+blunt about them. They are listed first because anyone paying against this stream needs to know them.
+
+- **Greenness saturates in dense canopy.** NDVI loses sensitivity above a certain leaf area, so a closing canopy is
+  understated. This matters here concretely: the food forest at Boer in Natuur reads 0.72 to 0.74 in its best years,
+  inside the saturating range, so its Productivity and its inferred carbon capture are probably conservative.
+  kNDVI (below) reduces it; the real fix is a structural stream, and the ETH global canopy-height layer is specified.
+- **A ten-metre pixel mixes scattered trees with the ground between them.** In agroforestry and hedged farmland the
+  canopy is clustered rather than continuous, which dampens the discriminating power of any vegetation index. Reiner et
+  al. (2023) found 29% of African tree cover missing from coarser maps. Small trees are not reliably visible at this
+  resolution.
+- **Biomass models built on this data do not transfer well across space.** Ploton et al. (2020) showed that models of
+  this class explain most of the variance under ordinary validation and almost none under spatially blocked validation.
+  Kanmegne Tamga et al. (2023), using these same sensors on West African cocoa agroforestry, reported an error of 5.6 to
+  8.5 t/ha against an actual stock of 7.5: the error equalled the thing being measured. This is why the oracle reads
+  **direction against a neighbour crowd** rather than an absolute level, why Productivity is one reading of seven, and
+  why no single index can produce a verdict here.
 - Two tiles can cover the same field on the same day; both are stored. Solar-day de-duplication is specified.
 - No inward buffer yet: a pixel straddling the boundary mixes the neighbour in. One-pixel erosion is specified.
 - Only NDVI. kNDVI (tanh of NDVI squared, less saturation in dense canopies), NDWI and NDMI are specified.

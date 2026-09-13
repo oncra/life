@@ -90,6 +90,28 @@ With all three, the Horaholm box for 2024 would be roughly +1 to +5 t CO₂ per 
 
 At both places the Productivity reading is currently **falling** (single-place, 2025 against the previous three seasons) and the other readings are **unknown**. Under the rule, both projects stay on the registry's full sampling regime. Nothing about their standing changes. What changes is what the next visit measures: cores at two depths, taken where the satellite says the canopy is densest and sparsest, so that the same cores calibrate the light-use efficiency for every arable and every food-forest place after them.
 
+## Why a range that spans zero is the point, not a failure
+
+Both worked examples above end with a lower bound of zero, so the streams alone would issue nothing yet. That reads like
+a weakness. It is the single most important rule in this method, and it is worth saying why in full.
+
+The largest programme in the world paying smallholders on satellite-measured biomass, Rabobank's Acorn, was told the
+following by its own verifier in a published report on a Kenyan project in July 2024: the biomass change being claimed
+was 10.73% of the standing stock, while the model's permitted error was 30%, so that "the allowed maximum error (30%) of
+the model is 2.63 times bigger (280%) than the percentage of the biomass change", and therefore "the actual uncertainty
+in the estimation of the biomass changes, and therefore of the CRUs, is not being addressed". The same report asked what
+should happen to credits already sold but not yet verified. Two years earlier, a different auditor had found a project of
+theirs overestimating removals more than sixfold, with a machine-learning model whose predictions could not go below 3.5
+t/ha on land whose true values reached 0.03.
+
+When the change you are claiming is smaller than the error of the instrument measuring it, there are two possible
+responses. One is to issue anyway and apply a deduction factor. The other is to issue for the bottom of the range and
+wait. This method does the second. A place whose box spans zero earns nothing from carbon until a probe, a declared
+harvest or a set of cores narrows it, and the page says exactly which of those would narrow it most.
+
+That is also why the parameter box here is wide and visible rather than collapsed into a single number. A point estimate
+with a hidden error is worth less than a range you can argue with.
+
 ## What this does and does not claim
 
 - It infers a **flux** (net change per year), while the registry's land calculation projects a **stock** change to a target over twenty years. The two are compared per year: the registry's twenty-year projection is a per-year flux claim of its own.

@@ -1,7 +1,7 @@
 ---
 title: "Installation protocol: sound recorder"
 summary: "Height, orientation, spacing, schedule and maintenance for the node and for the alternative sets, so that recordings from different places are comparable."
-order: 7
+order: 8
 ---
 
 # Installation protocol: sound recorder

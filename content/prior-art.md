@@ -1,7 +1,7 @@
 ---
 title: "Prior art: what exists, what is new"
 summary: "A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, checked 2026-09-12 and rechecked for devices on 2026-09-13, and an honest account of which parts of this design are borrowed and which are not."
-order: 14
+order: 15
 ---
 
 # Prior art
@@ -84,6 +84,65 @@ On the soil side there is one product that could replace this half of the node o
 What none of them do is the combination. There is no product that hears, reads the soil, carries both over one cellular link, and posts the result to a registry that the landowner and anyone else can read. The nearest buyable approximation is a PUC plus an FS31, roughly €664 and €89 a year, and it fails at the first field without WiFi. Adding a 4G router to rescue it reconstructs the €1,110 distributed set this kit replaced.
 
 Free-kit programmes for farmers exist only for air quality (Boer aan het Roer, Snuffelfiets); biodiversity hardware stays with institutes (DIOPSIS, AgZero+, BioMonitor4CAP) or is paid by a corporate buyer (Pilgrim's with Chirrup). Farmers in BioMonitor4CAP flagged data privacy and theft as the two recurring problems.
+
+## The closest working precedent: Acorn
+
+Everything above is about how condition is defined. This section is about what happens when someone actually pays land
+stewards on remote sensing at scale, because exactly one organisation has done it in large numbers and its record is
+public. Read on 2026-09-13 from the methodology modules, five audit reports and the Verra and Plan Vivo registries rather
+than from press coverage.
+
+**What it is.** Acorn B.V. (Utrecht, a wholly owned Rabobank subsidiary) runs a carbon programme for smallholder
+agroforestry: **591,761 farmers, 555,559 ha, 487,196 t CO₂ and €8.8M paid to farmers** as published in September 2026,
+running since 2019 or 2020. Certified by Plan Vivo, whose library carries Acorn's method as PM002 v1.0 (active 29
+September 2025, reviewed by Plan Vivo's technical panel and AENOR). Two Verra projects exist under VM0047, both still in
+validation with no credits issued.
+
+**How it measures.** Above-ground biomass density per plot from Sentinel-2 at 10 m fused with Sentinel-1, with airborne
+LiDAR or GEDI for structural calibration, through a machine-learning regression whose architecture is not published.
+Below-ground is inferred from a root-to-shoot ratio; **soil carbon is excluded**. Ground truth is 1-ha plots measured by
+the local partner at an intensity of **at least 30 plots per ecoregion, refreshed every five years**, not per project and
+not per farm. Verification is at programme level on a statistical sample of projects; under their sampling procedure
+credits may be issued before any third-party audit, and validation happens once per project.
+
+**What we adopt from it.** Calibrating the stratum rather than the site, and auditing a sample of the programme rather
+than every place every year. Those two moves are why verification can stop scaling with the number of farms, and they
+appear in this design as the neighbour crowd and the random draw.
+
+**What the audits found, twice.** In Côte d'Ivoire (Preferred by Nature, 30 June 2022) the credits were found to
+overestimate removals more than sixfold. The causes were a planting density assumed at 50 trees per hectare where the
+auditor counted about six; two remote-sensing partners applying the same model to the median pixel and to every pixel
+respectively, with identical accuracy statistics and materially different biomass; ground truth too sparse for outlier
+detection; and a calculation the auditor could not reproduce. Underneath sat range compression: the partner's own table
+shows training data reaching down to 0.03 t/ha while the model's predictions bottomed out at 3.5, which is precisely the
+newly-planted case.
+
+In Kenya (Preferred by Nature, 11 July 2024) the same defect appeared in a form that names the general problem: the
+biomass change claimed was 10.73% of the stock while the model's permitted error was 30%, so the error was 2.63 times
+larger than the signal, and the verifier concluded that the real uncertainty "is not being addressed".
+
+Three further findings matter for anyone designing a payment system. The **ground truth** was the part that failed
+audit, not the satellite: a Kenyan verification re-measured plots and found trees grouped by a rule absent from the
+protocol, heights measured incorrectly, 60% and 18% more trees counted than the project had, and results 2.6 times
+lower overall. In **four of five audited projects farmers had not been paid at the time of audit**, one of them still
+unpaid at re-validation two years on, with one project's entire grievance log being about payment timing. And a
+**government claim** ended the Ivorian project: the state asserted that credits from 2020 to 2024 belonged to it under a
+2021 decree, the area already being inside a World Bank programme; issuance froze at 122,457 units across roughly 16,200
+farmers and no public resolution exists.
+
+**Why their stated accuracy floor does not protect much.** The rule is R² of at least 0.7 and normalised error of at most
+30%. The error is normalised by the range of the calibration set rather than its mean, so on a set running 0.03 to 463.5
+t/ha that permits an absolute error near 139 t/ha on plots holding about 7. The uncertainty deduction takes a quarter of
+whatever exceeds 50%, which in the approver's own worked example turns 70% uncertainty into a 5% deduction. And the
+uncertainty term is built on the standard error of the mean, so adding calibration plots lowers every prediction's
+reported uncertainty without the model improving.
+
+None of this is a reason to dismiss the programme. It is the most valuable body of evidence available to anyone building
+in this space, it is public because its certifier and auditors published it, and the methodology was rewritten in
+September 2025 to address much of it. It is the direct source of the nine measurement rules in the
+[specification](/docs/spec), section 5b. The general lesson is the one this whole design is built around: a single
+number with no second witness, carrying a payment, fails in exactly this way, and the failure is invisible until someone
+walks the field.
 
 ## What this means for the standard
 

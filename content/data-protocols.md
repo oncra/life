@@ -1,7 +1,7 @@
 ---
 title: "Data delivery protocols"
 summary: "How detections, acoustic indices and soil readings get into the oracle: the node, direct API, The Things Stack webhook, BirdNET-Pi, AudioMoth cards, BirdWeather."
-order: 9
+order: 10
 ---
 
 # Data delivery protocols

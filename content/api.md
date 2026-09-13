@@ -1,7 +1,7 @@
 ---
 title: "API"
 summary: "Endpoints, authentication, and examples for reading verdicts and delivering data. Machine-readable spec at /api/v1/openapi.json."
-order: 11
+order: 12
 ---
 
 # API v1

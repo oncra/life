@@ -119,6 +119,15 @@ Carbon change follows from what the streams already see: satellite gives capture
 
 **Issue for the lower bound, release as confidence grows.** Carbon change is a range. Credits are issued for the bottom of it. Each season the streams keep agreeing, the range narrows and more releases, the way a vintage matures. Uncertainty costs the claimant time, not lab money, and rewards keeping the place alive for years.
 
+## What it would take to pay a place
+
+Cheap proof is only half of the argument; the other half is what the proof connects to. The money that already flows to
+land stewards for ecological outcomes is large, slow and expensive to administer, while the market for biodiversity
+credits specifically is tiny. So the aim is not a new credit. It is a published tariff paid on a verdict, per hectare per
+season, with a connection payment so that nobody has to front the cost of being measured, and the balance released as
+confidence grows. The design, its costs, and the three roles that must never be merged are in
+[How a place could earn](/docs/money). It is a proposal, not an offer: nothing is being paid yet.
+
 ## Where Oncra fits
 
 Oncra's registry is already a one-dimensional life oracle, for carbon: methodology, verification, buffer pool, vintages, public ledger. The structure is right and the dimension is too narrow. Two moves: add the life readings as gates on carbon credits (a removal that lowers Diversity, Cycling or Autonomy at the place does not certify), then lift the gates out as this standalone oracle, with the carbon registry as its first paying user. This site runs on its own server on purpose; the registry has to keep running flawlessly while this grows. Integration comes later, by API.

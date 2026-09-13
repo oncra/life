@@ -101,6 +101,37 @@ Consecutive periods with the same direction. Users who pay on verdicts are expec
 
 Built: a yearly net ecosystem carbon balance per place as a low/central/high range (`src/lib/carbon.ts`, `GET /api/v1/places/{id}/carbon`): NPP from monthly fAPAR (from NDVI) × PAR climatology × light-use efficiency by vegetation class, GPP→NPP 0.45 to 0.55; heterotrophic respiration from a reference rate by vegetation class × Q10 (1.8 to 2.4) × moisture hump with texture-dependent optimum, integrated from the soil stream or, without a probe, from a soil-temperature climatology; harvest export as a land-use fraction of NPP. Low/high are the corners of the parameter box; issuable = max(0, low) × area. Method and a worked example on two Oncra projects: [How carbon is inferred](/docs/carbon). Specified: per-place calibration of the light-use efficiency against cores at two depths once per soil type; declared yields and imports; manure; the sampling gate: all life readings rising or holding → light (one core set per soil type per decade); any life reading falling or unknown → full methodology sampling. Credits issue for the lower bound and release as the range narrows with maturity.
 
+## 5b. Measurement rules (built as constraints on every stream)
+
+Nine rules that govern any model or statistic this oracle uses. They are written down because the largest working
+precedent for paying land stewards on remote sensing, Rabobank's Acorn programme, was found by its own auditors to
+break several of them, twice, in public. The evidence is in [Prior art](/docs/prior-art); these are the rules we took
+from it.
+
+1. **Never credit a change smaller than the instrument error.** If the uncertainty of a quantity exceeds the change
+   being claimed in it, the answer is a range whose lower bound is what issues, and a range spanning zero issues
+   nothing. No deduction factor substitutes for this.
+2. **Normalise error by the mean, not the range.** An error normalised by the spread of the calibration set can hide an
+   absolute error many times the value being measured on small places.
+3. **Validate spatially blocked.** Hold out whole regions, never random plots. Models of this class routinely explain
+   most of the variance under ordinary cross-validation and almost none once the held-out data are spatially
+   independent (Ploton et al. 2020). Our neighbour-crowd reference is a spatial construct and would inherit the same
+   illusion.
+4. **Use prediction error, not the standard error of the mean.** Dividing residual spread by the square root of the
+   sample understates per-place uncertainty and rewards adding calibration points over improving the model.
+5. **No confidence gate that is cosmetic at realistic uncertainty.** If a gate does not bite at the uncertainty actually
+   observed, it is decoration. Gates are tested against the real error distribution before they ship.
+6. **Never apply a model outside the stratum it was calibrated in.** No adjacency exemption.
+7. **Publish money paid per steward per season, never stewards enrolled.** Enrolment is a vanity metric.
+8. **A visit that is not reproducible is not ground truth.** Visits follow a written sampling procedure, by trained
+   observers, with a second observer on a fraction of them.
+9. **Before any payment flows in a country, establish what the state claims.** Check for an overlapping national
+   programme and obtain a letter of no objection. Rights to an outcome can already be spoken for.
+
+What we do adopt from the same precedent, because it is what makes cheap verification possible at all: **calibrate the
+stratum rather than the site**, and **audit a sample of the programme rather than every place every year**. Those are
+the neighbour crowd and the random draw in this design.
+
 ## 6. Self-audit (specified)
 
 Every method version is identified (`v0.1`). Readings carry the version. Places judged in a version are revisited at +5 and +10 years with full sampling; the gap between verdict and outcome is published per version as the drift ledger.
