@@ -1,6 +1,6 @@
 ---
 title: "The kit: one box on one post"
-summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €520 in parts, half the earlier set. Order list with suppliers, checked 2026-09-12."
+summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €520 in parts, half the earlier set. Order list with suppliers and direct order links, checked 2026-09-13."
 order: 3
 ---
 
@@ -68,4 +68,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries the same lines with URLs, quantities and a verified/estimate flag per line.
+`kit/order-list.csv` in the repository carries the same lines with a direct order link per item, quantities, and a check date. It is split into two baskets: **bench** (about €176: computer, storage, microphone, probes, a USB-RS485 adapter that is in stock today) and **field** (about €337: modem, SIM, panel, battery, charge controller, scheduler, enclosure, mount). The bench basket carries every unverified thing in the design, so it is worth building and testing on a desk before the field parts arrive.
