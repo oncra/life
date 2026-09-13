@@ -23,12 +23,16 @@ import { moistureOptimum } from "./context";
 const GLOBAL_RADIATION_NL = [63, 112, 240, 385, 505, 530, 515, 435, 290, 170, 78, 47];
 const PAR_FRACTION = 0.45;
 
-/** Light-use efficiency for GPP, g C per MJ PAR absorbed (low, high). Crops and grass in temperate climate. */
-const LUE_GPP = { low: 1.6, high: 2.4 };
+/** Light-use efficiency for GPP, g C per MJ PAR absorbed (low, high), by vegetation class. */
+const LUE_GPP = { herbaceous: { low: 1.6, high: 2.4 }, woody: { low: 1.0, high: 1.6 } };
 const NPP_OVER_GPP = { low: 0.45, high: 0.55 };
 
-/** Heterotrophic respiration reference rate at 10 °C and optimum moisture, t C/ha/yr equivalent (low, high). */
-const RH_REF = { low: 3.0, high: 5.0 };
+/** Heterotrophic respiration reference rate at 10 °C and optimum moisture, t C/ha/yr equivalent (low, high), by vegetation class. */
+const RH_REF = { herbaceous: { low: 3.0, high: 5.0 }, woody: { low: 3.5, high: 6.0 } };
+
+function vegClass(landUse: string | null | undefined): "herbaceous" | "woody" {
+  return /forest|agroforestry|orchard|wood|tree|bos/i.test(landUse ?? "") ? "woody" : "herbaceous";
+}
 const Q10 = { low: 1.8, high: 2.4 };
 
 /** Carbon exported in harvest as a fraction of NPP, by land use (low, high). */
@@ -99,7 +103,9 @@ export function carbonForYear(year: number, sat: SatPoint[], soil: SoilPoint[], 
   for (let i = 0; i < 12; i++) if (!Number.isNaN(fp[i])) apar += GLOBAL_RADIATION_NL[i] * PAR_FRACTION * fp[i];
   apar *= 12 / covered; // scale for months not seen
   const mid = (r: { low: number; high: number }) => (r.low + r.high) / 2;
-  const npp = { low: (apar * LUE_GPP.low * NPP_OVER_GPP.low) / 100, mid: (apar * mid(LUE_GPP) * mid(NPP_OVER_GPP)) / 100, high: (apar * LUE_GPP.high * NPP_OVER_GPP.high) / 100 };
+  const cls = vegClass(landUse);
+  const lue = LUE_GPP[cls], rhRef = RH_REF[cls];
+  const npp = { low: (apar * lue.low * NPP_OVER_GPP.low) / 100, mid: (apar * mid(lue) * mid(NPP_OVER_GPP)) / 100, high: (apar * lue.high * NPP_OVER_GPP.high) / 100 };
 
   // Rh: annual mean of the Q10 × moisture scalar relative to (10 °C, optimum), times the reference rate
   const opt = moistureOptimum(clayPct) / 100;
@@ -119,7 +125,7 @@ export function carbonForYear(year: number, sat: SatPoint[], soil: SoilPoint[], 
     for (const t of SOIL_TEMP_NL) { scalarLow += Math.pow(Q10.low, (t - 10) / 10) * 0.8; scalarMid += Math.pow(q10mid, (t - 10) / 10) * 0.8; scalarHigh += Math.pow(Q10.high, (t - 10) / 10) * 0.8; }
     scalarLow /= 12; scalarMid /= 12; scalarHigh /= 12;
   }
-  const rh = { low: RH_REF.low * Math.min(scalarLow, scalarHigh), mid: mid(RH_REF) * scalarMid, high: RH_REF.high * Math.max(scalarLow, scalarHigh) };
+  const rh = { low: rhRef.low * Math.min(scalarLow, scalarHigh), mid: mid(rhRef) * scalarMid, high: rhRef.high * Math.max(scalarLow, scalarHigh) };
 
   const ef = pickExport(landUse);
   const exp = { low: npp.low * ef.low, mid: npp.mid * mid(ef), high: npp.high * ef.high };

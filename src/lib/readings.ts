@@ -64,7 +64,7 @@ export function productivity(points: SatPoint[], lat: number, currentYear: numbe
     const dir: Direction = d > 0.03 ? "RISING" : d < -0.03 ? "FALLING" : "HOLDING";
     if (dir === direction) maturity++; else break;
   }
-  return { dimension: "PRODUCTIVITY", direction, confidence, maturity, evidence: { lastSeason: last, referenceMedian: ref, delta, seasons: complete } };
+  return { dimension: "PRODUCTIVITY", direction, confidence, maturity, evidence: { lastSeason: last, referenceMedian: ref, delta, seasons: complete, note: "single-place reading: the last growing season against the place's own previous three; regional weather (a dry spring, a wet summer) is not yet subtracted because the neighbour crowd is not built" } };
 }
 
 export function resilience(points: SatPoint[], lat: number): ReadingOut {
