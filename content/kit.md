@@ -6,7 +6,7 @@ order: 3
 
 # The kit: Life node v1
 
-One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices checked on live shop pages on 2026-09-12 and rechecked with the order list on 2026-09-13, incl. VAT.
+One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices checked on live shop pages on 2026-09-12 and rechecked, with the order list regrouped into shop baskets, on 2026-09-13. Incl. VAT.
 
 ## Why one box
 
@@ -31,7 +31,7 @@ The node folds all of it into one enclosure:
 | 6 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68 (Seeed S-Soil MTEC-02A with EC, €107 each, as the upgrade) | Berrybase | 2 × €26.90 = €53.80 |
 | 7 | RS485 adapter | Waveshare industrial USB to RS485 | Opencircuit | €13.50 |
 | 8 | Probe cable | outdoor 4-core 0.75 mm², 20 m, plus junction | Elektramat / Hornbach | ~€25 |
-| 9 | Solar panel | Offgridtec 50 W mono 12 V (the 30 W at €25.98 does not carry December) | offgridtec.com | ~€40 |
+| 9 | Solar panel | 100 W mono 12 V. A 50 W panel harvests in December exactly what the node eats, which is not a margin | offgridtec.com | ~€60 |
 | 10 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €41.64 (another shop lists €82.95; check) |
 | 11 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | Obelink | €49.90 |
 | 12 | 12 to 5 V buck | 5 V 3 A USB-C step-down (Pololu D24V22F5 €22.55 if you want the good one) | Kiwi / Eckstein | ~€10 |
@@ -45,7 +45,7 @@ The node folds all of it into one enclosure:
 ## What was traded
 
 - **Compute instead of radio.** A Pi 4 draws about 3 W while listening. That is the price of doing BirdNET at the edge; the reward is a ten-year SIM and no network on the farm.
-- **Scheduled, not continuous.** A 50 W panel yields about 50 Wh a day in a Dutch December (PVGIS, 45° south). A Pi 4 plus modem running all day needs about 75 Wh. So the node listens on a schedule: from an hour before sunrise to five hours after, and around sunset, ten hours a day, about 35 Wh. The 18 Ah battery then carries five dark days. In summer the schedule extends into the night for crickets and frogs. Acoustic-index variance stabilises after about 120 hours of recording, so a schedule reads the same directions as a continuous stream.
+- **Scheduled, not continuous, and seasonal.** PVGIS 5.2 for 52.1° N at 45° south gives a 50 W panel about 50 Wh a day in December and 200 Wh in June. A Pi 4 running BirdNET with a 4G stick attached draws somewhere between 3.5 and 7 W; at 5 W for ten hours that is 50 Wh a day, which in December is exactly the harvest and therefore no margin at all. So two things changed after the design was stress-tested: the panel is 100 W, and the schedule is seasonal rather than fixed, dropping to five or six hours a day from November to January. In summer it extends into the night for crickets and frogs. Acoustic-index variance stabilises after about 120 hours of recording, so a schedule reads the same directions as a continuous stream. **The draw itself is still an estimate**: measure it with an inline USB meter on the bench before trusting any of these numbers.
 - **Wired probes, one place per box.** Two probes on one 20 m cable run: 10 cm and 30 cm at one spot, 15 to 20 m into the field from the post.
 - **Moisture and temperature, not EC.** The soil-breathing reading needs only those two. EC (nutrient leakage) is the first upgrade, with the Seeed probe.
 
@@ -55,7 +55,7 @@ The node folds all of it into one enclosure:
 
 - **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
-- **Do not cut**: the MPPT charge controller for a PWM one, and the endurance SD card. December yield is about 50 Wh a day against a 35 Wh draw, so a 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Seventeen euros of SD card is cheaper than a site visit.
+- **Do not cut**: the MPPT charge controller for a PWM one, the endurance SD card, the panel back down to 50 W, or the surge protection on the RS485 adapter. A 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Twenty-nine euros of SD card is cheaper than a site visit, and the twenty-metre probe cable is a lightning collector in an open field.
 
 That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €520.
 
@@ -68,6 +68,19 @@ That lands a field node near €300 to €330 and a bench node near €85. Those
 
 On the farm: post, box, panel facing south, probes in. "Last seen" turns green on the place page within twenty minutes.
 
+## Where this design is most likely to fail
+
+Written down so that the first build knows what to watch, and so that a later failure is a confirmed prediction rather than a surprise. In rough order of how likely each one is to bite.
+
+1. **Winter power.** The largest risk and the reason the panel went from 50 to 100 W. The harvest figure is solid (PVGIS); the draw figure is not, because nobody has measured this node yet. If the real draw is 7 W rather than 5, a 50 W panel misses December by 20 Wh a day and the 230 Wh battery covers nine days before the node goes dark, less after an overcast week. Measure first, then size.
+2. **The battery will not charge below freezing.** LiFePO4 suffers lithium plating if charged below 0 °C, and the damage is cumulative and permanent. A good BMS refuses the charge, which protects the cells and flattens the node instead. In a Dutch frost week both outcomes are an outage. Check the cutoff on the datasheet, insulate the battery inside the enclosure, and let the electronics' waste heat work for you.
+3. **The buffered queue lives in RAM.** `life-soil-agent.py` writes its offline queue to `/var/lib/life-node/`, and the provisioning script switches the root filesystem to a read-only overlay. Under that overlay the queue is in RAM, so a power cut loses exactly the readings the queue exists to protect. It needs a small writable partition.
+4. **Heat in a sealed box.** An IP65 enclosure in full sun runs well above ambient, and a Pi 4 throttles at 80 °C. Mount the box on the shaded face of the post, let the panel shade it, and fit one vented membrane gland. The same gland handles condensation, which is the winter version of the same problem.
+5. **The probes draw power all day.** Two RS485 probes left powered pull roughly 0.4 W around the clock, close to 10 Wh a day, which is a fifth of the December budget for readings taken every twenty minutes. Switch them with the Pi's rail rather than wiring them straight to the battery.
+6. **A hung node is silent.** Nothing recovers a wedged Pi. `lastSeenAt` on the place page tells the oracle something is wrong, but only a visit fixes it. Enable the Pi's hardware watchdog and the scheduler's heartbeat; both are free.
+7. **The register maps are from datasheets.** Three probe profiles in the agent, none verified against a physical probe. Expect one to be wrong and plan the bench session around finding out.
+8. **The 4G stick next to a steel plate.** The chosen enclosure ships with a galvanised steel mounting plate. Keep the modem and its antenna away from it, or accept a weaker signal than the coverage map promises.
+
 ## When the farm network does reach the field
 
 If a place has WiFi at the field edge (a barn, a house), the earlier distributed set still works and needs no compute: a BirdWeather PUC (€289) on a Voltaic always-on battery, LoRaWAN probes and a gateway on the window sill. It is listed in the [hardware guide](/docs/hardware). The node is the default.
@@ -78,4 +91,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries the same lines with a direct order link per item, quantities, and a check date. It is split into two baskets: **bench** (about €176: computer, storage, microphone, probes, a USB-RS485 adapter that is in stock today) and **field** (about €337: modem, SIM, panel, battery, charge controller, scheduler, enclosure, mount). The bench basket carries every unverified thing in the design, so it is worth building and testing on a desk before the field parts arrive.
+`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter, which clears their free-shipping threshold on its own. **B** reichelt, about €100: enclosure, glands, charge controller. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops instead of ten, for about €528. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.
