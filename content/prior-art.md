@@ -1,6 +1,6 @@
 ---
 title: "Prior art: what exists, what is new"
-summary: "A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, checked 2026-09-12, and an honest account of which parts of this design are borrowed and which are not."
+summary: "A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, checked 2026-09-12 and rechecked for devices on 2026-09-13, and an honest account of which parts of this design are borrowed and which are not."
 order: 14
 ---
 
@@ -10,7 +10,7 @@ Checked on live pages on 2026-09-12. The purpose is to say plainly what this des
 
 ## The short version
 
-Four of our rules have clear ancestors. Three do not, as far as we could find.
+Four of our rules have clear ancestors. Six do not, as far as we could find.
 
 | Rule in this design | Ancestors | Status |
 | --- | --- | --- |
@@ -22,6 +22,7 @@ Four of our rules have clear ancestors. Three do not, as far as we could find.
 | Life as the sensor: birds and bats as the insect reading, breeding song as renewal, machine noise as autonomy | Sentinel-species literature (Clark-Wolf 2024; Hazen 2024); Sethi 2023: soundscape change tracks community change even when indices do not predict richness | **Framing is new**; the science underneath is established |
 | Field visits triggered by disagreement between streams, plus a random draw | Adaptive sampling literature (Mondain-Monval 2024; active learning); Savimbo audits a random subset of observations; IAPB asks for triangulation when the data collector is the beneficiary | **Not found as a framework rule** |
 | A published ledger of the method's own drift | BeZero's annual rating transition study and versioned methodologies; Sylvera's locked framework versions; WFD intercalibration | **Not found in nature monitoring.** Carbon-credit rating agencies are the nearest |
+| One field device that carries all three streams to an open registry | Rechecked against the live market on 2026-09-13. Listening: BirdWeather PUC (€289, BirdNET on the device, public API, no subscription, WiFi only); EasyComp Zeeland Watch House Field Pro (€245 plus €15/month for 10 GB, 4G and solar, ships audio rather than detections); Bugg v4 (cellular and off-grid solar, but cloud inference, hardware only, no published price); Haikubox and Song Meter Micro 2 (consumer WiFi, and an SD-card recorder). Soil: Farm21 FS31 (€375 plus €89 per sensor per year, NB-IoT with the SIM included, REST API); SenseCAP S2105 and Sensoterra (LoRaWAN, gateway required) | **Not found.** Every product covers one stream. Each one either keeps the readings in the vendor's cloud or on a card in a field. Nothing combines species detection at the edge, wired soil probes and a cellular link frugal enough to live on a ten-year 500 MB SIM, and nothing posts to a registry the owner of the land can read |
 | A one-click multi-sensor set for landowners with open data | Chirrup (posted recorder, acoustics only, price on request); EasyComp Zeeland BirdNET boxes (€110 to €245); Faunabit DIOPSIS (lease, price on request); Pivotal (enterprise only) | **Not found.** In the Netherlands roughly 1,045 BirdWeather stations and 1,600 Sensor.Community sites already exist, so an open kit lands in a populated ecosystem |
 
 ## Credit methodologies
@@ -72,13 +73,23 @@ Four of our rules have clear ancestors. Three do not, as far as we could find.
 
 No one sells a landowner-facing, install-once, multi-sensor set with a published price and open data. Single-modality services exist: Chirrup (bird recorder posted to the farm for 14 to 21 days, a "biodiversity score" with undisclosed method, price on request), Wilder Sensing (analysis of your own recorders, £400 to £800 per recorder per year), AgriSound Polly (insect acoustics, price on request), NatureMetrics (eDNA kits at £335 including lab, and a 0 to 100 Ecosystem Condition Index for UK rivers), Faunabit DIOPSIS (insect camera, buy or lease, price on request). Pivotal integrates cameras, acoustics, drones, eDNA and satellite for enterprise clients and keeps the metrics separate. Carbon MRV firms (CarbonSpace under $5/ha, Kanop with per-pixel confidence intervals) publish uncertainty but not biodiversity.
 
+### Devices you can buy today, rechecked 2026-09-13
+
+The question behind this scan is whether the kit could simply be bought. For each half of it, separately, almost. For the whole of it, no.
+
+On the listening side several products already do what the node's Raspberry Pi does, and two of them do it better. The **BirdWeather PUC** (€289 at Veldshop, NL) runs BirdNET on the device for 6,424 bird species plus frogs and some insects, publishes a public API and a CSV export, and charges no subscription. It is the closest thing to a reference implementation of this half of the design, and this oracle already polls it. Its single constraint is the one that shaped the whole node: it speaks WiFi and nothing else, and most fields have no WiFi. **EasyComp Zeeland's Watch House Field Pro** (€245, "coming soon" on the day of checking) does add 4G and a 10 to 20 W panel, at €15 a month for 10 GB. That price is the architectural argument in one line: their box ships audio, this one ships detections, which is why a €12 SIM lasts ten years here. **Bugg v4** has the cellular link and the off-grid solar but runs inference in the cloud, is sold by pre-order through GroupGets, publishes no price, and states plainly that it currently provides hardware and not analyses or dashboards. **Haikubox** ($399 with five years included, $59 a year after) is a closed consumer platform on WiFi. The **Wildlife Acoustics Song Meter Micro 2** (about $202) is a recorder, not a monitor: no link, no classification, a card to fetch. **RFCx Guardian 3** is solar and cellular and real-time, but it is built for chainsaw detection and distributed through programmes rather than sold. **Microsoft SPARROW** (Jetson Orin Nano plus Starlink) and **Bird@Edge** (ESP32 microphone nodes reporting to a Jetson base, about €110 in parts) are open reference designs rather than products, and both are worth reading before anyone builds a v2 board.
+
+On the soil side there is one product that could replace this half of the node outright. **Farm21's FS31** (€375, plus €89 per sensor per year) has NB-IoT and LTE-M with 2G fallback and the SIM included, needs no gateway, runs about a year on a charge, reads moisture at 0 to 10, 10 to 20 and 20 to 30 cm and temperature at two depths, and publishes a REST API. Against two €26.90 wired probes it costs about €280 more up front and €89 a year, and it puts a company between a place and its own readings. **SenseCAP S2105** (€129.99 excluding VAT) and **Sensoterra** (price on request) are both LoRaWAN, which means the gateway this design was built to avoid.
+
+What none of them do is the combination. There is no product that hears, reads the soil, carries both over one cellular link, and posts the result to a registry that the landowner and anyone else can read. The nearest buyable approximation is a PUC plus an FS31, roughly €664 and €89 a year, and it fails at the first field without WiFi. Adding a 4G router to rescue it reconstructs the €1,110 distributed set this kit replaced.
+
 Free-kit programmes for farmers exist only for air quality (Boer aan het Roer, Snuffelfiets); biodiversity hardware stays with institutes (DIOPSIS, AgZero+, BioMonitor4CAP) or is paid by a corporate buyer (Pilgrim's with Chirrup). Farmers in BioMonitor4CAP flagged data privacy and theft as the two recurring problems.
 
 ## What this means for the standard
 
 - Cite the ancestors: WFD, IUCN RLE, EII and the Biodiversiteitsmonitor for the verdict rule; RIVPACS for the reference crowd; Accounting for Nature and WFD for confidence reporting; Sethi 2023 for direction-over-level.
 - Own the critique: the known failure of one-out-all-out is over-reporting failure under uncertainty. This design's confidence and unknown fields are the mitigation, and the drift ledger is how we will find out whether it works.
-- The three claims we make as new, and will defend until someone shows prior art: a fused three-stream site verdict; disagreement-triggered visits with a random draw as a framework rule; a published self-audit of method drift in nature monitoring.
+- The four claims we make as new, and will defend until someone shows prior art: a fused three-stream site verdict; disagreement-triggered visits with a random draw as a framework rule; a published self-audit of method drift in nature monitoring; and a single field device that carries species detection, soil and a cellular link into an open registry, which on a live market check no vendor sells.
 
 ## Sources not reachable today
 

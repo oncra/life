@@ -75,6 +75,14 @@ The oracle works the same way.
 
 That is all the routine hardware. No traps, no lab samples on a calendar, no surveys. Field visits with soil cores, DNA samples or insect counts are not scheduled. They are triggered when the streams disagree, plus a small random draw so nobody knows in advance who gets checked.
 
+### Why this has to be built rather than bought
+
+Every part of that box is on sale today. Species recognition at the edge is a solved problem: a €289 BirdWeather PUC runs it for 6,424 species and publishes an open API. Cellular soil probes are ordinary: Farm21 sells one with the SIM included and a REST API. Solar power for a three-watt load is a commodity. On a live scan of the market on 2026-09-13 we could not find a single product that does all of it at once, and the pattern in the near misses is consistent. The listening boxes that are cheap speak WiFi, which most fields do not have. The one that speaks 4G ships audio rather than detections, so it costs €15 a month instead of €12 for ten years. The device with cellular and solar runs its inference in someone else's cloud. The soil probes that need no gateway are sold by the company that then holds the readings.
+
+That is not an engineering gap. It is what the market is for. These devices are sold in order to deliver data into the seller's platform, so nobody has a commercial reason to build the one that delivers it into somebody else's, least of all into a public registry the landowner can read and fork. The missing product is missing because the thing it would enable, a place's own evidence belonging to the place, is not a product.
+
+So the kit is part of the standard, not an accessory to it. About €520 in parts, a published bill of materials, and software anyone can audit or rebuild: [the kit](/docs/kit). The evidence behind the claim, device by device with prices and dates, is in [Prior art](/docs/prior-art) and the [hardware guide](/docs/hardware). If someone does sell the whole thing, we would rather buy it, and a correction by pull request is the fastest way to tell us.
+
 ## Seven readings, one verdict
 
 | Reading | What life is doing | Read from |
@@ -129,7 +137,7 @@ Does not yet: compare a place against its neighbour crowd (the regional referenc
 
 ## Related work
 
-A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, with an account of what here is inherited and what is new, is in [Prior art](/docs/prior-art). Short form: the weakest-link verdict has ancestors in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; the fused three-stream verdict, disagreement-triggered visits and the published drift ledger do not.
+A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, with an account of what here is inherited and what is new, is in [Prior art](/docs/prior-art). Short form: the weakest-link verdict has ancestors in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; the fused three-stream verdict, disagreement-triggered visits, the published drift ledger and a single field device carrying all three streams into an open registry do not.
 
 ## Join
 

@@ -1,6 +1,6 @@
 ---
 title: "Hardware guide: what to buy"
-summary: "Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, and the three standard kits."
+summary: "Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, the three standard kits, and a scan of the ready-made devices that cover part of the job."
 order: 5
 ---
 
@@ -116,6 +116,44 @@ On flat farmland expect 3 to 8 km from a mast-mounted outdoor gateway, 1 to 2 km
 
 **NB-IoT alternative** where there is no LoRaWAN: Dragino SE01-NB (€133 at Antratek) with a 1NCE SIM (€12 for ten years, 500 MB).
 
+## Ready-made alternatives: can you skip the build?
+
+Checked live on 2026-09-13. Prices include VAT where the shop shows it. The short answer: for either half of the node, nearly. For the whole node, no. Nobody sells it.
+
+### Listening, assembled
+
+| Product | Price | Link | Connectivity | Inference | Data |
+| --- | --- | --- | --- | --- | --- |
+| BirdWeather PUC | €289 | [veldshop.nl](https://www.veldshop.nl/en/birdweather-puc.html) | WiFi only | on device, 6,424 birds plus frogs and some insects | public API, CSV, no subscription |
+| EasyComp Watch House Field Pro | €245 plus €15/month for 10 GB | [easycompzeeland.nl](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/) | 4G modem, 10 to 20 W solar | BirdNET-Pi on the device | your own instance. "Coming soon" on the check date |
+| EasyComp Watch House Basic / Plus | €110 / €155 | same | WiFi | BirdNET-Pi | Basic ships today, mains powered |
+| Bugg v4 | not published | [bugg.xyz](https://www.bugg.xyz/) | 3G/4G, off-grid solar | cloud | pre-order via GroupGets; "hardware, not analyses or dashboards" |
+| Haikubox | $399 with 5 years, then $59/year | [haikubox.com](https://haikubox.com/collections/all) | WiFi | on device | closed consumer platform |
+| Song Meter Micro 2 | about $202 | [wildlifeacoustics.com](https://www.wildlifeacoustics.com/products/song-meter-micro-2) | none | none | SD card |
+| RFCx Guardian 3 | not retail | [rfcx.org/guardian](https://rfcx.org/guardian) | cellular, solar | on device | programme deployments |
+
+The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: their box ships audio, ours ships detections, so a €12 SIM covers ten years instead of €180 a year.
+
+Two open reference designs are worth reading before anyone builds a v2 board: [Microsoft SPARROW](https://microsoft.github.io/SPARROW/) (Jetson Orin Nano with Starlink, solar, edge inference) and [Bird@Edge](https://jonashoechst.de/assets/papers/hoechst2022birdedge.pdf) (ESP32 microphone nodes reporting to a Jetson base, about €110 in parts). Neither is a product.
+
+### Soil, assembled
+
+| Product | Price | Link | Connectivity | Depths |
+| --- | --- | --- | --- | --- |
+| Farm21 FS31 | €375 plus €89 per sensor per year | [farm21.com](https://www.farm21.com/product/fs21-soil-moisture/) | NB-IoT and LTE-M, 2G fallback, SIM included, no gateway | moisture 0-10, 10-20, 20-30 cm; temperature at 10 and 20 cm; air temperature and humidity |
+| SenseCAP S2105 | €129.99 excl. VAT | [kiwi-electronics.com](https://www.kiwi-electronics.com/en/sensecap-s2105-lorawan-wireless-soil-moisture-temperature-ec-sensor-11232) | LoRaWAN, gateway required | one depth: moisture, temperature, EC |
+| Sensoterra | price on request | [sensoterra.com](https://www.sensoterra.com/soil-moisture-sensor/) | LoRaWAN, gateway required | single or multi-depth, 6 to 8 year battery |
+
+Farm21's FS31 is the one product that could replace the soil half of the node outright: cellular built in, no gateway, about a year on a charge, three moisture depths in one probe, and a published [REST API](https://www.farm21.com/developers/). Against two €26.90 wired probes it costs about €280 more up front and €89 a year per node, and it places a company between a place and its own readings. That is the trade, and it is a real one.
+
+### The combination is what is missing
+
+No product hears, reads the soil, carries both over one cellular link, and posts the result to a registry the landowner and anyone else can read. The nearest buyable approximation is a PUC plus an FS31, roughly €664 plus €89 a year, and it stops at the first field without WiFi. Adding a 4G router to rescue it rebuilds the €1,110 distributed set that [the kit](/docs/kit) replaced.
+
+This is not a gap in engineering. Every part of it is available and cheap. It is a gap in what the market is for: these devices are sold to deliver data into the seller's platform, so nobody has a reason to build the one that delivers it into someone else's. That is the reason to build it rather than buy it, and it is recorded with its evidence in [Prior art](/docs/prior-art).
+
+One thing worth buying anyway: a PUC next to the first node, as an independent BirdNET implementation to check our own detections against. €289 answers the first question any auditor will ask.
+
 ## Where to buy
 
 - **Veldshop.nl** (NL): all acoustic recorders above, same-day shipping across the EU.
@@ -129,4 +167,4 @@ UK shops (Wildcare, NHBS, Connected Things) add import VAT and duty for EU buyer
 
 ## Not verified, open
 
-Bugg v4 pricing and availability; Swift successor "Magpie" timing; DIOPSIS price; Sensoterra's two conflicting subscription prices; Milesight's soil-type presets; independent multi-year corrosion reports for the budget probes. If you know, edit this page.
+Bugg v4 pricing (availability resolved 2026-09-13: GroupGets pre-order, first half of 2026, hardware only); Swift successor "Magpie" timing; DIOPSIS price; Sensoterra's two conflicting subscription prices; Milesight's soil-type presets; independent multi-year corrosion reports for the budget probes. If you know, edit this page.
