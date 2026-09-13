@@ -1,6 +1,6 @@
 ---
 title: "Green paper: an oracle for Life"
-summary: "Why a living place needs its own way of answering, and how three cheap data streams become seven readings and one verdict."
+summary: "Why financing the return of nature is blocked by the cost of proving it, and how three cheap streams that are each unreliable alone become one reading you can pay against."
 order: 1
 ---
 
@@ -8,7 +8,31 @@ order: 1
 
 *Green paper, version 0.1, September 2026. Open for comment. Licence CC BY 4.0. Edit it on GitHub.*
 
-## The problem in one paragraph
+## Why this exists
+
+Restoring a piece of land is not the hard part. Proving that it worked is.
+
+Showing that life is returning to a field means hiring people. An ecologist walks transects. Soil goes to a laboratory. Someone counts birds twice in a season. All of that is good work, and all of it costs hundreds to thousands of euros per place per year. A single environmental-DNA sample with its lab analysis runs at about €390. Having a year of sound recordings analysed costs €470 to €940 per recorder. Certifying soil carbon takes thirty or more cores from one field, and again five years later.
+
+That cost decides who gets paid for nature, and almost nobody notices it doing so. When proving an outcome costs more than the outcome is worth, the outcome does not get funded. So money for nature collects at the top: a few large projects, in a few countries, with budgets that can carry a verification bill. The farmer with twelve hectares of peat meadow, the village with a stream, the family with a woodlot. Each of them is too small to measure, so each of them is too small to finance. The money for restoring nature is not the scarce thing. Affordable proof is.
+
+Make the proof cheap and the shape of the whole field changes. Payments can follow a single field instead of a portfolio. A twelve-hectare farmer becomes fundable. Checking becomes continuous rather than a visit every five years. And because the answer is a number in a public place rather than a report in a drawer, a bank, a registry, a subsidy scheme or a piece of software can settle on it without anyone flying in.
+
+That is what this project is for. The satellite reading costs nothing, at any size, anywhere on Earth. The box that listens and feels the soil costs about €520 and should last years, so a place pays something like a hundred euros a year and no fee per hectare. Against several hundred euros for one survey visit, that is the difference between measuring one showcase project and measuring a whole region.
+
+### The part that is easy to miss
+
+Any ecologist will tell you, correctly, that none of these three streams can certify a place on its own. They are right. Greenness seen from orbit can be bought with a bag of fertiliser. A sound recorder hears what is near it and misses what is quiet. A soil probe knows one spot in one field. Published work is blunt about it: acoustic indices on their own do not reliably predict how many species live somewhere.
+
+So here is the thing that makes the design work anyway. Think of three witnesses to the same event, none of them reliable alone. One was far away. One was distracted. One has a poor memory. You would not convict on any single account. But the three do not know each other and cannot compare notes, and when they separately describe the same thing, you start to believe it. Not because any witness got better, but because it is hard for three unconnected accounts to be wrong in the same direction at once. Every witness you add makes the coincidence less likely, quickly.
+
+Faking one stream is easy. Faking all three at once, in step with the seasons, means making the field green, filling it with breeding birds and bats, and making the soil breathe like living soil. At that point you are not faking an ecosystem. You are growing one.
+
+The same picture tells you what to do when the witnesses disagree, which is the second half of the idea. A contradiction is not a failure of the method. It is the method pointing at the one place where a human should go and look. That is why field visits here are not scheduled: they are triggered by disagreement, plus a small random draw so that nobody knows in advance who gets checked. Expensive measurement stops being the routine and becomes the exception, aimed where it is worth spending.
+
+And it compounds. A court that has heard a thousand cases knows what an ordinary story sounds like; a court that has heard three does not. Every place that joins sharpens the reading of every other place, because a place is judged against its own history and against the crowd of neighbours on the same soil under the same weather. With ten places you can say something careful about one of them. With ten thousand, a dry summer is subtracted rather than mistaken for decline, a fertilised field stands out from a living one, and the method's own errors become countable. The cheap network gets more trustworthy as it grows. The expensive survey does not.
+
+## The same problem, one level down
 
 Everything that gets optimised hard needs a cheap, fast, hard-to-fool way of knowing whether an attempt worked. Software has the compiler. Finance has the ledger. Carbon has, slowly and expensively, grown registries. Life has nothing. A field that is quietly becoming a living system and a field that is quietly dying look the same on every balance sheet, and so money, policy and increasingly software agents optimise against proxies for life (tons of carbon, trees planted, hectares "restored") and get the proxy without the thing: eucalyptus for carbon, a dead watershed for free. This paper describes a different structure. Not a better metric, but a way for the place itself to answer.
 
@@ -67,7 +91,7 @@ Each reading is **rising, holding, falling or unknown**, with a confidence (0 to
 
 ## How confidence comes from combining
 
-**Several cheap witnesses beat one expensive one.** Every stream is a noisy witness of the same thing. When independent witnesses agree, the chance they are all wrong in the same direction is small and shrinks with each witness.
+**Several cheap witnesses beat one expensive one.** This is the courtroom in the introduction, stated mechanically. Every stream is a noisy witness of the same thing. When independent witnesses agree, the chance they are all wrong in the same direction is small and shrinks with each witness.
 
 **Neighbours cancel the weather.** A dry summer makes every field in the region look worse. A place is never judged alone; it is judged against all the fields with the same soil and climate around it. The reference is the statistical crowd of neighbours, not a hand-picked site.
 
