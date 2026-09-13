@@ -42,7 +42,11 @@ A place earns for a season in which its verdict is **thriving** or **holding** a
 | Visits, at 5% random plus triggered | about €2 |
 | **All-in verification** | **under €10** |
 
-Set against per-hectare payments that already exist elsewhere in the range of €20 to €100, and against administration that elsewhere consumes 10% to 40% of the payout. That gap is the whole argument. A tariff somewhere in the range of **€30 to €50 per hectare per year** would sit inside what payers already pay, cover measurement several times over, and be meaningful at smallholder scale, where one long-running national scheme pays about €40 per hectare for a small holding.
+Set against per-hectare payments that already exist elsewhere in the range of €20 to €100, and against administration that elsewhere consumes 10% to 40% of the payout.
+
+**One caveat that has to travel with those numbers, because it is the honest version of the argument.** Sensors are not cheaper than a person for a single measurement. The one clean published comparison, across forty farmland sites, put a single in-person survey at about AU$114 per site and passive acoustic monitoring at about AU$473. **For one snapshot a human is four times cheaper.** The same study found acoustic monitoring produced roughly seventy times more detections and twenty more species per site, and became the cheapest option per species from the fifth repeat campaign onward.
+
+So the claim is not that measurement is cheap. It is that **continuous measurement is cheap and a single measurement is not**. An instrument that is installed once and then reports every season, for years, is a different economic object from a visit. It is also the only way to obtain a within-season signal that can be corrected for weather against neighbouring places, which is what makes a payment defensible at all. A tariff somewhere in the range of **€30 to €50 per hectare per year** would sit inside what payers already pay, cover measurement several times over, and be meaningful at smallholder scale, where one long-running national scheme pays about €40 per hectare for a small holding.
 
 ## Three roles that must not be merged
 

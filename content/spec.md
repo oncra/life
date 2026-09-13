@@ -132,6 +132,16 @@ What we do adopt from the same precedent, because it is what makes cheap verific
 stratum rather than the site**, and **audit a sample of the programme rather than every place every year**. Those are
 the neighbour crowd and the random draw in this design.
 
+### 5c. What this instrument cannot yet claim
+
+Stated here rather than left for a reviewer to find.
+
+**Species identification is not payment-grade.** Published European evaluations of the bird-recognition software this design uses report a best F-score of roughly 0.40 to 0.52 at recording level and about 0.33 per vocalisation, and at a common confidence threshold report tens of species correctly detected against a larger number falsely detected. Administrative payment systems in Europe work to roughly 5% false positives and 10 to 20% false negatives. Acoustic species identification is around a factor of two away from that bar.
+
+This is survivable for what the oracle actually claims, and fatal for what it does not claim. The readings are **directions over seasons, compared against the same place's history and against a crowd of neighbours recorded with the same equipment**. Errors that are stable across time and across neighbours largely cancel in that comparison, which is why one microphone type must be frozen across a network. What cannot be claimed on this evidence is a species list, a count, or a per-detection assertion about any individual place. Diversity is a direction, not an inventory.
+
+**No government anywhere currently pays on acoustic or sensor evidence.** The nearest precedent is the European agricultural monitoring system, which accepts satellite data "or other data with at least equivalent value" and admits geotagged photographs, and which verifies eligibility rather than ecological outcomes. There is no precedent for this and we should not imply one.
+
 ## 6. Self-audit (specified)
 
 Every method version is identified (`v0.1`). Readings carry the version. Places judged in a version are revisited at +5 and +10 years with full sampling; the gap between verdict and outcome is published per version as the drift ledger.
