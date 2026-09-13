@@ -54,11 +54,11 @@ export interface CarbonYear {
   year: number;
   observations: number;
   fapar: number[]; // monthly mean fAPAR (0..1), NaN where no clear scene
-  nppTC: { low: number; high: number }; // t C/ha/yr
-  rhTC: { low: number; high: number };
-  exportTC: { low: number; high: number };
-  necbTC: { low: number; high: number };
-  necbCO2: { low: number; high: number }; // t CO2/ha/yr
+  nppTC: { low: number; mid: number; high: number }; // t C/ha/yr
+  rhTC: { low: number; mid: number; high: number };
+  exportTC: { low: number; mid: number; high: number };
+  necbTC: { low: number; mid: number; high: number }; // low/high = corners of the parameter box (worst/best case), mid = central parameters
+  necbCO2: { low: number; mid: number; high: number }; // t CO2/ha/yr
   rhSource: "soil-probe" | "climatology";
 }
 
@@ -98,33 +98,36 @@ export function carbonForYear(year: number, sat: SatPoint[], soil: SoilPoint[], 
   let apar = 0;
   for (let i = 0; i < 12; i++) if (!Number.isNaN(fp[i])) apar += GLOBAL_RADIATION_NL[i] * PAR_FRACTION * fp[i];
   apar *= 12 / covered; // scale for months not seen
-  const npp = { low: (apar * LUE_GPP.low * NPP_OVER_GPP.low) / 100, high: (apar * LUE_GPP.high * NPP_OVER_GPP.high) / 100 };
+  const mid = (r: { low: number; high: number }) => (r.low + r.high) / 2;
+  const npp = { low: (apar * LUE_GPP.low * NPP_OVER_GPP.low) / 100, mid: (apar * mid(LUE_GPP) * mid(NPP_OVER_GPP)) / 100, high: (apar * LUE_GPP.high * NPP_OVER_GPP.high) / 100 };
 
   // Rh: annual mean of the Q10 × moisture scalar relative to (10 °C, optimum), times the reference rate
   const opt = moistureOptimum(clayPct) / 100;
   const soilYear = soil.filter((s) => s.ts.getUTCFullYear() === year && s.tempC !== null);
-  let scalarLow = 0, scalarHigh = 0, rhSource: CarbonYear["rhSource"] = "climatology";
+  let scalarLow = 0, scalarMid = 0, scalarHigh = 0, rhSource: CarbonYear["rhSource"] = "climatology";
+  const q10mid = mid(Q10);
   if (soilYear.length >= 500) {
     rhSource = "soil-probe";
     for (const s of soilYear) {
       const m = s.vwc !== null ? Math.max(0, 1 - Math.pow((s.vwc / 100 - opt) / 0.25, 2)) : 0.8;
       scalarLow += Math.pow(Q10.low, (s.tempC! - 10) / 10) * m;
+      scalarMid += Math.pow(q10mid, (s.tempC! - 10) / 10) * m;
       scalarHigh += Math.pow(Q10.high, (s.tempC! - 10) / 10) * m;
     }
-    scalarLow /= soilYear.length; scalarHigh /= soilYear.length;
+    scalarLow /= soilYear.length; scalarMid /= soilYear.length; scalarHigh /= soilYear.length;
   } else {
-    for (const t of SOIL_TEMP_NL) { scalarLow += Math.pow(Q10.low, (t - 10) / 10) * 0.8; scalarHigh += Math.pow(Q10.high, (t - 10) / 10) * 0.8; }
-    scalarLow /= 12; scalarHigh /= 12;
+    for (const t of SOIL_TEMP_NL) { scalarLow += Math.pow(Q10.low, (t - 10) / 10) * 0.8; scalarMid += Math.pow(q10mid, (t - 10) / 10) * 0.8; scalarHigh += Math.pow(Q10.high, (t - 10) / 10) * 0.8; }
+    scalarLow /= 12; scalarMid /= 12; scalarHigh /= 12;
   }
-  const rh = { low: RH_REF.low * Math.min(scalarLow, scalarHigh), high: RH_REF.high * Math.max(scalarLow, scalarHigh) };
+  const rh = { low: RH_REF.low * Math.min(scalarLow, scalarHigh), mid: mid(RH_REF) * scalarMid, high: RH_REF.high * Math.max(scalarLow, scalarHigh) };
 
   const ef = pickExport(landUse);
-  const exp = { low: npp.low * ef.low, high: npp.high * ef.high };
-  const necb = { low: npp.low - rh.high - exp.high, high: npp.high - rh.low - exp.low };
+  const exp = { low: npp.low * ef.low, mid: npp.mid * mid(ef), high: npp.high * ef.high };
+  const necb = { low: npp.low - rh.high - exp.high, mid: npp.mid - rh.mid - exp.mid, high: npp.high - rh.low - exp.low };
   return {
     year, observations: sat.filter((p) => p.date.getUTCFullYear() === year).length, fapar: fp,
     nppTC: npp, rhTC: rh, exportTC: exp, necbTC: necb,
-    necbCO2: { low: necb.low * C_TO_CO2, high: necb.high * C_TO_CO2 }, rhSource,
+    necbCO2: { low: necb.low * C_TO_CO2, mid: necb.mid * C_TO_CO2, high: necb.high * C_TO_CO2 }, rhSource,
   };
 }
 
@@ -136,5 +139,5 @@ export function carbonSeries(sat: SatPoint[], soil: SoilPoint[], landUse: string
 
 /** Issuable amount: the lower bound of NECB, floored at zero, times area. Negative years issue nothing. */
 export function issuable(series: CarbonYear[], areaHa: number) {
-  return series.map((c) => ({ year: c.year, lowerBoundTCO2: Math.max(0, c.necbCO2.low) * areaHa, upperBoundTCO2: Math.max(0, c.necbCO2.high) * areaHa }));
+  return series.map((c) => ({ year: c.year, lowerBoundTCO2: Math.max(0, c.necbCO2.low) * areaHa, centralTCO2: c.necbCO2.mid * areaHa, upperBoundTCO2: Math.max(0, c.necbCO2.high) * areaHa }));
 }
