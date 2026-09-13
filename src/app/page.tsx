@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
@@ -31,17 +32,25 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="py-10 grid md:grid-cols-3 gap-6">
-        {[
-          ["Satellite", "Free, every five days, archive back to 2017. Greenness, season length, bare-soil days, and how fast a place recovered from the droughts of 2018, 2020 and 2022. Computed here from Copernicus Sentinel-2 for any polygon on Earth."],
-          ["Sound recorder", "One box per ~20 hectares, installed once. Birds and bats are the insect sensor; breeding song is the renewal signal; tractor noise is the management signal. Species recognition runs in the box, so only detections leave the field."],
-          ["Soil probe", "One probe per field, installed once. Moisture and temperature give the rate at which the soil is breathing. In the standard kit the probes are wired into the same box, which carries both streams over its own 4G link. LoRaWAN uplinks through The Things Stack are accepted too."],
-        ].map(([t, b]) => (
-          <div key={t} className="rounded-lg border border-line p-5 bg-white">
-            <h2 className="font-semibold">{t}</h2>
-            <p className="mt-2 text-sm text-muted leading-relaxed">{b}</p>
-          </div>
-        ))}
+      <section className="py-10">
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            ["Satellite", "/img/stream-satellite-horaholm.webp", "Sentinel-2 true colour of Horaholm, a 55 ha arable place registered on this site, outlined in white among the fields around it", "Free, every five days, archive back to 2017. Greenness, season length, bare-soil days, and how fast a place recovered from the droughts of 2018, 2020 and 2022. Computed here from Copernicus Sentinel-2 for any polygon on Earth."],
+            ["Sound recorder", "/img/stream-sound-skylark.webp", "A skylark in full song, beak open", "One box per ~20 hectares, installed once. Birds and bats are the insect sensor; breeding song is the renewal signal; tractor noise is the management signal. Species recognition runs in the box, so only detections leave the field."],
+            ["Soil probe", "/img/stream-soil-probes.webp", "Two wired soil probes pushed horizontally into the wall of a soil pit at two depths, cable running up to the box", "One probe per field, installed once. Moisture and temperature give the rate at which the soil is breathing. In the standard kit the probes are wired into the same box, which carries both streams over its own 4G link. LoRaWAN uplinks through The Things Stack are accepted too."],
+          ].map(([t, src, alt, b]) => (
+            <div key={t} className="rounded-lg border border-line bg-white overflow-hidden flex flex-col">
+              <Image src={src} alt={alt} width={1200} height={675} className="w-full aspect-video object-cover" priority={t === "Satellite"} sizes="(min-width: 768px) 33vw, 100vw" />
+              <div className="p-5">
+                <h2 className="font-semibold">{t}</h2>
+                <p className="mt-2 text-sm text-muted leading-relaxed">{b}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-xs text-muted leading-relaxed">
+          Images. Satellite: Sentinel-2 scene S2A_32ULE_20250612, 12 June 2025, 0.01% cloud, computed here from Copernicus data, the parcel drawn from its registered boundary (<Link className="underline" href="/places/horaholm-oncra-hor-l-001-hornhuizen">Horaholm</Link>). Skylark: caroline legg, <a className="underline" href="https://commons.wikimedia.org/wiki/File:Singing_Skylark_(51143368485).jpg">CC BY 2.0</a>. Soil probes: MKose, <a className="underline" href="https://commons.wikimedia.org/wiki/File:EAgronom_4okt2023_L-1120.jpg">CC BY 4.0</a>, cropped.
+        </p>
       </section>
 
       <section className="py-10">
