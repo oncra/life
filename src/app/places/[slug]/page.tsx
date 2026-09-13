@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import LifeMap from "@/components/LifeMap";
 import NdviChart from "@/components/NdviChart";
 import { growingSeasonMeans, verdict, type ReadingOut } from "@/lib/readings";
+import { carbonSeries, issuable } from "@/lib/carbon";
 export const dynamic = "force-dynamic";
 
 const DIM_TEXT: Record<string, [string, string]> = {
@@ -21,13 +22,17 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const place = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
   if (!place) notFound();
-  const [sat, readings, devices, jobs, visits] = await Promise.all([
+  const [sat, readings, devices, jobs, visits, soilRows] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" } }),
     prisma.reading.findMany({ where: { placeId: place.id }, orderBy: { computedAt: "desc" } }),
     prisma.device.findMany({ where: { placeId: place.id } }),
     prisma.job.findMany({ where: { placeId: place.id }, orderBy: { createdAt: "desc" }, take: 3 }),
     prisma.visit.findMany({ where: { placeId: place.id }, orderBy: { date: "desc" }, take: 10 }),
+    prisma.soilReading.findMany({ where: { device: { placeId: place.id } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
   ]);
+  const clayPct = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
+  const carbon = carbonSeries(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean })), soilRows, place.landUse, clayPct);
+  const issue = issuable(carbon, place.areaHa);
   const periods = [...new Set(readings.map((r) => r.period))].sort().reverse();
   const latest = readings.filter((r) => r.period === periods[0]);
   const order = ["PRODUCTIVITY", "DIVERSITY", "STRUCTURE", "RENEWAL", "CYCLING", "RESILIENCE", "AUTONOMY"];
@@ -107,6 +112,17 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
           </table>
         )}
       </section>
+
+      {carbon.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold">Carbon, inferred (v0.1, a range, not an issuance)</h2>
+          <p className="text-sm text-muted">Net ecosystem carbon balance per year: productivity from satellite greenness, minus soil breathing ({carbon[carbon.length - 1].rhSource === "soil-probe" ? "from the soil probe" : "from a temperature climatology until a probe exists"}), minus harvest export for this land use. Every parameter carries a low and a high value; the range is what the evidence supports. Credits would be issued for the lower bound. <a className="underline" href="/docs/carbon">Method</a> · <a className="underline" href={`/api/v1/places/${place.slug}/carbon`}>JSON</a></p>
+          <table className="mt-3 text-sm border-collapse">
+            <thead><tr className="text-left text-muted"><th className="pr-4 py-1">Year</th><th className="pr-4">Scenes</th><th className="pr-4">NPP t C/ha</th><th className="pr-4">Soil breathing t C/ha</th><th className="pr-4">Export t C/ha</th><th className="pr-4">Net t CO₂/ha</th><th>Lower bound for {place.areaHa.toFixed(0)} ha, t CO₂</th></tr></thead>
+            <tbody>{carbon.map((c, i) => <tr key={c.year} className="border-t border-line"><td className="pr-4 py-0.5">{c.year}</td><td className="pr-4">{c.observations}</td><td className="pr-4">{c.nppTC.low.toFixed(1)} to {c.nppTC.high.toFixed(1)}</td><td className="pr-4">{c.rhTC.low.toFixed(1)} to {c.rhTC.high.toFixed(1)}</td><td className="pr-4">{c.exportTC.low.toFixed(1)} to {c.exportTC.high.toFixed(1)}</td><td className="pr-4">{c.necbCO2.low.toFixed(1)} to {c.necbCO2.high.toFixed(1)}</td><td>{issue[i].lowerBoundTCO2.toFixed(0)}</td></tr>)}</tbody>
+          </table>
+        </section>
+      )}
 
       {devices.length > 0 && (
         <section className="mt-8">
