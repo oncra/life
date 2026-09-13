@@ -1,20 +1,21 @@
-item,product,supplier,url,unit_price_eur_incl_vat,qty,line_total_eur,verified
-Computer,Raspberry Pi 4 Model B 2 GB,Kiwi Electronics,https://www.kiwi-electronics.com/,50.00,1,50.00,estimate (Pi Zero 2 W out of stock EU until Dec 2026)
-Storage,SanDisk High Endurance 32 GB microSD SDSQQNR-032G-GN6IA,DataIO,https://www.dataio.nl/sandisk-32gb-high-endurance-micro-sd-100mb-s-geheugenkaart/,24.99,1,24.99,yes 2026-09-12
-Modem,Brovi/Huawei E3372-325 USB 4G stick,TelecomShop / bol.com,https://www.telecomshop.nl/huawei-e3372-325-4g-dongle.html,45.00,1,45.00,snippet (bol 38.95 / TelecomShop 64.80)
-Modem alt,Waveshare 17693 SIM7080G Cat-M/NB-IoT HAT,welectron,https://www.welectron.com/Waveshare-17693-SIM7080G-Cat-M-NB-IoT-HAT-EN_1,34.90,0,0,yes 2026-09-12 (3-month lead)
-SIM,1NCE IoT Lifetime Flat 500 MB / 10 yr,1nce.com,https://www.1nce.com/en-eu/1nce-connect/pricing,12.00,1,12.00,yes 2026-09-12
-Microphone,Boya BY-M1 lavalier + USB sound card + windscreen,bol.com,,27.00,1,27.00,snippet/estimate
-Microphone alt,INMP441 I2S MEMS breakout,Kiwi / Berrybase,,5.00,0,0,estimate
-Soil probe,DFRobot SEN0600 RS485 soil temperature + moisture IP68,Berrybase,https://www.berrybase.de/en/dfrobot-rs485-modbus-rtu-soil-sensor-for-temperature-and-humidity-stainless-steel-probe-ip68-5-30v,26.90,2,53.80,yes 2026-09-12
-Soil probe upgrade,Seeed S-Soil MTEC-02A RS485 moisture+temp+EC IP68,Kiwi Electronics,https://www.kiwi-electronics.com/en/industrial-soil-moisture-temperature-ec-sensor-modbus-rtu-rs485-s-soil-mtec-02a-11298,107.09,0,0,yes 2026-09-12
-RS485 adapter,Waveshare Industrial USB TO RS485 (CH343G),Opencircuit,https://opencircuit.shop/product/industrial-usb-to-rs485-bidirectional,13.50,1,13.50,yes 2026-09-12 (from 27-09)
-Probe cable,Outdoor 4-core 0.75 mm2 20 m + junction box,Elektramat / Hornbach,,25.00,1,25.00,estimate
-Solar panel,Offgridtec 50 W mono 12 V,offgridtec.com,https://www.offgridtec.com/,40.00,1,40.00,estimate (30 W verified at 25.98)
-Battery,Offgridtec LiFePO4 12/18 12.8 V 18 Ah BMS 230 Wh,offgridtec.com,https://www.offgridtec.com/offgridtec-lifepo4-akku-12-18-12-8v-18ah-bms-integriert-230wh.html,41.64,1,41.64,yes 2026-09-12 (another shop 82.95; check)
-Charge controller,Victron SmartSolar MPPT 75/10,Obelink,https://www.obelink.nl/victron-smartsolar-mppt-75-10-laadregelaar.html,49.90,1,49.90,yes 2026-09-12
-Buck,12 V to 5 V 3 A USB-C step-down (Pololu D24V22F5 22.55 as premium),Kiwi / Eckstein,https://eckstein-shop.de/Pololu5V2C25AStep-DownSpannungsreglerD24V22F5EN,10.00,1,10.00,estimate
-Scheduler,Witty Pi 4,UUGear,https://www.uugear.com/product/witty-pi-4/,25.00,1,25.00,estimate (Mini verified 23.80)
-Enclosure,IP65 polycarbonate ~300x200x130 hinged transparent lid,Hornbach / Conrad,,35.00,1,35.00,estimate (Spelsberg AKi 2-t verified 98.18)
-Cable glands,M20 IP68 x4,Reichelt,https://www.reichelt.de/metrische-kabelverschraubung-6-0-12-mm-m20-grau-mbfk2-20-p268371.html,0.99,4,3.96,yes 2026-09-12
-Post and mount,2 m post + 2 stainless hose clamps + cable lock + UV ties + silica + stake,Hornbach / Toolstation,,60.00,1,60.00,estimate
+basket,item,product,supplier,order_url,unit_price_eur_incl_vat,qty,line_total_eur,checked,notes
+bench,Computer,Raspberry Pi 4 Model B 2 GB,Kiwi Electronics (NL),https://www.kiwi-electronics.com/en/raspberry-pi-4-model-b-2gb-4267,50.00,1,50.00,2026-09-13,Pi Zero 2 W would halve power but is out of stock in the EU until Dec 2026 and BirdNET-Go dropped support for it
+bench,Storage,SanDisk High Endurance 32 GB microSD SDSQQNR-032G-GN6IA,DataIO (NL),https://www.dataio.nl/sandisk-32gb-high-endurance-micro-sd-100mb-s-geheugenkaart/,24.99,1,24.99,2026-09-12,continuous-write rated; an ordinary card dies in months
+bench,Microphone,Boya BY-M1 Pro lavalier,bol.com (NL),https://www.bol.com/nl/nl/p/boya-lavalier-microfoon-by-m1-pro/9200000127214173/,31.00,1,31.00,2026-09-13,plain BY-M1 is cheaper; INMP441 I2S at ~5 EUR frees the USB port as the alternative
+bench,Sound card,USB external sound card with 3.5 mm mic input,bol.com (NL),https://www.bol.com/nl/nl/p/externe-usb-geluidskaart-met-3-5-mm-stereo-adapter-lijningang-uitgang-compatibel-met-hoofdtelefoon-headset-en-microfoonadapters-geschikt-voor-windows-en-linux-systemen-wit/9300000255826134/,13.99,1,13.99,2026-09-13,Linux and Raspberry Pi listed as supported
+bench,Soil probe,DFRobot SEN0600 RS485 soil temperature + moisture IP68,Berrybase (DE),https://www.berrybase.de/en/dfrobot-rs485-modbus-rtu-soil-sensor-for-temperature-and-humidity-stainless-steel-probe-ip68-5-30v,26.90,2,53.80,2026-09-12,10 cm and 30 cm; Modbus register map is datasheet-only and must be verified on the bench
+bench,RS485 adapter,USB-A to RS485 2-pin CH340 + MAX485,DomoticX (NL),https://webshop.domoticx.nl/index.php?route=product/product&product_id=386,2.54,1,2.54,2026-09-13,in stock now; buy this so the bench is not blocked by the Waveshare lead time
+field,RS485 adapter,Waveshare Industrial USB TO RS485 (CH343G),Opencircuit (NL),https://opencircuit.shop/product/industrial-usb-to-rs485-bidirectional,13.50,1,13.50,2026-09-12,isolated industrial version for the field box; available from 27-09
+field,Modem,Brovi/Huawei E3372-325 USB 4G stick,TelecomShop (NL),https://www.telecomshop.nl/huawei-e3372-325-4g-dongle.html,45.00,1,45.00,2026-09-12,bol.com listed 38.95 and TelecomShop 64.80; compare before ordering
+field,Modem alt,Waveshare 17693 SIM7080G Cat-M/NB-IoT HAT,welectron (DE),https://www.welectron.com/Waveshare-17693-SIM7080G-Cat-M-NB-IoT-HAT-EN_1,34.90,0,0,2026-09-12,lower power but 3-month lead; take it for v1.1
+field,SIM,1NCE IoT Lifetime Flat 500 MB / 10 yr,1nce.com,https://www.1nce.com/en-eu/1nce-connect/pricing,12.00,1,12.00,2026-09-12,only works because detections and not audio leave the node
+field,Solar panel,Offgridtec 50 W mono 12 V (3-01-001260),solarpower-shop.de (DE),https://www.solarpower-shop.de/offgridtec-50w-mono-12v-solarpanel,25.90,1,25.90,2026-09-13,1 in stock; price is the German 0% solar VAT rate. Offgridtec's own shop restocks from 01-10-2026
+field,Battery,Offgridtec LiFePO4 12/18 12.8 V 18 Ah BMS 230 Wh,offgridtec.com (DE),https://www.offgridtec.com/offgridtec-lifepo4-akku-12-18-12-8v-18ah-bms-integriert-230wh.html,41.64,1,41.64,2026-09-12,another shop lists 82.95; check before paying
+field,Charge controller,Victron SmartSolar MPPT 75/10,Obelink (NL),https://www.obelink.nl/victron-smartsolar-mppt-75-10-laadregelaar.html,49.90,1,49.90,2026-09-12,LiFePO4 preset plus a timed load output
+field,Buck,5V USB step-down converter DC 7-24 V to 5 V 3 A,Opencircuit (NL),https://opencircuit.shop/product/5v-usb-step-down-converter-dc-7v-24v-naar-5v,4.10,1,4.10,2026-09-13,Witty Pi 4 Mini has no onboard DC/DC so this stays in the build
+field,Scheduler,Witty Pi 4 Mini,UUGear (DE),https://www.uugear.com/product/witty-pi-4-mini/,23.80,1,23.80,2026-09-13,RTC plus scheduled boot/shutdown; full Witty Pi 4 is 35.11 and adds a DC/DC
+field,Enclosure,BOXEXPERT FLT 300200130 GR IP65 300x200x130 with steel mounting plate,reichelt (DE),https://www.reichelt.com/de/en/shop/product/ip65_wall-mounted_enclosure_200_x_300_x_130_mm_grey-262987,31.95,1,31.95,2026-09-13,in stock 1-2 days; IK08
+field,Cable glands,M20 IP68 cable gland,reichelt (DE),https://www.reichelt.de/metrische-kabelverschraubung-6-0-12-mm-m20-grau-mbfk2-20-p268371.html,0.99,4,3.96,2026-09-12,order with the enclosure in one shipment
+field,Probe cable,Outdoor 4-core 0.75 mm2 cable 20 m + junction box,bouwmarkt,,25.00,1,25.00,estimate,walk-in item
+field,Post and mount,2 m post + 2 stainless hose clamps + cable lock + UV ties + silica + ground stake,bouwmarkt,,60.00,1,60.00,estimate,walk-in item
+optional,Reference unit,BirdWeather PUC,Veldshop (NL),https://www.veldshop.nl/en/birdweather-puc.html,289.00,1,289.00,2026-09-13,independent BirdNET implementation to check our own detections against; WiFi only so it cannot replace the node

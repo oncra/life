@@ -1,7 +1,7 @@
 ---
 title: "Prior art: what exists, what is new"
 summary: "A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, checked 2026-09-12, and an honest account of which parts of this design are borrowed and which are not."
-order: 13
+order: 14
 ---
 
 # Prior art
