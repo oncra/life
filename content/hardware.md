@@ -1,24 +1,26 @@
 ---
 title: "Hardware guide: what to buy"
-summary: "Sound recorders, soil probes and LoRaWAN gateways available today, with prices, where to buy in Europe, the three standard kits, and a scan of the ready-made devices that cover part of the job."
+summary: "The market behind the standard kit: sound recorders, soil probes, gateways and ready-made devices available today, with prices, where to buy in Europe, and the three alternative sets for places the single 4G node does not suit."
 order: 5
 ---
 
 # Hardware guide
 
-> The standard set is now a single solar 4G box: [The kit: Life node v1](/docs/kit). This page is the wider market scan behind it, and the distributed set (PUC + LoRaWAN) for places with WiFi at the field edge.
+> **The standard set is a single solar 4G box on one post: [The kit: Life node v1](/docs/kit).** It needs no farm WiFi, no LoRaWAN gateway and no monthly subscription, because species recognition runs inside the box and the soil probes are wired into it. This page is the wider market scan behind that choice, plus the alternative sets for the places where the node is not the right answer: no signal at all, or WiFi already at the field edge.
 
-Prices were checked live on 2026-09-12 and include VAT where the shop shows it. They will drift; the repository is the place to correct them. Everything here was chosen on one criterion: **install once, leave it for years, data comes out without a visit.** Where that is not possible yet (offline recorders), the guide says so.
+Prices were checked live on 2026-09-12, and the ready-made devices at the bottom of the page on 2026-09-13. They include VAT where the shop shows it. They will drift; the repository is the place to correct them. Everything here was chosen on one criterion: **install once, leave it for years, data comes out without a visit.** Where that is not possible yet (offline recorders), the guide says so.
 
-## The three standard kits
+## The alternative sets
 
-| Kit | What it is | Per unit, all-in | Covers | Data path |
+The node covers both streams at once. These three sets each cover one stream, and each answers a situation the node does not. They are named, not lettered, so that a set means the same thing on every page.
+
+| Set | What it is | Per unit, all-in | When it is the right choice | Data path |
 | --- | --- | --- | --- | --- |
-| **Kit A: offline sound** | AudioMoth 1.2.0 + IPX7 case + 3 AA lithium + 128 GB microSD + cable lock | about €245 | one recorder per 6 to 9 ha in open land (50 to 150 m for songbirds) | SD card swap every 6 to 8 weeks, analysed on a laptop with BirdNET-Analyzer, pushed with `clients/audiomoth-birdnet-push.py` |
-| **Kit B: connected sound** | BirdWeather PUC + 5 W solar panel + pole mount; one 4G router per cluster | about €355 per unit + €120 router + €10/month SIM | same radius; continuous | On-device BirdNET; detections pulled from the BirdWeather API into the oracle every hour, or pushed from a BirdNET-Pi |
-| **Kit C: soil** | Dragino SE01-LB (moisture, temperature, EC) + a LoRaWAN gateway shared by the area | about €121 per probe; gateway €140 to €300 once per farm or village | one probe per field at 10 cm, a second at 30 cm for deep-rooting crops | LoRaWAN → The Things Stack (free Sandbox or €1.33/month KPN) → webhook to the oracle |
+| **Offline sound** | AudioMoth 1.2.0 + IPX7 case + 3 AA lithium + 128 GB microSD + cable lock | about €245 | no power and no cellular signal, and somebody passes the spot every six weeks anyway | SD card swap every 6 to 8 weeks, analysed on a laptop with BirdNET-Analyzer, pushed with `clients/audiomoth-birdnet-push.py` |
+| **Connected sound** | BirdWeather PUC + 5 W solar panel + pole mount; a 4G router only if there is no WiFi | about €355 per unit (+ €120 router + €10/month SIM where WiFi does not reach) | WiFi already reaches the field edge from a barn or a house, and you want a second, independent BirdNET implementation | On-device BirdNET; detections pulled from the BirdWeather API into the oracle every hour, or pushed from a BirdNET-Pi |
+| **LoRaWAN soil** | Dragino SE01-LB (moisture, temperature, EC) + a LoRaWAN gateway shared by the area | about €121 per probe; gateway €140 to €300 once per farm or village | probes scattered over fields too far apart to wire, with one gateway covering all of them | LoRaWAN → The Things Stack (free Sandbox or €1.33/month KPN) → webhook to the oracle |
 
-A complete first installation for one farm (three fields, say 20 ha): 2× Kit B or A, 3× SE01-LB, one indoor gateway on the farmhouse window. Roughly €1,200 to €1,400 once, under €15 a month connectivity. That is under €10 per hectare per year over five years, before any satellite cost, which is zero.
+A first installation for one farm (three fields, say 20 ha) along the distributed route: 2× connected or offline sound, 3× SE01-LB, one indoor gateway on the farmhouse window. Roughly €1,200 to €1,400 once, under €15 a month connectivity. That is under €10 per hectare per year over five years, before any satellite cost, which is zero. The same farm along the node route is one node per field at about €520, so more money up front for three fields, and in exchange no access point, no gateway, no router, no subscription, and nothing that stops working when the farm changes its WiFi password. The node wins the moment the field is out of WiFi reach, which is most fields.
 
 ## Sound recorders
 
@@ -43,7 +45,7 @@ Cornell's Swift is discontinued; Bugg (Imperial College) is not currently for sa
 | **BirdWeather PUC** | [Veldshop €289](https://www.veldshop.nl/en/birdweather-puc.html), [maker $299](https://www.birdweather.com/shop-birdweather-puc) | €289 | BirdNET on-device (~6,000 species), GPS, environment sensors | 3× AA lithium ≈ 48 h, or USB-C from a 3 to 5 W solar panel (maker sells both) | 2.4 GHz WiFi + BLE only; in a field you need a 4G router | [public GraphQL API](https://app.birdweather.com/api/index.html) with live subscriptions, CSV |
 | **BirdWeather PUC Bat Edition** | [Veldshop €495](https://www.veldshop.nl/en/birdweather-puc-bat-edition.html) | €495 | 250 kHz; bat classifier 215 species plus BirdNET | Li-ion pack included, solar via USB-C | WiFi | API, FLAC on 64 GB SD |
 | **Haikubox** | [Veldshop €277](https://www.veldshop.nl/en/haikubox.html) | €277 | BirdNET in the cloud | mains USB only; maker says solar is not viable | WiFi | CSV, no public API |
-| **DIY BirdNET-Pi / BirdNET-Go** | Raspberry Pi Zero 2 W (~€22) + USB microphone + weatherproof box + 10 to 20 W panel and battery | €150 to €250 | BirdNET locally; BirdNET-Go adds bat models (needs an ultrasonic USB mic, e.g. Dodotronic Ultramic384K €445) | Zero 2 W on a small panel | WiFi or USB LTE dongle | MQTT, webhooks, SQLite. Use `clients/birdnet-pi-push.py` |
+| **DIY BirdNET-Pi / BirdNET-Go** (this is what the node is) | Raspberry Pi 4 (~€50; the Zero 2 W at ~€22 is out of stock in the EU until December 2026 and BirdNET-Go dropped support for it) + USB microphone + weatherproof box + 10 to 20 W panel and battery | €150 to €250 | BirdNET locally; BirdNET-Go adds bat models (needs an ultrasonic USB mic, e.g. Dodotronic Ultramic384K €445) | ~3 W listening; 50 W panel and 18 Ah battery on a ten-hour schedule | WiFi or USB LTE dongle (the node uses the dongle) | MQTT, webhooks, SQLite. Use `clients/birdnet-pi-push.py` |
 
 There is no commercial LoRaWAN or NB-IoT recorder that ships species detections today. That remains DIY (Pi + LTE dongle) or 2027 (Wildlife Acoustics cellular module).
 

@@ -33,11 +33,11 @@ A **device** of kind SOUND delivers either or both of:
 - **detections**: `{ts, species, scientific?, confidence 0..1, detector, durationS?}`. Species strings follow the detector's label set (BirdNET common names for birds; BattyBirdNET or BatDetect2 for bats; your own labels for insects, frogs, machines). Machine classes (engine, vehicle, siren, chainsaw, tractor) are recognised by name for the Autonomy reading.
 - **acoustic indices** over a window: `{ts, windowS, aci, adi, aei, bio, ndsi, biophony, anthrophony, spl}` as defined in scikit-maad.
 
-Raw audio is never uploaded to the oracle. Processing happens at the edge (BirdNET-Pi, BirdWeather PUC) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
+Raw audio is never uploaded to the oracle. Processing happens at the edge (the standard node runs BirdNET-Go on its own computer; a BirdWeather PUC runs BirdNET in firmware) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Edge inference is what keeps a node inside a 500 MB ten-year SIM. Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
 
 ### 2.3 Soil (built)
 
-A device of kind SOIL delivers `{ts, depthCm, vwc %, tempC, ec µS/cm, co2Ppm?, fluxUmol?}`. LoRaWAN devices deliver through The Things Stack webhooks to `/api/v1/ingest/ttn`; decoded payloads from Dragino, Milesight, Seeed SenseCAP and Decentlab are recognised automatically, and a per-device `mapping` overrides the heuristics.
+A device of kind SOIL delivers `{ts, depthCm, vwc %, tempC, ec µS/cm, co2Ppm?, fluxUmol?}`. Probes wired into a node are read over Modbus RTU and posted straight to `/api/v1/ingest/soil` with the device token, buffered on disk while the modem is down. LoRaWAN devices deliver through The Things Stack webhooks to `/api/v1/ingest/ttn`; decoded payloads from Dragino, Milesight, Seeed SenseCAP and Decentlab are recognised automatically, and a per-device `mapping` overrides the heuristics.
 
 ### 2.3b Context layers (built: SoilGrids; specified: the rest)
 

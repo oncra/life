@@ -73,6 +73,8 @@ The oracle works the same way.
 
 **A soil probe.** A stick in the ground per field, installed once. Moisture and temperature, and from those the rate at which the soil is breathing.
 
+In the standard kit the last two are one device: the probes are wired into the listening box on a 20 m cable, and that box carries both streams out over its own cellular link. There is no farm WiFi, no gateway and no monthly subscription in the design, because species recognition happens inside the box and only detections leave the field.
+
 That is all the routine hardware. No traps, no lab samples on a calendar, no surveys. Field visits with soil cores, DNA samples or insect counts are not scheduled. They are triggered when the streams disagree, plus a small random draw so nobody knows in advance who gets checked.
 
 ### Why this has to be built rather than bought
@@ -111,7 +113,7 @@ Each reading is **rising, holding, falling or unknown**, with a confidence (0 to
 
 Soil carbon is verified today with thirty or more cores per field every five years, the same burden for every field. That is backwards.
 
-Carbon change follows from what the streams already see: satellite gives capture, the soil probe gives the breathing, satellite plus sound give removal (harvest, tractor hours). A simple model of those three estimates carbon change per field per season; cores calibrate it once per soil type.
+Carbon change follows from what the streams already see: satellite gives capture, the soil probe gives the breathing, satellite plus sound give removal (harvest, tractor hours). A simple model of those three estimates carbon change per field per season; cores calibrate it once per soil type. Version 0.1 of that model runs today, as a yearly range with every parameter carrying a low and a high: [How carbon is inferred](/docs/carbon).
 
 **Let life set the carbon burden.** A place where diversity, structure, cycling and productivity all rise is accumulating carbon almost by definition. A place claiming carbon gain while life readings are flat or falling is the monoculture case, and that is where the cores belong. Sampling intensity is set by agreement between the life readings and the carbon claim. The life oracle becomes the risk model for the carbon oracle.
 
@@ -123,9 +125,9 @@ Oncra's registry is already a one-dimensional life oracle, for carbon: methodolo
 
 ## What version 0.1 does and does not do
 
-Does: registers places anywhere on Earth; computes the satellite stream for them (Sentinel-2, 2019 to now, cloud-masked, per polygon); reads Productivity and a first Resilience from it; accepts sound detections, acoustic indices and soil readings by API, including The Things Stack webhooks; publishes seven readings with confidence and maturity, and the verdict; documents hardware, installation and data delivery for a global network of volunteers and professionals.
+Does: registers places anywhere on Earth; computes the satellite stream for them (Sentinel-2, 2019 to now, cloud-masked, per polygon); reads Productivity and a first Resilience from it; accepts sound detections, acoustic indices and soil readings by API, including The Things Stack webhooks; publishes seven readings with confidence and maturity, and the verdict; estimates a yearly carbon balance as a range and what is issuable at its lower bound; documents hardware, installation and data delivery for a global network of volunteers and professionals.
 
-Does not yet: compare a place against its neighbour crowd (the regional reference); compute acoustic indices server-side from audio; run the random-draw and triggered-visit scheduler; publish the self-drift ledger; model carbon. Each is specified in the [specification](/docs/spec) with its status.
+Does not yet: compare a place against its neighbour crowd (the regional reference); compute acoustic indices server-side from audio; run the random-draw and triggered-visit scheduler; publish the self-drift ledger; calibrate the carbon model against cores, or use it as a gate on issuance. Each is specified in the [specification](/docs/spec) with its status.
 
 ## What would make this fail
 

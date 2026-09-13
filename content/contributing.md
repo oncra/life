@@ -35,6 +35,8 @@ src/app/api/v1/        the API
 src/components/        map and charts
 scripts/worker.ts      background jobs
 clients/               push scripts for BirdNET-Pi and AudioMoth cards
+node/                  the Life node: soil agent, systemd timers, provisioning
+kit/                   bill of materials with suppliers, prices and check dates
 deploy/                Caddyfile, env example, deploy script
 ```
 

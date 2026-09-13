@@ -1,6 +1,6 @@
 # Life node v1: one box, one post, 4G
 
-A single solar-powered node that hears (BirdNET on a Raspberry Pi Zero 2 W), reads two wired soil probes (RS485) and posts JSON to the oracle over LTE-M. No farm network, no LoRaWAN gateway, no WiFi access point. Bill of materials and prices: `/docs/kit`.
+A single solar-powered node that hears (BirdNET on a Raspberry Pi 4; the Pi Zero 2 W would halve the power draw but is out of stock in the EU until December 2026 and BirdNET-Go dropped support for it), reads two wired soil probes (RS485) and posts JSON to the oracle over LTE-M. No farm network, no LoRaWAN gateway, no WiFi access point. Bill of materials and prices: `/docs/kit`.
 
 Software on the node:
 - **BirdNET-Go** (or BirdNET-Pi) does the listening and species detection; only detections leave the node, so a 500 MB ten-year IoT SIM is enough.

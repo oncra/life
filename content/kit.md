@@ -6,7 +6,7 @@ order: 3
 
 # The kit: Life node v1
 
-One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices checked on live pages on 2026-09-12, incl. VAT.
+One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices checked on live shop pages on 2026-09-12 and rechecked with the order list on 2026-09-13, incl. VAT.
 
 ## Why one box
 
@@ -48,6 +48,16 @@ The node folds all of it into one enclosure:
 - **Scheduled, not continuous.** A 50 W panel yields about 50 Wh a day in a Dutch December (PVGIS, 45° south). A Pi 4 plus modem running all day needs about 75 Wh. So the node listens on a schedule: from an hour before sunrise to five hours after, and around sunset, ten hours a day, about 35 Wh. The 18 Ah battery then carries five dark days. In summer the schedule extends into the night for crickets and frogs. Acoustic-index variance stabilises after about 120 hours of recording, so a schedule reads the same directions as a continuous stream.
 - **Wired probes, one place per box.** Two probes on one 20 m cable run: 10 cm and 30 cm at one spot, 15 to 20 m into the field from the post.
 - **Moisture and temperature, not EC.** The soil-breathing reading needs only those two. EC (nutrient leakage) is the first upgrade, with the Seeed probe.
+
+## Cheaper builds
+
+€520 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
+
+- **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
+- **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
+- **Do not cut**: the MPPT charge controller for a PWM one, and the endurance SD card. December yield is about 50 Wh a day against a 35 Wh draw, so a 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Seventeen euros of SD card is cheaper than a site visit.
+
+That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €520.
 
 ## Before it ships
 

@@ -14,7 +14,7 @@ Answers for a place. Registers it, decides what is public, invites installers, r
 
 ## Installer / node host
 
-Buys, mounts and connects hardware; often a local volunteer, a student, an agricultural adviser or a contractor serving many stewards. Works with the steward's key or their own unscoped steward key. Their product is a device that shows "last seen" every interval for five years. The [hardware](/docs/hardware) and [installation](/docs/install-sound) pages are written for them.
+Buys, mounts and connects hardware; often a local volunteer, a student, an agricultural adviser or a contractor serving many stewards. Works with the steward's key or their own unscoped steward key. Their product is a device that shows "last seen" every interval for five years. The [kit](/docs/kit), [hardware](/docs/hardware) and [installation](/docs/install-sound) pages are written for them.
 
 ## Verifier
 

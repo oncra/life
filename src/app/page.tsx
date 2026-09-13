@@ -10,7 +10,7 @@ export default async function Home() {
         <div className="md:col-span-3">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">Is life thriving here?<br />Let the place answer.</h1>
           <p className="mt-6 text-lg text-muted leading-relaxed max-w-2xl">
-            The life oracle is an open standard and open software that reads how a piece of land is doing from three cheap streams: satellite, a sound recorder and a soil probe. Seven readings, one verdict, no scheduled sampling. Built so that farmers, funders, verifiers and software agents can all check the same truth.
+            Restoring a piece of land is not the hard part. Proving that it worked is, and that cost is what keeps a twelve-hectare farmer out of nature finance. The life oracle is an open standard and open software that reads how a piece of land is doing from three cheap streams: satellite, a sound recorder and a soil probe. Seven readings, one verdict, no scheduled sampling. Built so that farmers, funders, verifiers and software agents can all check the same truth.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Open the map</Link>
@@ -34,8 +34,8 @@ export default async function Home() {
       <section className="py-10 grid md:grid-cols-3 gap-6">
         {[
           ["Satellite", "Free, every five days, archive back to 2017. Greenness, season length, bare-soil days, and how fast a place recovered from the droughts of 2018, 2020 and 2022. Computed here from Copernicus Sentinel-2 for any polygon on Earth."],
-          ["Sound recorder", "One box per ~20 hectares, installed once. Birds and bats are the insect sensor; breeding song is the renewal signal; tractor noise is the management signal. Detections arrive through one API call."],
-          ["Soil probe", "One probe per field, installed once. Moisture and temperature give the rate at which the soil is breathing. LoRaWAN uplinks from The Things Network land here through a webhook."],
+          ["Sound recorder", "One box per ~20 hectares, installed once. Birds and bats are the insect sensor; breeding song is the renewal signal; tractor noise is the management signal. Species recognition runs in the box, so only detections leave the field."],
+          ["Soil probe", "One probe per field, installed once. Moisture and temperature give the rate at which the soil is breathing. In the standard kit the probes are wired into the same box, which carries both streams over its own 4G link. LoRaWAN uplinks through The Things Stack are accepted too."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-lg border border-line p-5 bg-white">
             <h2 className="font-semibold">{t}</h2>
@@ -49,7 +49,7 @@ export default async function Home() {
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           {[
             ["Steward (farmer, land manager)", "Register your place, get the satellite readings today, then add a recorder and a probe.", "/docs/guide-steward"],
-            ["Installer / node host", "Buy, mount and connect the hardware. Exact models, prices, heights, depths.", "/docs/hardware"],
+            ["Installer / node host", "Build and mount the standard node: one solar 4G box on a post, no farm network. Bill of materials, prices, order list.", "/docs/kit"],
             ["Verifier", "Random and triggered visits. What to look at, what to record, how to file it.", "/docs/roles"],
             ["Funder, buyer, registry", "Read verdicts by API, pin a method version, let life set the carbon sampling burden.", "/docs/api"],
             ["Researcher / methodologist", "Propose changes to the seven readings. Everything is open and reproducible.", "/docs/spec"],

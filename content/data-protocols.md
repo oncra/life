@@ -1,6 +1,6 @@
 ---
 title: "Data delivery protocols"
-summary: "How detections, acoustic indices and soil readings get into the oracle: direct API, The Things Stack webhook, BirdNET-Pi, AudioMoth cards, BirdWeather."
+summary: "How detections, acoustic indices and soil readings get into the oracle: the node, direct API, The Things Stack webhook, BirdNET-Pi, AudioMoth cards, BirdWeather."
 order: 9
 ---
 
@@ -27,6 +27,10 @@ Content-Type: application/json
 ```
 
 Up to 5,000 detections and 5,000 index rows per request. Species strings are the detector's label; keep them as the detector gives them (BirdNET common names) so that places can be compared.
+
+### From a Life node
+
+A [node](/docs/kit) delivers both streams by itself and needs nothing on the farm. `life-push` (the same `clients/birdnet-pi-push.py`) posts new detections from BirdNET-Go every ten minutes, and `life-soil-agent.py` posts the probes every twenty. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
 
 ### From a BirdNET-Pi or BirdNET-Go
 
@@ -71,6 +75,8 @@ Authorization: Bearer lo_dev_…
 ```
 
 Units: VWC in percent, temperature in °C, EC in µS/cm.
+
+This is what a node posts: `life-soil-agent.py` reads the wired probes over Modbus RTU and sends exactly this shape, one request per probe, every twenty minutes.
 
 ## Soil: The Things Stack webhook
 

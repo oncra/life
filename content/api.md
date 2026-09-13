@@ -26,6 +26,7 @@ Reading public places needs no key.
 | `GET /places?format=geojson` | FeatureCollection for maps |
 | `GET /places/{id or slug}` | place, seven readings for the latest period, verdict, satellite series, devices, visits, jobs |
 | `GET /places/{id}/satellite[?format=csv]` | NDVI observations |
+| `GET /places/{id}/carbon` | yearly net ecosystem carbon balance as a low/central/high range, and what is issuable at the lower bound ([method](/docs/carbon)) |
 | `GET /places/{id}/readings` | all readings, all periods |
 | `GET /places/{id}/devices` | devices and last-seen |
 | `GET /places/{id}/visits` | visits |
