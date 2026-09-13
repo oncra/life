@@ -7,3 +7,4 @@
 - Prisma 7: migrations are hand-reviewed SQL in `prisma/migrations`; the app runs `prisma migrate deploy` on start. No `prisma db push` against a shared database.
 - Hardware prices in `content/hardware.md` carry a check date and URL.
 - Deploy: `ssh admin@<host> 'bash -s' < deploy/deploy.sh` (clones/updates `/opt/life`, builds, `docker compose up -d`). Verify `https://life.oncra.org/api/health` afterwards.
+- **Current pickup point**: the kit is `content/kit.md` (Life node v1, one solar 4G box, ~€520) with `kit/order-list.csv` and node software in `node/`. Nothing has been ordered and `node/provision.sh` has never run on real hardware; the Modbus register maps are from datasheets. Full handoff: `~/code/sapience-os/briefs/2026-09-13-life-kit-handoff.md`.
