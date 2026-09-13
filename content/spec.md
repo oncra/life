@@ -97,9 +97,9 @@ Streams disagree when, in the same period, Productivity rises while Diversity or
 
 Consecutive periods with the same direction. Users who pay on verdicts are expected to weight by maturity.
 
-## 5. Carbon coupling (specified)
+## 5. Carbon coupling (built: v0.1 inference; specified: calibration and gate)
 
-Carbon change per field per season is estimated as a range from satellite capture, soil breathing and detected removals, calibrated once per soil type against cores. Sampling intensity for any carbon claim is set by agreement: all life readings rising or holding → light (one core set per soil type per decade); any life reading falling or unknown → full methodology sampling. Credits issue for the lower bound of the range and release as the range narrows with maturity.
+Built: a yearly net ecosystem carbon balance per place as a low/central/high range (`src/lib/carbon.ts`, `GET /api/v1/places/{id}/carbon`): NPP from monthly fAPAR (from NDVI) × PAR climatology × light-use efficiency by vegetation class, GPP→NPP 0.45 to 0.55; heterotrophic respiration from a reference rate by vegetation class × Q10 (1.8 to 2.4) × moisture hump with texture-dependent optimum, integrated from the soil stream or, without a probe, from a soil-temperature climatology; harvest export as a land-use fraction of NPP. Low/high are the corners of the parameter box; issuable = max(0, low) × area. Method and a worked example on two Oncra projects: [How carbon is inferred](/docs/carbon). Specified: per-place calibration of the light-use efficiency against cores at two depths once per soil type; declared yields and imports; manure; the sampling gate: all life readings rising or holding → light (one core set per soil type per decade); any life reading falling or unknown → full methodology sampling. Credits issue for the lower bound and release as the range narrows with maturity.
 
 ## 6. Self-audit (specified)
 

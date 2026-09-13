@@ -1,7 +1,7 @@
 ---
 title: "Installation protocol: soil probe"
 summary: "Depth, position, backfill and marking for moisture and temperature probes, and the LoRaWAN join."
-order: 7
+order: 8
 ---
 
 # Installation protocol: soil probe

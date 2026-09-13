@@ -1,7 +1,7 @@
 ---
 title: "Satellite stream: how it is computed"
 summary: "Exactly what the oracle does with Sentinel-2 for each place, which free sources it uses, and the gotchas it handles."
-order: 11
+order: 12
 ---
 
 # Satellite stream

@@ -38,7 +38,57 @@ The carbon range never travels alone. The seven life readings sit next to it, an
 
 Both are public projects on registry.oncra.org, pathway Land Stored Carbon, method regenerative farming. The boundaries are the registry's public KML files, registered here by the operator so that the numbers can be reproduced by anyone.
 
-WORKED_EXAMPLE_PLACEHOLDER
+Both places are live here, with their full Sentinel-2 history: [Horaholm](/places/horaholm-oncra-hor-l-001-hornhuizen) and [Boer in Natuur, home parcel](/places/boer-in-natuur-maashorst-oncra-bin-n01-m01-home-parcel). The numbers below are what the API returned on 2026-09-13; they move as scenes and readings arrive.
+
+### Horaholm, Hornhuizen (HOR-L-001)
+
+55.05 ha of regenerative arable and vegetable land on marine clay (SoilGrids: Fluvisols, 29% clay, 5.6% organic carbon). The registry's published calculation: baseline soil carbon 163 t CO₂/ha, target 283 t CO₂/ha, so 120 t CO₂/ha of storage over twenty years, times 55 ha is 6,591 t, minus 20% for project emissions gives **5,273 t CO₂, issued as potential credits on 15 August 2023**. As a yearly flux that claim is **6.0 t CO₂ per hectare per year**, about 264 t a year for the project.
+
+What the satellite saw, growing-season mean NDVI: 2019 0.50, 2020 0.45, 2021 0.46, 2022 0.44, then **2023 0.53 and 2024 0.53**, 2025 0.46. The step up in 2023 is consistent with the farm's own account of year-round living cover from that season. The 2025 dip coincides with the driest spring on record in the Netherlands; the Productivity reading calls it falling because the neighbour crowd that would subtract regional weather is not built yet, and it says so in its evidence.
+
+The carbon balance the method infers, per hectare per year, central parameters, soil breathing from climatology because no probe is installed:
+
+| Year | NPP t C | Soil breathing t C | Export t C | Net, central t CO₂ | Net, box t CO₂ |
+| --- | --- | --- | --- | --- | --- |
+| 2020 | 6.1 | 3.6 | 2.8 | −0.9 | −17 to +15 |
+| 2021 | 6.6 | 3.6 | 3.0 | 0.0 | −17 to +16 |
+| 2022 | 7.0 | 3.6 | 3.2 | +0.9 | −17 to +18 |
+| 2023 | 8.1 | 3.6 | 3.6 | **+3.0** | −17 to +22 |
+| 2024 | 7.9 | 3.6 | 3.6 | **+2.7** | −17 to +21 |
+| 2025 | 7.8 | 3.6 | 3.5 | **+2.4** | −17 to +21 |
+
+Reading it: the central estimate moved from about zero in 2020 to 2022 to about **+2.5 to +3 t CO₂ per hectare per year from 2023**, which is a real change in the same direction as the claim, at roughly half the claimed rate. The box, however, still spans zero, so **the lower bound is zero and the streams alone would issue nothing yet**. That is the correct answer for a place with only the satellite stream and default parameters: the method is showing a trend witness and a consistency check, not a certificate.
+
+### Boer in Natuur, Maashorst (BIN-N01-M01), home parcel
+
+12.2 ha of the 24.4 ha project (the parcel whose boundary is in the registry's public KML): food forest with free-ranging animals on sandy Maashorst soils. The registry shows **4,738 t CO₂ in circulation** for the whole project and its calculation as a published document; over 24.4 ha and a twenty-year horizon that is about **9.7 t CO₂ per hectare per year**.
+
+The satellite sees a dense, closing canopy: growing-season NDVI 0.62 in 2019 and 2022, 0.72 to 0.74 in 2021, 2023 and 2024. With the woody parameter set (lower light-use efficiency, higher soil breathing than cropland, small harvest export):
+
+| Year | NPP t C | Soil breathing t C | Export t C | Net, central t CO₂ | Net, box t CO₂ |
+| --- | --- | --- | --- | --- | --- |
+| 2020 | 6.4 | 4.3 | 0.9 | +4.3 | −11 to +19 |
+| 2021 | 7.2 | 4.3 | 1.0 | +7.1 | −10 to +23 |
+| 2022 | 6.4 | 4.3 | 0.9 | +4.5 | −11 to +19 |
+| 2023 | 7.6 | 4.3 | 1.1 | **+8.2** | −9 to +25 |
+| 2024 | 7.3 | 4.3 | 1.0 | **+7.1** | −9 to +23 |
+| 2025 | 6.4 | 4.3 | 0.9 | +4.4 | −11 to +19 |
+
+Reading it: a young food forest that exports almost nothing can plausibly bank **4 to 8 t CO₂ per hectare per year** in wood and soil, and the central estimate lands in the range of the registry's per-year figure. The box again spans zero. Lower bound: zero.
+
+### What narrows the box, in order of leverage
+
+The width of the box is the sum of three parameter ranges. Each stream removes one:
+
+1. **A soil probe** replaces the climatology and the 1.8 to 2.4 Q10 range with the place's own temperature and moisture. Soil breathing goes from a 2.6 to 4.7 t C range to roughly ±0.5 around a measured curve. About 8 t CO₂ off the box.
+2. **A declared harvest** (yields, animals sold, wood cut) replaces the land-use fraction. Export goes from 1.8 to 5.1 t C at Horaholm to about ±0.3 around the declared figure. About 6 t CO₂ off the box.
+3. **Soil cores at two depths, once per soil type**, pin the light-use efficiency: the remaining 1.6 to 2.4 g C per MJ range is the last big term, and it is fitted by comparing five years of inferred net change with the measured stock change. That is what turns the lower bound positive.
+
+With all three, the Horaholm box for 2024 would be roughly +1 to +5 t CO₂ per hectare per year instead of −17 to +21, and the lower bound, 1 t CO₂ per hectare, about 55 t a year, becomes issuable. Every further season that the streams agree adds maturity and lifts it further. The registry's projected 6 t per hectare per year is then either confirmed by the cores, or the certificates are delivered at the rate the place actually shows.
+
+### The gate, applied today
+
+At both places the Productivity reading is currently **falling** (single-place, 2025 against the previous three seasons) and the other readings are **unknown**. Under the rule, both projects stay on the registry's full sampling regime. Nothing about their standing changes. What changes is what the next visit measures: cores at two depths, taken where the satellite says the canopy is densest and sparsest, so that the same cores calibrate the light-use efficiency for every arable and every food-forest place after them.
 
 ## What this does and does not claim
 
