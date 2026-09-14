@@ -35,7 +35,7 @@ The node folds all of it into one enclosure:
 | 11 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | Obelink | €49.90 |
 | 12 | 12 to 5 V buck | 5 V 3 A USB-C step-down (Pololu D24V22F5 €22.55 if you want the good one) | Kiwi / Eckstein | ~€10 |
 | 13 | Scheduler | Witty Pi 4 (power on/off by schedule; the node runs ~10 h a day) | UUGear | ~€25 |
-| 14 | Enclosure | IP65 polycarbonate box ~300×200×130 mm, hinged, transparent lid | Hornbach / Conrad | ~€35 |
+| 14 | Enclosure | IP65 ABS box 300×200×130 mm, painted matt green (the paint is its UV protection; a polycarbonate Spelsberg AKi at ~€98 is the ten-year box) | reichelt | €32.49 |
 | 15 | Cable glands ×4 | M20, IP68 | Reichelt | €3.96 |
 | 16 | Post and mount | 2 m tube or fence post, 2 stainless hose clamps, cable lock, UV ties, silica, stake for the probe | Hornbach / Toolstation | ~€60 |
 
