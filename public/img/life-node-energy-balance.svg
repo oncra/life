@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="520" viewBox="0 0 880 520" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+<rect width="880" height="520" fill="#fcfcfb"/>
+<text x="64" y="26" font-size="15" font-weight="600" fill="#111111">Where the panel size is actually decided</text>
+<text x="64" y="45" font-size="12" fill="#52514e">Wh/day. Harvest shaded to 20% Apr-Sep for a crop canopy. Load steps down to one waking hour Nov-Feb.</text>
+<line x1="64" y1="404.0" x2="742" y2="404.0" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
+<text x="54" y="408.0" font-size="11" fill="#52514e" text-anchor="end">0</text>
+<line x1="64" y1="322.6" x2="742" y2="322.6" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
+<text x="54" y="326.6" font-size="11" fill="#52514e" text-anchor="end">100</text>
+<line x1="64" y1="241.1" x2="742" y2="241.1" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
+<text x="54" y="245.1" font-size="11" fill="#52514e" text-anchor="end">200</text>
+<line x1="64" y1="159.7" x2="742" y2="159.7" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
+<text x="54" y="163.7" font-size="11" fill="#52514e" text-anchor="end">300</text>
+<line x1="64" y1="78.3" x2="742" y2="78.3" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
+<text x="54" y="82.3" font-size="11" fill="#52514e" text-anchor="end">400</text>
+<text x="64.0" y="424" font-size="11" fill="#52514e" text-anchor="middle">Jan</text>
+<text x="125.6" y="424" font-size="11" fill="#52514e" text-anchor="middle">Feb</text>
+<text x="187.3" y="424" font-size="11" fill="#52514e" text-anchor="middle">Mar</text>
+<text x="248.9" y="424" font-size="11" fill="#52514e" text-anchor="middle">Apr</text>
+<text x="310.5" y="424" font-size="11" fill="#52514e" text-anchor="middle">May</text>
+<text x="372.2" y="424" font-size="11" fill="#52514e" text-anchor="middle">Jun</text>
+<text x="433.8" y="424" font-size="11" fill="#52514e" text-anchor="middle">Jul</text>
+<text x="495.5" y="424" font-size="11" fill="#52514e" text-anchor="middle">Aug</text>
+<text x="557.1" y="424" font-size="11" fill="#52514e" text-anchor="middle">Sep</text>
+<text x="618.7" y="424" font-size="11" fill="#52514e" text-anchor="middle">Oct</text>
+<text x="680.4" y="424" font-size="11" fill="#52514e" text-anchor="middle">Nov</text>
+<text x="742.0" y="424" font-size="11" fill="#52514e" text-anchor="middle">Dec</text>
+<rect x="234.9" y="62" width="336.2" height="342" fill="#eb6834" opacity="0.08"/>
+<text x="403.0" y="77" font-size="11" fill="#eb6834" text-anchor="middle" font-weight="600">under a summer canopy: this is what sizes the panel</text>
+<polyline points="64.0,396.2 94.8,396.2 94.8,396.2 156.5,396.2 156.5,359.5 218.1,359.5 218.1,359.5 279.7,359.5 279.7,359.5 341.4,359.5 341.4,359.5 403.0,359.5 403.0,359.5 464.6,359.5 464.6,359.5 526.3,359.5 526.3,359.5 587.9,359.5 587.9,359.5 649.5,359.5 649.5,396.2 711.2,396.2 711.2,396.2 772.8,396.2" fill="none" stroke="#111111" stroke-width="2.4" stroke-dasharray="6 5" stroke-linejoin="round"/>
+<path d="M 64.0 306.3 L 125.6 257.4 L 187.3 159.7 L 248.9 338.9 L 310.5 338.9 L 372.2 338.9 L 433.8 338.9 L 495.5 345.4 L 557.1 351.9 L 618.7 208.6 L 680.4 290.0 L 742.0 322.6" fill="none" stroke="#2a78d6" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M 64.0 355.1 L 125.6 330.7 L 187.3 281.9 L 248.9 371.4 L 310.5 371.4 L 372.2 371.4 L 433.8 371.4 L 495.5 374.7 L 557.1 377.9 L 618.7 306.3 L 680.4 347.0 L 742.0 363.3" fill="none" stroke="#eb6834" stroke-width="2.2" stroke-linejoin="round"/>
+<circle cx="64.0" cy="306.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="64.0" cy="355.1" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="125.6" cy="257.4" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="125.6" cy="330.7" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="187.3" cy="159.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="187.3" cy="281.9" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="248.9" cy="338.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="248.9" cy="371.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="310.5" cy="338.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="310.5" cy="371.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="372.2" cy="338.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="372.2" cy="371.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="433.8" cy="338.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="433.8" cy="371.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="495.5" cy="345.4" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="495.5" cy="374.7" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="557.1" cy="351.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="557.1" cy="377.9" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="618.7" cy="208.6" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="618.7" cy="306.3" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="680.4" cy="290.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="680.4" cy="347.0" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="742.0" cy="322.6" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="742.0" cy="363.3" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<text x="751" y="326.6" font-size="12" font-weight="600" fill="#2a78d6">100 Wp</text>
+<text x="751" y="379.3" font-size="12" font-weight="600" fill="#eb6834">50 Wp</text>
+<text x="751" y="388.2" font-size="12" font-weight="600" fill="#111111">load</text>
+<g transform="translate(64,446)" font-size="11.5"><rect x="0" y="-9" width="11" height="3" rx="1.5" fill="#2a78d6"/><text x="18" y="-4" fill="#52514e">100 Wp, shaded</text><rect x="122" y="-9" width="11" height="3" rx="1.5" fill="#eb6834"/><text x="140" y="-4" fill="#52514e">50 Wp, shaded</text><rect x="240" y="-9" width="11" height="3" rx="1.5" fill="#111111"/><text x="258" y="-4" fill="#52514e">node load, incl. a 4.6 Wh/day parasitic floor</text></g>
+<text x="64" y="464" font-size="11.5" fill="#111111">Winter is not the problem. With one waking hour from November to February the node eats</text>
+<text x="64" y="479" font-size="11.5" fill="#111111">9.6 Wh/day, and even a 50 Wp panel harvests 40 to 60 in those months.</text>
+<text x="64" y="494" font-size="11.5" fill="#111111">The 50 Wp line fails in summer instead, by 15 to 23 Wh/day, and no winter schedule fixes that.</text>
+<text x="64" y="509" font-size="11.5" fill="#111111">The panel is sized by the crop that shades it, not by December.</text>
+</svg>
