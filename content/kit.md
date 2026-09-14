@@ -56,6 +56,22 @@ Power survives the low mount because of a coincidence worth stating plainly: Dec
 
 The remaining risk is not theft. A box this low is invisible to a sprayer too, so the position goes on the farmer's own GPS, and a headland or the edge of a tramline beats the middle of the crop.
 
+## Cabling
+
+The bill of materials above lists boxes. Boxes do not talk to each other, and the wire between them turned out to be about a hundred euros that the first list did not have in it.
+
+![Enclosure wiring: interior layout with cable routing, one-line schematic and the cable schedule](/img/life-node-wiring.svg)
+
+Two decisions are worth stating rather than leaving in the drawing. The buck converter and the probes both hang on the charge controller's **load output**, not on the battery directly. That gets Victron's low-voltage disconnect between the electronics and the cells for free, and it is also what stops the probes drawing power through the fourteen hours a day the node is asleep. And the battery lead carries an inline **15 A fuse** at the battery end, which is not optional on a lithium cell that can deliver a hundred amps into a shorted screwdriver.
+
+Three things will bite a first build, so they are written on the drawing:
+
+- **Both probes ship as Modbus address 1.** Put one on the bench alone, write register `0x07D0` to set it to 2, then do the other. Two probes on one address collide and neither reads.
+- **The SEN0600 has moisture and temperature only**, no EC register, so it uses the `sen0600` profile in `node/life-soil-agent.py` and reads two registers. The `generic-thc` profile reads three and would fail here.
+- **The probe wire colours are not published.** Meter them before splicing. The family convention is brown +V, black ground, yellow A, blue B, but convention is not a datasheet.
+
+The microphone changed as a result of drawing this. I2S is a board-level bus that stops working past roughly a metre, so the €3.10 INMP441 cannot sit at the top of a 1500 mm whip however much cheaper it is. An analogue lavalier capsule on its own six-metre shielded lead, into a USB sound card inside the box, is the version that works, and it puts €45 back on the bill.
+
 ## What was traded
 
 - **Compute instead of radio.** A Pi 4 draws about 3 W while listening. That is the price of doing BirdNET at the edge; the reward is a ten-year SIM and no network on the farm.
@@ -105,4 +121,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter. **B** reichelt, about €101: enclosure, glands, charge controller, each with its reichelt product number so the three go in through their Direct order form in one pass. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops instead of ten, about €528 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.
+`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter. **B** reichelt, about €101: enclosure, glands, charge controller, each with its reichelt product number so the three go in through their Direct order form in one pass. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops plus a basket of cable and connectors, about €670 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.

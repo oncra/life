@@ -8,4 +8,6 @@ Software on the node:
 - `life-push` (= `clients/birdnet-pi-push.py`) posts new detections every 10 minutes to `/api/v1/ingest/sound`.
 - `provision.sh` writes the tokens, enables the timers, configures the modem (ModemManager + NetworkManager, APN `iot.1nce.net`) and switches the root filesystem to overlay (read-only) so power cuts do not corrupt the SD card.
 
+Before a node is built: **both soil probes leave the factory on Modbus address 1**. Re-address one of them to 2 by writing register `0x07D0`, on the bench, with only that probe on the bus. Two probes sharing an address collide and neither reads. The SEN0600 carries moisture and temperature only, so it uses the `sen0600` profile, which reads two registers; `generic-thc` reads a third for EC that this probe has not got.
+
 We build the image once ("golden image"), flash it per node with its three device tokens, and ship the box provisioned. The landowner mounts the post and pushes the probes in.

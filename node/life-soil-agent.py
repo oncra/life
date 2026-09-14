@@ -7,7 +7,7 @@ Config /etc/life-node.env:
     LIFE_API=https://life.oncra.org/api/v1
     RS485_PORT=/dev/ttyUSB0                  # USB-RS485 adapter
     PROBE_ADDRESSES=1,2                      # Modbus slave ids in the same order as the tokens
-    PROBE_PROFILE=generic-thc                # generic-thc | seeed-mtec02 | smt100
+    PROBE_PROFILE=sen0600                    # sen0600 | generic-thc | seeed-mtec02 | smt100
 Runs every 20 minutes from a systemd timer. Buffers to /var/lib/life-node/queue.jsonl when offline and
 flushes on the next run, so a modem outage loses nothing.
 """
@@ -29,6 +29,8 @@ QUEUE = Path("/var/lib/life-node/queue.jsonl"); QUEUE.parent.mkdir(parents=True,
 PROFILES = {
     # the common Chinese RS485 "soil temperature/humidity/EC" probes and Seeed S-Soil MTEC-02: 0x0000 moisture x10 %, 0x0001 temp x10 °C (signed), 0x0002 EC µS/cm
     "generic-thc": (0x0000, 3, lambda r: {"vwc": r[0] / 10, "tempC": (r[1] - 65536 if r[1] > 32767 else r[1]) / 10, "ec": r[2]}),
+    # SEN0600 is moisture + temperature only: 0x0000 moisture x10 %, 0x0001 temp x10 C (signed). It has no EC register.
+    "sen0600": (0x0000, 2, lambda r: {"vwc": r[0] / 10, "tempC": (r[1] - 65536 if r[1] > 32767 else r[1]) / 10, "ec": None}),
     "seeed-mtec02": (0x0000, 3, lambda r: {"vwc": r[0] / 10, "tempC": (r[1] - 65536 if r[1] > 32767 else r[1]) / 10, "ec": r[2]}),
     # Truebner SMT100 Modbus: 0x0000 count, 0x0001 permittivity x100, 0x0002 VWC x100 (%), 0x0003 temp x100 (°C), 0x0004 voltage
     "smt100": (0x0000, 5, lambda r: {"vwc": r[2] / 100, "tempC": (r[3] - 65536 if r[3] > 32767 else r[3]) / 100, "ec": None}),
