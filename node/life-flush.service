@@ -1,0 +1,13 @@
+[Unit]
+Description=Life node: flush queued readings and detections before power is cut
+DefaultDependencies=no
+Before=shutdown.target
+After=network-online.target
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-soil-agent --flush
+ExecStart=/usr/local/bin/life-push
+TimeoutStartSec=90
+[Install]
+WantedBy=shutdown.target

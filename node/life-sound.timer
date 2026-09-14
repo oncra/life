@@ -1,7 +1,7 @@
 [Unit]
-Description=Life node: push BirdNET detections every 10 minutes
+Description=Life node: push BirdNET detections to the oracle, hourly (one TLS handshake per hour, not six)
 [Timer]
-OnBootSec=5min
-OnUnitActiveSec=10min
+OnBootSec=3min
+OnUnitActiveSec=60min
 [Install]
 WantedBy=timers.target

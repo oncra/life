@@ -8,8 +8,12 @@ Config /etc/life-node.env:
     RS485_PORT=/dev/ttyUSB0                  # USB-RS485 adapter
     PROBE_ADDRESSES=1,2                      # Modbus slave ids in the same order as the tokens
     PROBE_PROFILE=sen0600                    # sen0600 | generic-thc | seeed-mtec02 | smt100
-Runs every 20 minutes from a systemd timer. Buffers to /var/lib/life-node/queue.jsonl when offline and
-flushes on the next run, so a modem outage loses nothing.
+    LIFE_POST_BATCH=3                        # post once every N runs (3 x 20 min = hourly), to spare the SIM's data budget
+    PROBE_POWER_GPIO=26                      # BCM pin driving the MOSFET on the 12 V probe rail; unset = rail always on
+    PROBE_SETTLE_S=2                         # seconds to wait after powering the rail before the first Modbus query
+Runs every 20 minutes from a systemd timer. Reads go to /var/lib/life-node/queue.jsonl and are posted every
+LIFE_POST_BATCH runs, or at once with --flush (the shutdown unit calls that), so nothing is lost and the
+per-post TLS overhead stays inside a 500 MB / 10 yr SIM.
 """
 import json, os, sys, time, urllib.request
 from datetime import datetime, timezone
@@ -24,6 +28,19 @@ PORT = os.environ.get("RS485_PORT", "/dev/ttyUSB0")
 ADDRS = [int(a) for a in os.environ.get("PROBE_ADDRESSES", "1").split(",") if a.strip()]
 PROFILE = os.environ.get("PROBE_PROFILE", "generic-thc")
 QUEUE = Path("/var/lib/life-node/queue.jsonl"); QUEUE.parent.mkdir(parents=True, exist_ok=True)
+RUNS = QUEUE.with_name("runs")                      # counts runs since the last post
+BATCH = int(os.environ.get("LIFE_POST_BATCH", "3"))
+FLUSH = "--flush" in sys.argv
+PWR_GPIO = os.environ.get("PROBE_POWER_GPIO")
+SETTLE = float(os.environ.get("PROBE_SETTLE_S", "2"))
+
+def rail(on):
+    """Switch the 12 V probe rail via a logic-level MOSFET on a GPIO. Left alone if PROBE_POWER_GPIO is unset."""
+    if not PWR_GPIO: return
+    base = Path(f"/sys/class/gpio/gpio{PWR_GPIO}")
+    if not base.exists(): Path("/sys/class/gpio/export").write_text(PWR_GPIO)
+    (base / "direction").write_text("out"); (base / "value").write_text("1" if on else "0")
+    if on: time.sleep(SETTLE)
 
 # register maps: (start register, count, decoder) -> dict(vwc, tempC, ec)
 PROFILES = {
@@ -51,17 +68,26 @@ def post(token, rows):
 def main():
     now = datetime.now(timezone.utc).isoformat()
     pending = []
-    for i, addr in enumerate(ADDRS):
-        token = os.environ.get(f"LIFE_DEVICE_TOKEN_SOIL_{i+1}")
-        if not token: continue
+    if not FLUSH:
+        rail(True)
         try:
-            v = read(addr)
-            pending.append({"token": token, "row": {"ts": now, **{k: v for k, v in v.items() if v is not None}, "raw": {"addr": addr, "profile": PROFILE}}})
-        except Exception as e:
-            print(f"probe {addr}: {e}", file=sys.stderr)
-    # queue + flush
+            for i, addr in enumerate(ADDRS):
+                token = os.environ.get(f"LIFE_DEVICE_TOKEN_SOIL_{i+1}")
+                if not token: continue
+                try:
+                    v = read(addr)
+                    pending.append({"token": token, "row": {"ts": now, **{k: v for k, v in v.items() if v is not None}, "raw": {"addr": addr, "profile": PROFILE}}})
+                except Exception as e:
+                    print(f"probe {addr}: {e}", file=sys.stderr)
+        finally:
+            rail(False)
     if QUEUE.exists():
         pending = [json.loads(l) for l in QUEUE.read_text().splitlines() if l.strip()] + pending
+    runs = int(RUNS.read_text() or 0) + 1 if RUNS.exists() else 1
+    if not FLUSH and runs < BATCH:
+        QUEUE.write_text("".join(json.dumps(x) + "\n" for x in pending)); RUNS.write_text(str(runs))
+        print(f"queued, {len(pending)} rows, run {runs}/{BATCH}"); return
+    RUNS.write_text("0")
     left = []
     by_token = {}
     for p in pending: by_token.setdefault(p["token"], []).append(p["row"])

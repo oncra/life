@@ -36,4 +36,6 @@ G,cables/connectors,mounting,"nylon M2.5 standoffs, adhesive tie mounts, battery
 G,cables/connectors,mic port,"IP67 ePTFE acoustic membrane, adhesive, pack",,12.00,1,12.00,estimate,"under 2 dB loss at 1-5 kHz. Goes behind a 5 mm hole, with a foam hood outside"
 G,cables/connectors,I2S header,2x20 extra-tall stacking header,,3.00,1,3.00,estimate,"confirmed: Witty Pi 4 Mini uses GPIO 2, 3, 4, 17 and watches 14. I2S pins 18-21 are free, so this is for physical clearance only"
 G,cables/connectors,mounting plate,3 mm plastic sheet cut to the box,,5.00,1,5.00,estimate,replaces the galvanised steel plate the enclosure ships with: steel beside the 4G antenna detunes it
-G,cables/connectors,probe switch,"MOSFET switch module, logic-level, for the 12 V probe rail",,2.50,1,2.50,estimate,"probes must not sit on the load output: it is never switched, so they would draw 0.4 W around the clock, which is the whole winter budget"
+G,cables/connectors,probe switch,"MOSFET switch module, logic-level, for the 12 V probe rail",,2.50,1,2.50,estimate,"drives the 12 V probe rail from GPIO 26; the agent powers the rail, waits 2 s, reads, powers it down"
+G,cables/connectors,earth,1 m earth rod + clamp + 2 m of 6 mm2 green/yellow,,12.00,1,12.00,estimate,the RS485 surge protection needs somewhere to send a surge; a 20 m buried cable in an open field will collect one
+G,cables/connectors,windscreen,"open-cell foam microphone windscreen, glued over the port",,3.00,1,3.00,estimate,a flush port in a flat wall in wind is turbulence straight onto the membrane
