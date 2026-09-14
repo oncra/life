@@ -1,7 +1,7 @@
 basket,shop,item,product,order_url,unit_price_eur_incl_vat,qty,line_total_eur,checked,notes
 A,Berrybase (DE),Computer,Raspberry Pi 4 Model B 2 GB,https://www.berrybase.de/en/raspberry-pi-4-computer-model-b-2gb-ram,57.90,1,57.90,2026-09-13,dominates the power budget; a Pi Zero 2 W would halve it but BirdNET-Go dropped support and it is out of stock in the EU until Dec 2026
 A,Berrybase (DE),Storage,SanDisk High Endurance microSDHC UHS-I U3 32 GB,https://www.berrybase.de/en/sandisk-high-endurance-microsdhc-uhs-i-u3-memory-card-adapter-32gb,28.60,1,28.60,2026-09-13,continuous-write rated
-alt,Berrybase (DE),Microphone,INMP441 MEMS omnidirectional microphone module I2S,https://www.berrybase.de/en/inmp441-mems-omnidirectional-microphone-module-i2s-interface,3.10,0,0.00,2026-09-13,"DROPPED after the mount design: I2S is a board-level bus and fails past about a metre, so it cannot sit on a 1500 mm whip"
+A,Berrybase (DE),Microphone,INMP441 MEMS omnidirectional microphone module I2S,https://www.berrybase.de/en/inmp441-mems-omnidirectional-microphone-module-i2s-interface,3.10,1,3.10,2026-09-13,"back in: with the microphone inside the box the I2S run is about 10 cm, well inside what the bus can do. Needs a stacking header to clear the Witty Pi"
 A,Berrybase (DE),RS485 adapter,Waveshare industrial USB-RS485 converter CH343G with surge and ESD protection,https://www.berrybase.de/en/waveshare-industrieller-usb-rs485-konverter-blitzschutz-esd-sicher-bidirektional-ch343g,9.90,1,9.90,2026-09-13,same part Opencircuit lists at 13.50 with stock from 27-09; surge protection matters on 20 m of cable in an open field
 A,Berrybase (DE),Soil probe,DFRobot SEN0600 RS485 Modbus-RTU soil temperature and moisture IP68,https://www.berrybase.de/en/dfrobot-rs485-modbus-rtu-soil-sensor-for-temperature-and-humidity-stainless-steel-probe-ip68-5-30v,26.90,2,53.80,2026-09-13,10 cm and 30 cm; register map is datasheet-only and must be verified on the bench
 A,Berrybase (DE),Scheduler,Witty Pi 3 Mini RTC and power management,https://www.berrybase.de/en/witty-pi-3-mini-real-time-clock-rtc-and-power-management-module-for-raspberry-pi,19.50,1,19.50,2026-09-13,keeps the order in one shop; the Witty Pi 4 Mini at UUGear is 23.80 and newer. Neither has a DC/DC converter
@@ -17,7 +17,7 @@ F,bouwmarkt,Probe cable,Outdoor 4-core 0.75 mm2 cable 20 m + junction box,,25.00
 F,bouwmarkt,Post and mount,2 m post + 2 stainless hose clamps + cable lock + UV ties + silica + ground stake,,60.00,1,60.00,estimate,mount the box on the shaded face and let the panel shade it
 alt,Opencircuit (NL),RS485 adapter,Waveshare Industrial USB TO RS485,https://opencircuit.shop/product/industrial-usb-to-rs485-bidirectional,13.50,0,0,2026-09-12,superseded by the Berrybase line at 9.90
 alt,DomoticX (NL),RS485 adapter,USB-A to RS485 2-pin CH340,https://webshop.domoticx.nl/index.php?route=product/product&product_id=386,2.54,0,0,2026-09-13,cheapest option but no surge protection; bench only
-A,bol.com (NL),Microphone,Boya BY-M1 Pro lavalier plus USB sound card,https://www.bol.com/nl/nl/p/boya-lavalier-microfoon-by-m1-pro/9200000127214173/,45.00,1,45.00,2026-09-13,promoted from alt: an analogue lavalier on its own 6 m shielded lead is the only microphone that works at the top of the whip. Price covers the capsule plus a USB sound card
+alt,bol.com (NL),Microphone,Boya BY-M1 Pro lavalier plus USB sound card,https://www.bol.com/nl/nl/p/boya-lavalier-microfoon-by-m1-pro/9200000127214173/,45.00,0,0.00,2026-09-13,only needed if the microphone goes on a mast. With an in-box mic port the INMP441 does the job for 3.10
 alt,solarpower-shop.de,Solar panel,Offgridtec 50 W mono 12 V,https://www.solarpower-shop.de/offgridtec-50w-mono-12v-solarpanel,25.90,0,0,2026-09-13,the original choice; no December margin
 alt,Obelink (NL),Charge controller,Victron SmartSolar MPPT 75/10,https://www.obelink.nl/victron-smartsolar-mppt-75-10-laadregelaar.html,49.90,0,0,2026-09-12,14.99 cheaper than reichelt at the cost of one more shipment
 alt,Veldshop (NL),Reference unit,BirdWeather PUC,https://www.veldshop.nl/en/birdweather-puc.html,289.00,0,0,2026-09-13,independent BirdNET implementation to check the node's own detections against
@@ -27,9 +27,12 @@ G,cables/connectors,W2 fuse,inline blade fuse holder + 15 A fuse,,4.00,1,4.00,es
 G,cables/connectors,terminations,bootlace ferrule kit + ring terminals + crimp tool,,13.00,1,13.00,estimate,
 G,cables/connectors,12 V distribution,"WAGO 221 lever connectors, 6 way",,7.00,1,7.00,estimate,
 G,cables/connectors,W5 buck to Witty Pi,USB-A to micro-USB cable 0.3 m,,3.00,1,3.00,estimate,check the Witty Pi input connector first; the 4 Mini may be USB-C
-G,cables/connectors,W11 antenna pigtail,CRC9 male to SMA female pigtail,,7.00,1,7.00,estimate,the E3372 family uses CRC9; confirm against the socket on the stick
-G,cables/connectors,W12 antenna extension,SMA male/female RG174 extension 2 m,,8.00,1,8.00,estimate,
-G,cables/connectors,W12 antenna,4G whip antenna SMA male,,10.00,1,10.00,estimate,
+alt,cables/connectors,W11 antenna pigtail,CRC9 male to SMA female pigtail,,7.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
+alt,cables/connectors,W12 antenna extension,SMA male/female RG174 extension 2 m,,8.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
+alt,cables/connectors,W12 antenna,4G whip antenna SMA male,,10.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
 G,cables/connectors,W10 probe junction,IP68 junction box + 8 gel-filled crimps,,12.00,1,12.00,estimate,splices both probe tails onto the single 20 m cable
 G,cables/connectors,consumables,"heatshrink kit, UV cable ties, self-amalgamating tape",,15.00,1,15.00,estimate,the tape seals the outdoor antenna joint
 G,cables/connectors,mounting,"nylon M2.5 standoffs, adhesive tie mounts, battery strap",,6.00,1,6.00,estimate,nylon not metal: the enclosure carries a galvanised steel plate
+G,cables/connectors,mic port,"IP67 ePTFE acoustic membrane, adhesive, pack",,12.00,1,12.00,estimate,"under 2 dB loss at 1-5 kHz. Goes behind a 5 mm hole, with a foam hood outside"
+G,cables/connectors,I2S header,2x20 extra-tall stacking header,,3.00,1,3.00,estimate,raises the Witty Pi so the I2S pins stay reachable. Verify the Witty Pi does not use them
+G,cables/connectors,mounting plate,3 mm plastic sheet cut to the box,,5.00,1,5.00,estimate,replaces the galvanised steel plate the enclosure ships with: steel beside the 4G antenna detunes it

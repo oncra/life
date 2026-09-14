@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1340" height="980" viewBox="0 0 1340 980" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
 <rect width="1340" height="980" fill="#fcfcfb"/>
 <text x="40.0" y="34.0" font-size="17" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Life node v1 - enclosure wiring</text>
-<text x="40.0" y="54.0" font-size="11.5" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Inside the 300 x 200 x 130 box, lid off, seen from the front. Cable numbers W1-W13 match the cable schedule. Dimensions in mm.</text>
+<text x="40.0" y="54.0" font-size="11.5" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Everything inside the 300 x 200 x 130 box, lid off, seen from the front. Microphone and 4G antenna are both internal. Cable numbers match the schedule.</text>
 <line x1="40.0" y1="66.0" x2="1300.0" y2="66.0" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
 <line x1="718.0" y1="90.0" x2="718.0" y2="890.0" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
 <text x="40.0" y="116.0" font-size="12.5" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">A   Interior layout and cable routing</text>
@@ -12,40 +12,37 @@
 <text x="237.7" y="382.5" font-size="10" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">LiFePO4 12.8 V 18 Ah</text>
 <text x="237.7" y="401.1" font-size="8.6" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">181 x 167 x 77, lying flat</text>
 <rect x="132.3" y="193.4" width="175.2" height="155.0" fill="none" stroke="#2a78d6" stroke-width="1.5" rx="0" stroke-dasharray='6 4'/>
-<text x="219.1" y="264.7" font-size="10" fill="#2a78d6" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">MPPT 75/10</text>
-<text x="219.1" y="283.3" font-size="8.6" fill="#2a78d6" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">on a shelf above</text>
-<text x="219.1" y="298.8" font-size="8.6" fill="#2a78d6" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">the battery</text>
+<text x="219.1" y="258.5" font-size="10" fill="#2a78d6" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">MPPT 75/10</text>
+<text x="219.1" y="280.2" font-size="8.4" fill="#2a78d6" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">on a shelf above the battery</text>
 <rect x="386.5" y="156.2" width="86.8" height="136.4" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
 <text x="429.9" y="220.4" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Pi 4</text>
 <text x="429.9" y="233.4" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">+ Witty Pi</text>
 <rect x="482.6" y="156.2" width="52.7" height="55.8" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
 <text x="508.9" y="180.1" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">buck</text>
 <text x="508.9" y="193.1" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">12→5 V</text>
-<rect x="482.6" y="221.3" width="52.7" height="55.8" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
-<text x="508.9" y="245.2" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB</text>
-<text x="508.9" y="258.2" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">sound card</text>
 <rect x="386.5" y="301.9" width="108.5" height="38.8" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
 <text x="440.8" y="321.3" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-RS485</text>
 <rect x="386.5" y="350.0" width="139.5" height="46.5" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
 <text x="456.2" y="369.2" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">4G stick</text>
-<text x="456.2" y="382.2" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Brovi E3372</text>
+<text x="456.2" y="382.2" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">internal antenna</text>
 <rect x="386.5" y="405.8" width="148.8" height="32.6" fill="#ffffff" stroke="#111111" stroke-width="1.5" rx="0"/>
 <text x="460.9" y="418.0" font-size="9.4" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">terminal block</text>
 <text x="460.9" y="431.0" font-size="8.2" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">12 V distribution</text>
-<circle cx="138.5" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
-<text x="138.5" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W1 panel</text>
-<circle cx="234.6" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
-<text x="234.6" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W9 probes</text>
-<circle cx="330.7" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
-<text x="330.7" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W11 ant.</text>
-<circle cx="426.8" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
-<text x="426.8" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W13 mic</text>
-<circle cx="507.4" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
-<text x="507.4" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">vent</text>
-<text x="92.0" y="496.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">M20 glands, all on the UNDERSIDE face. Nothing enters from above.</text>
-<polyline points="138.5,450.5 138.5,425.9 119.9,425.9 119.9,367.0 154.0,336.0 154.0,270.9" fill="none" stroke="#c8322a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="138.5" cy="402.6" r="9" fill="#fcfcfb" stroke="#c8322a" stroke-width="1.4"/>
-<text x="138.5" y="406.1" font-size="9" fill="#c8322a" text-anchor="middle" font-weight="700">1</text>
+<rect x="482.6" y="230.6" width="52.7" height="46.5" fill="#ffffff" stroke="#1baf7a" stroke-width="1.5" rx="0"/>
+<text x="508.9" y="253.9" font-size="9.4" fill="#1baf7a" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">INMP441</text>
+<circle cx="508.9" cy="298.8" r="6" fill="#ffffff" stroke="#1baf7a" stroke-width="1.8"/>
+<text x="508.9" y="320.5" font-size="8.4" fill="#1baf7a" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">mic port</text>
+<line x1="508.9" y1="277.1" x2="508.9" y2="289.5" stroke="#1baf7a" stroke-width="1.6" stroke-linecap="round"/>
+<circle cx="154.0" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
+<text x="154.0" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W1 panel</text>
+<circle cx="262.5" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
+<text x="262.5" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W9 probes</text>
+<circle cx="355.5" cy="450.5" r="7" fill="#ffffff" stroke="#eb6834" stroke-width="1.8"/>
+<text x="355.5" y="474.5" font-size="8.6" fill="#eb6834" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">vent</text>
+<text x="92.0" y="496.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Only 3 glands now, all on the UNDERSIDE. The mic port is a 5 mm hole in the wall.</text>
+<polyline points="154.0,450.5 154.0,425.9 119.9,425.9 119.9,367.0 154.0,336.0 154.0,270.9" fill="none" stroke="#c8322a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="138.5" cy="398.0" r="9" fill="#fcfcfb" stroke="#c8322a" stroke-width="1.4"/>
+<text x="138.5" y="401.5" font-size="9" fill="#c8322a" text-anchor="middle" font-weight="700">1</text>
 <polyline points="307.5,270.9 352.4,270.9 352.4,187.2 324.5,171.7" fill="none" stroke="#c8322a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
 <circle cx="352.4" cy="227.5" r="9" fill="#fcfcfb" stroke="#c8322a" stroke-width="1.4"/>
 <text x="352.4" y="231.0" font-size="9" fill="#c8322a" text-anchor="middle" font-weight="700">2</text>
@@ -60,94 +57,81 @@
 <polyline points="508.9,184.1 491.9,184.1 491.9,171.7 457.8,171.7" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
 <circle cx="491.9" cy="159.3" r="9" fill="#fcfcfb" stroke="#1baf7a" stroke-width="1.4"/>
 <text x="491.9" y="162.8" font-size="9" fill="#1baf7a" text-anchor="middle" font-weight="700">5</text>
+<polyline points="482.6,252.3 464.0,252.3 464.0,243.0 451.6,230.6" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="468.7" cy="264.7" r="9" fill="#fcfcfb" stroke="#1baf7a" stroke-width="1.4"/>
+<text x="468.7" y="268.2" font-size="9" fill="#1baf7a" text-anchor="middle" font-weight="700">13</text>
 <polyline points="440.8,301.9 440.8,292.6" fill="none" stroke="#2a78d6" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="451.6" cy="297.2" r="9" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.4"/>
-<text x="451.6" y="300.8" font-size="9" fill="#2a78d6" text-anchor="middle" font-weight="700">8</text>
+<circle cx="454.7" cy="297.2" r="9" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="454.7" y="300.8" font-size="9" fill="#2a78d6" text-anchor="middle" font-weight="700">8</text>
 <polyline points="386.5,320.5 367.9,320.5 367.9,416.6 386.5,416.6" fill="none" stroke="#2a78d6" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="234.6,450.5 234.6,429.0 380.3,429.0 380.3,419.7 386.5,419.7" fill="none" stroke="#2a78d6" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="293.5" cy="429.0" r="9" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.4"/>
-<text x="293.5" y="432.5" font-size="9" fill="#2a78d6" text-anchor="middle" font-weight="700">9</text>
-<polyline points="330.7,450.5 330.7,394.9 420.6,394.9 420.6,385.6" fill="none" stroke="#eb6834" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="395.8" cy="394.9" r="9" fill="#fcfcfb" stroke="#eb6834" stroke-width="1.4"/>
-<text x="395.8" y="398.4" font-size="9" fill="#eb6834" text-anchor="middle" font-weight="700">11</text>
-<polyline points="426.8,450.5 426.8,441.4 532.2,441.4 532.2,283.3 508.9,283.3 508.9,277.1" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="532.2" cy="367.0" r="9" fill="#fcfcfb" stroke="#1baf7a" stroke-width="1.4"/>
-<text x="532.2" y="370.5" font-size="9" fill="#1baf7a" text-anchor="middle" font-weight="700">13</text>
-<polyline points="482.6,249.2 473.3,249.2 473.3,227.5" fill="none" stroke="#1baf7a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="456.2,373.2 473.3,373.2 473.3,274.0" fill="none" stroke="#555555" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="479.5" y="305.0" font-size="8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB</text>
+<polyline points="262.5,450.5 262.5,429.0 380.3,429.0 380.3,419.7 386.5,419.7" fill="none" stroke="#2a78d6" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="321.4" cy="429.0" r="9" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="321.4" y="432.5" font-size="9" fill="#2a78d6" text-anchor="middle" font-weight="700">9</text>
+<polyline points="456.2,373.2 473.3,373.2 473.3,298.8" fill="none" stroke="#555555" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="479.5" y="339.1" font-size="8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB</text>
 <line x1="92.0" y1="518.5" x2="114.0" y2="518.5" stroke="#c8322a" stroke-width="2.6" stroke-linecap="round"/>
 <text x="120.0" y="522.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">12 V power, fused</text>
 <line x1="92.0" y1="535.5" x2="114.0" y2="535.5" stroke="#eb6834" stroke-width="2.6" stroke-linecap="round"/>
 <text x="120.0" y="539.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">switched 12 V (MPPT load output)</text>
 <line x1="92.0" y1="552.5" x2="114.0" y2="552.5" stroke="#1baf7a" stroke-width="2.6" stroke-linecap="round"/>
-<text x="120.0" y="556.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">5 V / audio</text>
+<text x="120.0" y="556.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">5 V / I2S audio</text>
 <line x1="92.0" y1="569.5" x2="114.0" y2="569.5" stroke="#2a78d6" stroke-width="2.6" stroke-linecap="round"/>
 <text x="120.0" y="573.5" font-size="9.6" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">RS485 + data</text>
 <text x="92.0" y="610.5" font-size="12.5" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Cable schedule</text>
 <line x1="92.0" y1="620.5" x2="660.0" y2="620.5" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
+<rect x="92" y="627.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W1</text>
 <text x="133.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">panel to MPPT</text>
 <text x="300.0" y="639.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 4 mm2 solar cable, MC4 pigtail pair</text>
 <text x="655.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">1 m</text>
-<rect x="92" y="627.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="657.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W2</text>
 <text x="133.0" y="657.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">MPPT to battery</text>
 <text x="300.0" y="657.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 2.5 mm2 + inline 15 A blade fuse + ring terminals</text>
 <text x="655.0" y="657.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.4 m</text>
+<rect x="92" y="662.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="674.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W3</text>
 <text x="133.0" y="674.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">MPPT LOAD to terminal block</text>
 <text x="300.0" y="674.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 1.5 mm2, bootlace ferrules</text>
 <text x="655.0" y="674.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.25 m</text>
-<rect x="92" y="662.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="692.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W4</text>
 <text x="133.0" y="692.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">terminal block to buck</text>
 <text x="300.0" y="692.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 1.0 mm2</text>
 <text x="655.0" y="692.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.2 m</text>
+<rect x="92" y="697.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W5</text>
 <text x="133.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">buck to Witty Pi</text>
 <text x="300.0" y="709.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-A to micro-USB (check the 4 Mini, it may be USB-C)</text>
 <text x="655.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.3 m</text>
-<rect x="92" y="697.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="727.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W6</text>
 <text x="133.0" y="727.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Witty Pi to Pi</text>
 <text x="300.0" y="727.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">GPIO header, no cable</text>
 <text x="655.0" y="727.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">-</text>
+<rect x="92" y="732.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="744.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W7</text>
 <text x="133.0" y="744.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">terminal block to probe 12 V</text>
 <text x="300.0" y="744.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">shares two cores of W9</text>
 <text x="655.0" y="744.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">-</text>
-<rect x="92" y="732.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="762.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W8</text>
 <text x="133.0" y="762.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-RS485 to terminal block</text>
 <text x="300.0" y="762.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 0.5 mm2, ferrules</text>
 <text x="655.0" y="762.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.2 m</text>
+<rect x="92" y="767.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="779.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W9</text>
 <text x="133.0" y="779.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">box to probes</text>
 <text x="300.0" y="779.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">4-core 0.75 mm2 outdoor UV cable</text>
 <text x="655.0" y="779.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">20 m</text>
-<rect x="92" y="767.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="797.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W10</text>
 <text x="133.0" y="797.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">probe junction</text>
 <text x="300.0" y="797.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">IP68 junction box + 8 gel-filled crimps</text>
 <text x="655.0" y="797.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">-</text>
-<text x="96.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W11</text>
-<text x="133.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">4G stick to antenna</text>
-<text x="300.0" y="814.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">CRC9 male to SMA female pigtail</text>
-<text x="655.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.2 m</text>
 <rect x="92" y="802.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
-<text x="96.0" y="832.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W12</text>
-<text x="133.0" y="832.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">antenna up the whip</text>
-<text x="300.0" y="832.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">SMA m/f RG174 extension + SMA whip antenna</text>
-<text x="655.0" y="832.0" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 m</text>
-<text x="96.0" y="849.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W13</text>
-<text x="133.0" y="849.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">microphone</text>
-<text x="300.0" y="849.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">lavalier 3.5 mm TRS into a USB sound card</text>
-<text x="655.0" y="849.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">6 m</text>
-<rect x="92" y="837.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
-<line x1="92.0" y1="865.0" x2="660.0" y2="865.0" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
-<text x="96.0" y="883.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Also: bootlace ferrule kit, ring terminals, heatshrink, UV cable ties, self-amalgamating tape for the</text>
-<text x="96.0" y="898.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">antenna joint, nylon M2.5 standoffs for the Pi, adhesive tie mounts, a strap for the battery.</text>
+<text x="96.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W13</text>
+<text x="133.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">microphone to Pi</text>
+<text x="300.0" y="814.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">6-core Dupont on I2S, via a stacking header</text>
+<text x="655.0" y="814.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.1 m</text>
+<line x1="92.0" y1="830.0" x2="660.0" y2="830.0" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
+<text x="96.0" y="848.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Gone with the whip: the lavalier and its sound card, the CRC9 pigtail, the SMA extension and the antenna.</text>
+<text x="96.0" y="863.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Also needed: ferrules, ring terminals, heatshrink, UV ties, nylon standoffs, a battery strap, acoustic membrane.</text>
 <text x="742.0" y="116.0" font-size="12.5" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">B   One-line schematic</text>
 <rect x="760.0" y="150.0" width="110.0" height="42.0" fill="#ffffff" stroke="#111111" stroke-width="1.6" rx="3"/>
 <text x="815.0" y="167.0" font-size="9.8" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">100 Wp panel</text>
@@ -173,15 +157,11 @@
 <rect x="930.0" y="556.0" width="110.0" height="38.0" fill="#ffffff" stroke="#2a78d6" stroke-width="1.6" rx="3"/>
 <text x="985.0" y="575.0" font-size="9.8" fill="#2a78d6" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-RS485</text>
 <rect x="1100.0" y="556.0" width="110.0" height="38.0" fill="#ffffff" stroke="#111111" stroke-width="1.6" rx="3"/>
-<text x="1155.0" y="575.0" font-size="9.8" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">4G stick</text>
+<text x="1155.0" y="571.0" font-size="9.8" fill="#111111" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">4G stick</text>
+<text x="1155.0" y="585.0" font-size="8.3" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">internal antenna</text>
 <rect x="1100.0" y="478.0" width="110.0" height="38.0" fill="#ffffff" stroke="#1baf7a" stroke-width="1.6" rx="3"/>
-<text x="1155.0" y="497.0" font-size="9.8" fill="#1baf7a" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB sound card</text>
-<rect x="1100.0" y="400.0" width="110.0" height="38.0" fill="#ffffff" stroke="#1baf7a" stroke-width="1.6" rx="3"/>
-<text x="1155.0" y="415.0" font-size="9.8" fill="#1baf7a" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">lavalier mic</text>
-<text x="1155.0" y="429.0" font-size="8.3" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">at 1500 mm</text>
-<rect x="1100.0" y="636.0" width="110.0" height="38.0" fill="#ffffff" stroke="#eb6834" stroke-width="1.6" rx="3"/>
-<text x="1155.0" y="651.0" font-size="9.8" fill="#eb6834" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">whip antenna</text>
-<text x="1155.0" y="665.0" font-size="8.3" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">at 1300 mm</text>
+<text x="1155.0" y="493.0" font-size="9.8" fill="#1baf7a" text-anchor="middle" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">INMP441 mic</text>
+<text x="1155.0" y="507.0" font-size="8.3" fill="#555555" text-anchor="middle" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">I2S, in the box</text>
 <polyline points="815.0,192.0 815.0,232.0" fill="none" stroke="#c8322a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <circle cx="815.0" cy="212.0" r="9" fill="#fcfcfb" stroke="#c8322a" stroke-width="1.4"/>
 <text x="815.0" y="215.5" font-size="9" fill="#c8322a" text-anchor="middle" font-weight="700">1</text>
@@ -208,24 +188,22 @@
 <circle cx="985.0" cy="500.0" r="9" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.4"/>
 <text x="985.0" y="503.5" font-size="9" fill="#2a78d6" text-anchor="middle" font-weight="700">9</text>
 <polyline points="1100.0,575.0 1040.0,575.0" fill="none" stroke="#555555" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="1155.0,594.0 1155.0,636.0" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="1155.0" cy="615.0" r="9" fill="#fcfcfb" stroke="#eb6834" stroke-width="1.4"/>
-<text x="1155.0" y="618.5" font-size="9" fill="#eb6834" text-anchor="middle" font-weight="700">11</text>
-<polyline points="1100.0,497.0 1060.0,497.0 1060.0,575.0" fill="none" stroke="#555555" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="1155.0,438.0 1155.0,478.0" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="1155.0" cy="458.0" r="9" fill="#fcfcfb" stroke="#1baf7a" stroke-width="1.4"/>
-<text x="1155.0" y="461.5" font-size="9" fill="#1baf7a" text-anchor="middle" font-weight="700">13</text>
-<text x="742.0" y="712.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The buck hangs on the MPPT's LOAD output, not on the battery, so Victron's</text>
-<text x="742.0" y="727.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">low-voltage disconnect protects the cells. The probes hang there too, which is</text>
-<text x="742.0" y="742.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">how they stop drawing power for the 14 hours the node is asleep.</text>
-<text x="742.0" y="768.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Both probes leave the factory on Modbus address 1. Re-address one to 2</text>
-<text x="742.0" y="783.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">(register 07D0) on the bench, or they collide on the bus and neither reads.</text>
-<text x="742.0" y="808.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">SEN0600 exposes moisture (0000H) and temperature (0001H) only. The agent's</text>
-<text x="742.0" y="823.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">generic-thc profile reads three registers and must be cut to two for this probe.</text>
-<text x="742.0" y="848.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Wire colours on the probe tail are not published. Meter them before splicing:</text>
-<text x="742.0" y="863.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">the family convention is brown +V, black GND, yellow A, blue B.</text>
+<polyline points="1100.0,497.0 1060.0,497.0 1060.0,566.0" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1080.0" cy="497.0" r="9" fill="#fcfcfb" stroke="#1baf7a" stroke-width="1.4"/>
+<text x="1080.0" y="500.5" font-size="9" fill="#1baf7a" text-anchor="middle" font-weight="700">13</text>
+<text x="742.0" y="660.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The buck and the probes both hang on the MPPT's LOAD output, not on the</text>
+<text x="742.0" y="675.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">battery, so Victron's low-voltage disconnect protects the cells and the probes</text>
+<text x="742.0" y="690.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">stop drawing power through the fourteen hours the node is asleep.</text>
+<text x="742.0" y="716.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The Witty Pi sits on the GPIO header, so the microphone needs a stacking</text>
+<text x="742.0" y="731.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">header underneath it to reach the I2S pins. Check this before ordering.</text>
+<text x="742.0" y="757.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Both probes leave the factory on Modbus address 1. Re-address one to 2</text>
+<text x="742.0" y="772.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">(register 07D0) on the bench, or they collide and neither reads.</text>
+<text x="742.0" y="798.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">SEN0600 exposes moisture (0000H) and temperature (0001H) only, so it uses</text>
+<text x="742.0" y="813.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">the sen0600 profile, which reads two registers rather than three.</text>
+<text x="742.0" y="839.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Probe wire colours are not published. Meter them before splicing: the family</text>
+<text x="742.0" y="854.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">convention is brown +V, black GND, yellow A, blue B.</text>
 <line x1="40.0" y1="905.0" x2="1300.0" y2="905.0" stroke="#9a9a94" stroke-width="1" stroke-linecap="round"/>
-<text x="40.0" y="926.0" font-size="10" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The microphone is analogue on purpose. I2S is a board-level bus: it fails past roughly a metre, so an INMP441 cannot sit at the top of a 1500 mm whip. A lavalier capsule on</text>
-<text x="40.0" y="942.0" font-size="10" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">its own 6 m shielded lead, into a USB sound card in the box, is the version of this that works. That reverses the €3.10 microphone back to €45 of microphone plus card.</text>
-<text x="40.0" y="962.0" font-size="10" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Nothing in this drawing is verified on hardware yet. Meter every colour and check every connector against the part in your hand before you cut anything.</text>
+<text x="40.0" y="926.0" font-size="10" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Leave the galvanised steel mounting plate out of the box. A 4G antenna radiates through polycarbonate for a few dB of loss, but a steel plate beside it detunes the antenna and</text>
+<text x="40.0" y="942.0" font-size="10" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">puts nulls in the pattern. Mount the boards on a cut sheet of 3 mm plastic instead, which also removes the need to isolate anything from the plate.</text>
+<text x="40.0" y="962.0" font-size="10" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Nothing here is verified on hardware yet. Meter every colour and check every connector against the part in your hand before you cut anything.</text>
 </svg>
