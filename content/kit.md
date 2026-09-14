@@ -15,7 +15,7 @@ The first set had three radios (WiFi to the recorder, LoRaWAN to the probes, the
 The node folds all of it into one enclosure:
 
 - a small computer runs BirdNET locally, so only detections leave the field (a few kilobytes a day, which is why a €12 ten-year IoT SIM is enough);
-- the soil probes are wired, over a 20 m cable, into the same box, so they need no radio and no battery of their own;
+- the soil probes are wired into the same box on their own 2 m leads, so they need no radio and no battery of their own;
 - one 4G/LTE-M modem carries everything; the landowner's network is never involved;
 - one solar panel and one battery power the lot.
 
@@ -30,7 +30,6 @@ The node folds all of it into one enclosure:
 | 5 | Microphone | Boya BY-M1 lavalier + USB sound card, foam windscreen, downward hood (I2S MEMS INMP441 as the €5 alternative) | bol / Kiwi | ~€27 |
 | 6 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68 (Seeed S-Soil MTEC-02A with EC, €107 each, as the upgrade) | Berrybase | 2 × €26.90 = €53.80 |
 | 7 | RS485 adapter | Waveshare industrial USB to RS485 | Opencircuit | €13.50 |
-| 8 | Probe cable | outdoor 4-core 0.75 mm², 20 m, plus junction | Elektramat / Hornbach | ~€25 |
 | 9 | Solar panel | 100 W mono 12 V. A 50 W panel harvests in December exactly what the node eats, which is not a margin | offgridtec.com | ~€60 |
 | 10 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €41.64 (another shop lists €82.95; check) |
 | 11 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | Obelink | €49.90 |
@@ -64,6 +63,8 @@ The bill of materials above lists boxes. Boxes do not talk to each other, and th
 
 ![Enclosure wiring: interior layout with cable routing, one-line schematic and the cable schedule](/img/life-node-wiring.svg)
 
+**Ploughing is a siting question, not a cable question.** The probes sit at 10 and 30 cm and the lead runs in a spade slit at 12 cm, so on arable land the whole installation lives inside the plough layer no matter how the cable is routed. Burying deeper does not save it; a subsoiler goes further down than anything reasonable to dig by hand. What the short lead buys is that the node becomes one compact object, post and box and probes inside a two-metre circle, that can be lifted before ploughing and put back after. That has a consequence for the readings, and it is an honest one: on ploughed land the soil stream has a discontinuity every year, because the soil itself is inverted. The alternative is a headland or a permanent grass strip, where nothing is ploughed and the probes stay put, at the cost of measuring the margin rather than the field. Either is defensible; leaving it unsaid is not.
+
 Two decisions are worth stating rather than leaving in the drawing. The buck converter hangs on the charge controller's **load output** rather than on the battery, which puts Victron's low-voltage disconnect between the electronics and the cells for free. The probes do **not** hang there, and that is a correction to the earlier drawing: the load output is never itself switched, the Witty Pi schedules the Pi, so probes wired to the load output would draw about 0.4 W around the clock. That is 9.6 Wh/day, the entire winter budget. They go on a small MOSFET switch driven from a spare GPIO pin instead, live only while a reading is taken. And the battery lead carries an inline **15 A fuse** at the battery end, which is not optional on a lithium cell that can deliver a hundred amps into a shorted screwdriver.
 
 Three things will bite a first build, so they are written on the drawing:
@@ -83,7 +84,7 @@ One question that looked like a conflict is settled. The Witty Pi 4 Mini uses GP
 
 - **The panel is sized by the crop, not by December.** This is the least obvious number in the design. With the winter schedule December is comfortable on any panel: 50 Wp harvests about 50 Wh/day against a 9.6 Wh load. What decides the panel is **April to September under a standing crop**. If a canopy takes the harvest down to something like a fifth, a 50 Wp panel runs 15 to 23 Wh/day short every summer month, and no winter schedule repairs that. So: **100 Wp where a crop will grow over the panel, 50 Wp on grass, a short crop or a headland** where it will not. Where the site allows the smaller panel it is worth taking, because it also halves the sail area, drops the overturning moment from about 155 to 86 Nm and lets the post go back to 600 mm. The shading fraction is a guess until someone measures it, and it is the first thing worth measuring at the first site.
 
-- **Wired probes, one place per box.** Two probes on one 20 m cable run: 10 cm and 30 cm at one spot, 15 to 20 m into the field from the post.
+- **Wired probes, 1.5 m south of the post.** Both probes sit at one spot, 10 cm and 30 cm, on one Modbus bus, and each reaches the box on the 2 m lead it ships with. There is no extension cable and no junction box. The distance is set by three things and none of them is large: the drip line under the panel's lower edge wets a strip at 0.3 to 0.5 m, driving the post disturbs soil for 0.2 to 0.3 m around it, and the panel's shadow always falls north, so probes to the south are never shaded. An earlier version of this page called for 20 m of buried cable. That was wrong, and it was expensive, laborious and doomed: 20 m of cable across a worked field is 20 m of cable in the plough.
 - **Moisture and temperature, not EC.** The soil-breathing reading needs only those two. EC (nutrient leakage) is the first upgrade, with the Seeed probe.
 
 ## Cheaper builds
@@ -130,4 +131,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter. **B** reichelt, about €101: enclosure, glands, charge controller, each with its reichelt product number so the three go in through their Direct order form in one pass. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops plus a basket of cable and connectors, about €620 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.
+`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter. **B** reichelt, about €101: enclosure, glands, charge controller, each with its reichelt product number so the three go in through their Direct order form in one pass. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops plus a basket of cable and connectors, about €592 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.

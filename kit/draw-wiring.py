@@ -49,11 +49,11 @@ comp(252,52,34,30,"INMP441",None,GREEN)
 circ(bx(269),by(96),6,"#ffffff",GREEN,1.8)
 txt(bx(269),by(110),"mic port",8.4,GREEN,"middle")
 line(bx(269),by(82),bx(269),by(90),GREEN,1.6)
-gl=[(40,"W1 panel"),(110,"W9 probes"),(170,"vent")]
+gl=[(40,"W1 panel"),(100,"W9 probe 1"),(148,"W9 probe 2"),(200,"vent")]
 for gx,lab in gl:
     circ(bx(gx),by(190)+6,7,"#ffffff",ORANGE,1.8)
     txt(bx(gx),by(190)+30,lab,8.6,ORANGE,"middle")
-txt(X0,by(190)+52,"Only 3 glands now, all on the UNDERSIDE. The mic port is a 5 mm hole in the wall.",9.6,MID)
+txt(X0,by(190)+52,"4 glands, all on the UNDERSIDE. The mic port is a 5 mm hole in the wall, not a gland.",9.6,MID)
 pl([(bx(40),by(190)+6),(bx(40),by(178)),(bx(18),by(178)),(bx(18),by(140)),(bx(40),by(120)),(bx(40),by(78))],RED,2.4)
 tag(bx(30),by(160),"1",RED)
 pl([(bx(139),by(78)),(bx(168),by(78)),(bx(168),by(24)),(bx(150),by(14))],RED,2.4)
@@ -69,8 +69,8 @@ pl([(bx(252),by(66)),(bx(240),by(66)),(bx(240),by(60)),(bx(232),by(52))],GREEN,2
 tag(bx(243),by(74),"13",GREEN)
 pl([(bx(225),by(98)),(bx(225),by(92))],BLUE,2.2); tag(bx(234),by(95),"8",BLUE)
 pl([(bx(190),by(110)),(bx(178),by(110)),(bx(178),by(172)),(bx(190),by(172))],BLUE,2.2)
-pl([(bx(110),by(190)+6),(bx(110),by(180)),(bx(186),by(180)),(bx(186),by(174)),(bx(190),by(174))],BLUE,2.4)
-tag(bx(148),by(180),"9",BLUE)
+pl([(bx(100),by(190)+6),(bx(100),by(180)),(bx(186),by(180)),(bx(186),by(174)),(bx(190),by(174))],BLUE,2.4)
+tag(bx(140),by(180),"9",BLUE)
 pl([(bx(235),by(144)),(bx(246),by(144)),(bx(246),by(96))],MID,1.6)
 txt(bx(250),by(122),"USB",8,MID)
 lx,ly=92,by(190)+78
@@ -86,8 +86,7 @@ rows=[("W1","panel to MPPT","2 x 4 mm2 solar cable, MC4 pigtail pair","1 m"),
  ("W6","Witty Pi to Pi","GPIO header, no cable","-"),
  ("W7","terminal block to probe 12 V","shares two cores of W9","-"),
  ("W8","USB-RS485 to terminal block","2 x 0.5 mm2, ferrules","0.2 m"),
- ("W9","box to probes","4-core 0.75 mm2 outdoor UV cable","20 m"),
- ("W10","probe junction","IP68 junction box + 8 gel-filled crimps","-"),
+ ("W9","box to probes","the probes' own 2 m leads, straight into two glands","2 m"),
  ("W13","microphone to Pi","6-core Dupont on I2S, via a stacking header","0.1 m")]
 line(92,SY-6,660,SY-6,LIGHT,1)
 for i,(n,a_,b_,l_) in enumerate(rows):
@@ -96,7 +95,7 @@ for i,(n,a_,b_,l_) in enumerate(rows):
     txt(96,y,n,9.4,INK,"start","700"); txt(133,y,a_,9.4,INK); txt(300,y,b_,9.4,MID); txt(655,y,l_,9.4,INK,"end")
 yend=SY+13+len(rows)*17.5
 line(92,yend-2,660,yend-2,LIGHT,1)
-txt(96,yend+16,"Gone with the whip: the lavalier and its sound card, the CRC9 pigtail, the SMA extension and the antenna.",9.4,MID)
+txt(96,yend+16,"Gone: the lavalier and sound card, the CRC9 pigtail and antenna, and the 20 m cable with its junction box.",9.4,MID)
 txt(96,yend+31,"Also needed: ferrules, ring terminals, heatshrink, UV ties, nylon standoffs, a battery strap, acoustic membrane.",9.4,MID)
 
 SX=760

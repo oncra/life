@@ -1,5 +1,5 @@
 import math
-W,H = 1340, 1240
+W,H = 1340, 1420
 S = 0.255
 INK="#111111"; MID="#555555"; LIGHT="#9a9a94"; PAPER="#fcfcfb"
 BLUE="#2a78d6"; ORANGE="#eb6834"; GREEN="#1baf7a"
@@ -35,7 +35,7 @@ A(f'<rect width="{W}" height="{H}" fill="{PAPER}"/>')
 txt(40,34,"Life node v1 - low-profile field mount",17,INK,"start","600")
 txt(40,54,"Sits inside a standing crop. Nothing stands above 1090 mm: the microphone and the 4G antenna are both inside the box. All dimensions in mm.",11.5,MID)
 line(40,66,1300,66,LIGHT,1)
-line(672,86,672,1155,LIGHT,1)
+line(672,86,672,1310,LIGHT,1)
 
 # ===================== VIEW A =====================
 GX, GY = 212, 620
@@ -65,10 +65,13 @@ line((p0[0]+p1[0])/2,(p0[1]+p1[1])/2+5,bx+4,my(705),MID,1.2)
 # microphone port in the box wall, behind an acoustic membrane
 circ(bx+bd/2, my(760)+3, 5, "#ffffff", GREEN, 1.8)
 poly([(bx+bd/2-9,my(760)-4),(bx+bd/2+9,my(760)-4),(bx+bd/2,my(760)+14)],"none",GREEN,1.3)
-line(mx(0)-pw/2,my(530),mx(-300),my(530),ORANGE,1.6)
-line(mx(-300),my(530),mx(-300),my(-130),ORANGE,1.6)
-line(mx(-300),my(-130),mx(-620),my(-130),ORANGE,1.6)
-txt(mx(-470),my(-200),"to probes, 3 m",9.5,ORANGE,"middle","600")
+line(mx(0)-pw/2,my(530),mx(-260),my(530),ORANGE,1.6)
+line(mx(-260),my(530),mx(-260),my(-120),ORANGE,1.6)
+line(mx(-260),my(-120),mx(-620),my(-120),ORANGE,1.6)
+for dx in (0,7):
+    line(mx(-620)+dx-3,my(-90),mx(-620)+dx+3,my(-150),PAPER,4)
+    line(mx(-620)+dx-3,my(-90),mx(-620)+dx+3,my(-150),MID,1.2)
+txt(mx(-470),my(-205),"probes 1.5 m south, see D",9.5,ORANGE,"middle","600")
 dimv(mx(-160),my(0),my(500),"500")
 dimv(mx(-160),my(500),my(700),"200")
 dimv(mx(-300),my(0),my(1090),"1090")
@@ -116,15 +119,15 @@ for (w_,h_,lab) in [(88,58,"Pi 4"),(70,25,"RS485"),(90,30,"4G stick"),(65,26,"Wi
 rect(CXo+22,CYo+22,113*sc,100*sc,"none",BLUE,1.3,"5 4")
 line(CXo+22+113*sc,CYo+22,CXo+300,CYo+6,BLUE,1)
 txt(CXo+303,CYo+9,"MPPT, stacked on the battery",8.8,BLUE)
-for i,lab in enumerate(["panel","probes","vent"]):
-    gx=CXo+34+i*60; circ(gx,CYo+190*sc,5,"#ffffff",ORANGE,1.6); txt(gx,CYo+190*sc+17,lab,8.3,ORANGE,"middle")
-txt(CXo,CYo+190*sc+36,"3 x M20 gland on the underside, one vented. Mic port in the wall.",9.6,MID)
+for i,lab in enumerate(["panel","probe 1","probe 2","vent"]):
+    gx=CXo+28+i*48; circ(gx,CYo+190*sc,5,"#ffffff",ORANGE,1.6); txt(gx,CYo+190*sc+17,lab,8.3,ORANGE,"middle")
+txt(CXo,CYo+190*sc+36,"4 x M20 gland on the underside, one vented. Mic port in the wall.",9.6,MID)
 txt(CXo,CYo+190*sc+51,"Nothing enters from above.",9.6,MID)
 txt(CXo,CYo+190*sc+72,"Volume used is 45%, but the battery must lie flat and takes",9.6,INK,"start","600")
 txt(CXo,CYo+190*sc+86,"55% of the floor: 43 mm headroom above it. Measure before drilling.",9.6,INK,"start","600")
 
 # ===================== VIEW D - probe trench =====================
-DX,DY=700,966
+DX,DY=700,1085
 txt(700,700,"What the in-box design costs",12.5,INK,"start","600")
 for k,t in enumerate(["Power: survivable. December is the tight month and also the bare-field",
  "month, so the panel is unshaded exactly when it matters. A summer canopy",
@@ -140,20 +143,29 @@ for k,t in enumerate(["Power: survivable. December is the tight month and also t
  "raising the box from 300 to 500 mm lifts the overturning moment from roughly",
  "120 to 155 Nm. That is why the post is driven 800 rather than 600."]):
     txt(700,718+k*15,t,9.8,MID if k>3 else INK)
-txt(700,950,"D   Probe trench, section",12.5,INK,"start","600")
-A(f'<rect x="{DX}" y="{DY}" width="380" height="110" fill="url(#soil)" opacity="0.8"/>')
-line(DX,DY,DX+380,DY,INK,1.6)
-line(DX+40,DY,DX+40,DY+31,ORANGE,1.6); line(DX+40,DY+31,DX+300,DY+31,ORANGE,1.6)
-txt(DX+165,DY+27,"cable, 120 deep slit",9,ORANGE,"middle")
+txt(700,1000,"D   Probe trench, section",12.5,INK,"start","600")
+A(f'<rect x="{DX}" y="{DY}" width="470" height="120" fill="url(#soil)" opacity="0.8"/>')
+line(DX,DY,DX+470,DY,INK,1.6)
+A(f'<rect x="{DX}" y="{DY}" width="470" height="36" fill="{ORANGE}" opacity="0.10"/>')
+txt(DX+466,DY+24,"plough layer, 200-300",8.6,ORANGE,"end")
+rect(DX+18,DY-52,14,52,"#ffffff",INK,1.5)
+txt(DX+25,DY-58,"post",8.6,MID,"middle")
+line(DX+32,DY-30,DX+300,DY-30,ORANGE,1.6)
+line(DX+300,DY-30,DX+300,DY+14,ORANGE,1.6)
+txt(DX+166,DY-36,"probe's own 2 m lead",9,ORANGE,"middle")
+line(DX+300,DY+14,DX+340,DY+14,ORANGE,1.6)
 for (xx,dep,lab) in [(DX+300,26,"probe 1  -100"),(DX+340,78,"probe 2  -300")]:
-    line(xx,DY+31,xx,DY+dep,INK,2.4); circ(xx,DY+dep,3.4,INK)
+    line(xx,DY+14,xx,DY+dep,INK,2.4); circ(xx,DY+dep,3.4,INK)
     txt(xx+7,DY+dep+4,lab,9,INK)
-line(DX+300,DY+31,DX+340,DY+31,ORANGE,1.6)
-txt(DX,DY+120,"Probes 3 m from the post so the post's shadow and drip line do not bias the readings.",9.6,MID)
+dimv(DX+400,DY-30,DY,"1500 south")
+txt(DX,DY+140,"1.5 m south of the post clears the drip line under the panel and the soil disturbed by driving it,",9.6,MID)
+txt(DX,DY+155,"and the panel's shadow always falls north. Both probes sit at one spot, on one Modbus bus.",9.6,MID)
+txt(DX,DY+176,"Everything is inside the plough layer. On arable land the node comes out before ploughing and",9.6,INK,"start","600")
+txt(DX,DY+191,"goes back after, or it is sited on a headland. That is a siting decision, not a cable length.",9.6,INK,"start","600")
 
-line(40,1175,1300,1175,LIGHT,1)
-txt(40,1195,"Theft: matt green throughout, no reflective labels, no branding, cable lock through post and enclosure lugs. Machinery: a box this low is invisible to a sprayer too, so",10,MID)
-txt(40,1211,"log the position on the farmer's own GPS and site it on a headland or beside a tramline rather than mid-crop.",10,MID)
+line(40,1330,1300,1330,LIGHT,1)
+txt(40,1350,"Theft: matt green throughout, no reflective labels, no branding, cable lock through post and enclosure lugs. Machinery: a box this low is invisible to a sprayer too, so",10,MID)
+txt(40,1366,"log the position on the farmer's own GPS and site it on a headland or beside a tramline rather than mid-crop.",10,MID)
 A('</svg>')
 open('/home/sven/uploads/life-node-low-mount.svg','w').write("\n".join(o))
 print("ok")
