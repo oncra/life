@@ -82,7 +82,7 @@ rows=[("W1","panel to MPPT","2 x 4 mm2 solar cable, MC4 pigtail pair","1 m"),
  ("W2","MPPT to battery","2 x 2.5 mm2 + inline 15 A blade fuse + ring terminals","0.4 m"),
  ("W3","MPPT LOAD to terminal block","2 x 1.5 mm2, bootlace ferrules","0.25 m"),
  ("W4","terminal block to buck","2 x 1.0 mm2","0.2 m"),
- ("W5","buck to Witty Pi","USB-A to micro-USB (check the 4 Mini, it may be USB-C)","0.3 m"),
+ ("W5","buck to Witty Pi","USB-A to USB-C (confirmed: the 4 Mini takes USB-C)","0.3 m"),
  ("W6","Witty Pi to Pi","GPIO header, no cable","-"),
  ("W7","terminal block to probe 12 V","shares two cores of W9","-"),
  ("W8","USB-RS485 to terminal block","2 x 0.5 mm2, ferrules","0.2 m"),
@@ -133,8 +133,8 @@ pl([(SX+340,497),(SX+300,497),(SX+300,566)],GREEN,2); tag(SX+320,497,"13",GREEN)
 txt(SX-18,660,"The buck and the probes both hang on the MPPT's LOAD output, not on the",9.8,MID)
 txt(SX-18,675,"battery, so Victron's low-voltage disconnect protects the cells and the probes",9.8,MID)
 txt(SX-18,690,"stop drawing power through the fourteen hours the node is asleep.",9.8,MID)
-txt(SX-18,716,"The Witty Pi sits on the GPIO header, so the microphone needs a stacking",9.8,INK,"start","600")
-txt(SX-18,731,"header underneath it to reach the I2S pins. Check this before ordering.",9.8,INK,"start","600")
+txt(SX-18,716,"Witty Pi 4 Mini uses GPIO 2, 3, 4 and 17 and watches GPIO 14. The I2S pins",9.8,INK,"start","600")
+txt(SX-18,731,"18-21 are free, so the mic only needs a stacking header for physical room.",9.8,INK,"start","600")
 txt(SX-18,757,"Both probes leave the factory on Modbus address 1. Re-address one to 2",9.8,INK,"start","600")
 txt(SX-18,772,"(register 07D0) on the bench, or they collide and neither reads.",9.8,INK,"start","600")
 txt(SX-18,798,"SEN0600 exposes moisture (0000H) and temperature (0001H) only, so it uses",9.8,MID)

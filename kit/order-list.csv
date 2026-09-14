@@ -26,7 +26,7 @@ G,cables/connectors,W2 battery lead,"2 x 2.5 mm2 flexible red/black, 1 m",,4.00,
 G,cables/connectors,W2 fuse,inline blade fuse holder + 15 A fuse,,4.00,1,4.00,estimate,Victron wants a fuse close to the battery. Do not skip this one
 G,cables/connectors,terminations,bootlace ferrule kit + ring terminals + crimp tool,,13.00,1,13.00,estimate,
 G,cables/connectors,12 V distribution,"WAGO 221 lever connectors, 6 way",,7.00,1,7.00,estimate,
-G,cables/connectors,W5 buck to Witty Pi,USB-A to micro-USB cable 0.3 m,,3.00,1,3.00,estimate,check the Witty Pi input connector first; the 4 Mini may be USB-C
+G,cables/connectors,W5 buck to Witty Pi,USB-A to USB-C cable 0.3 m,,3.00,1,3.00,estimate,confirmed from the manual: the Witty Pi 4 Mini takes 5 V on USB-C
 alt,cables/connectors,W11 antenna pigtail,CRC9 male to SMA female pigtail,,7.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
 alt,cables/connectors,W12 antenna extension,SMA male/female RG174 extension 2 m,,8.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
 alt,cables/connectors,W12 antenna,4G whip antenna SMA male,,10.00,0,0.00,estimate,not needed: the 4G stick radiates through the polycarbonate wall. Buy only if a bench test shows the signal is short
@@ -34,5 +34,5 @@ G,cables/connectors,W10 probe junction,IP68 junction box + 8 gel-filled crimps,,
 G,cables/connectors,consumables,"heatshrink kit, UV cable ties, self-amalgamating tape",,15.00,1,15.00,estimate,the tape seals the outdoor antenna joint
 G,cables/connectors,mounting,"nylon M2.5 standoffs, adhesive tie mounts, battery strap",,6.00,1,6.00,estimate,nylon not metal: the enclosure carries a galvanised steel plate
 G,cables/connectors,mic port,"IP67 ePTFE acoustic membrane, adhesive, pack",,12.00,1,12.00,estimate,"under 2 dB loss at 1-5 kHz. Goes behind a 5 mm hole, with a foam hood outside"
-G,cables/connectors,I2S header,2x20 extra-tall stacking header,,3.00,1,3.00,estimate,raises the Witty Pi so the I2S pins stay reachable. Verify the Witty Pi does not use them
+G,cables/connectors,I2S header,2x20 extra-tall stacking header,,3.00,1,3.00,estimate,"confirmed: Witty Pi 4 Mini uses GPIO 2, 3, 4, 17 and watches 14. I2S pins 18-21 are free, so this is for physical clearance only"
 G,cables/connectors,mounting plate,3 mm plastic sheet cut to the box,,5.00,1,5.00,estimate,replaces the galvanised steel plate the enclosure ships with: steel beside the 4G antenna detunes it

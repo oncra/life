@@ -100,7 +100,7 @@
 <rect x="92" y="697.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W5</text>
 <text x="133.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">buck to Witty Pi</text>
-<text x="300.0" y="709.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-A to micro-USB (check the 4 Mini, it may be USB-C)</text>
+<text x="300.0" y="709.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">USB-A to USB-C (confirmed: the 4 Mini takes USB-C)</text>
 <text x="655.0" y="709.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.3 m</text>
 <text x="96.0" y="727.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W6</text>
 <text x="133.0" y="727.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Witty Pi to Pi</text>
@@ -194,8 +194,8 @@
 <text x="742.0" y="660.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The buck and the probes both hang on the MPPT's LOAD output, not on the</text>
 <text x="742.0" y="675.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">battery, so Victron's low-voltage disconnect protects the cells and the probes</text>
 <text x="742.0" y="690.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">stop drawing power through the fourteen hours the node is asleep.</text>
-<text x="742.0" y="716.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">The Witty Pi sits on the GPIO header, so the microphone needs a stacking</text>
-<text x="742.0" y="731.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">header underneath it to reach the I2S pins. Check this before ordering.</text>
+<text x="742.0" y="716.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Witty Pi 4 Mini uses GPIO 2, 3, 4 and 17 and watches GPIO 14. The I2S pins</text>
+<text x="742.0" y="731.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">18-21 are free, so the mic only needs a stacking header for physical room.</text>
 <text x="742.0" y="757.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">Both probes leave the factory on Modbus address 1. Re-address one to 2</text>
 <text x="742.0" y="772.0" font-size="9.8" fill="#111111" text-anchor="start" font-weight="600" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">(register 07D0) on the bench, or they collide and neither reads.</text>
 <text x="742.0" y="798.0" font-size="9.8" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">SEN0600 exposes moisture (0000H) and temperature (0001H) only, so it uses</text>
