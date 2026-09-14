@@ -42,6 +42,20 @@ The node folds all of it into one enclosure:
 
 **Parts total: about €520** for one node (about €470 in verified lines, the rest estimated), plus shipping from several shops the first time. With the Seeed EC probes instead of the DFRobot ones: about €680. The earlier distributed set was €1,110.
 
+## How it is mounted
+
+A node in an arable field has two predators: people who take things, and the sprayer that never saw it. Both are answered by the same choice, which is to keep the solid part of the node below the crop and put only a 6 mm rod above it.
+
+![Structural drawing of the low-profile field mount: side and front elevation, enclosure interior and probe trench](/img/life-node-low-mount.svg)
+
+Nothing solid stands higher than 890 mm. The enclosure sits at 300 mm above grade, clear of splash and standing water, on a 60 x 60 post driven 600 mm with no concrete and no spoil heap to mark the spot. The panel is tilted 40° south directly over the box, where it doubles as the sunshade and rain cap that the heat and condensation problems both want. Everything is matt green, without branding or reflective labels, and a cable lock passes through the post and the enclosure lugs.
+
+The microphone and the 4G antenna are the exceptions, and they are on the whip for a reason. Inside a canopy an acoustic detection radius collapses and wind-rustle lifts the noise floor, which would quietly degrade the readings this node exists to take. A 4G stick sealed in a box at 300 mm in wet crop is not the coverage the map promises either. A 6 mm fibreglass rod carrying a potted microphone at 1500 mm and a whip antenna at 1300 mm is close to invisible at twenty metres and costs about five euros.
+
+Power survives the low mount because of a coincidence worth stating plainly: December is both the month with no margin and the month with no crop. The panel is unshaded exactly when it matters. Under a summer canopy the harvest falls to roughly 80 Wh a day against a 50 Wh load, which is thin but positive, and it is the second reason the panel is 100 Wp rather than 50.
+
+The remaining risk is not theft. A box this low is invisible to a sprayer too, so the position goes on the farmer's own GPS, and a headland or the edge of a tramline beats the middle of the crop.
+
 ## What was traded
 
 - **Compute instead of radio.** A Pi 4 draws about 3 W while listening. That is the price of doing BirdNET at the edge; the reward is a ten-year SIM and no network on the farm.
