@@ -113,7 +113,7 @@ txt(CXo+7+181*sc/2,CYo+9+167*sc-14,"LiFePO4 18 Ah",9.5,INK,"middle","600")
 txt(CXo+7+181*sc/2,CYo+9+167*sc-2,"181 x 167 x 77, flat",8.5,MID,"middle")
 rx0=CXo+7+181*sc+9
 ys=CYo+9
-for (w_,h_,lab) in [(88,58,"Pi 4"),(70,25,"RS485"),(90,30,"4G stick"),(65,26,"Witty Pi + buck")]:
+for (w_,h_,lab) in [(88,58,"Pi 4"),(70,25,"RS485"),(90,30,"4G stick"),(65,26,"Witty Pi 4")]:
     rect(rx0,ys,w_*sc,h_*sc,"none",INK,1.3); txt(rx0+3,ys+h_*sc/2+3.5,lab,8.8,INK)
     ys+=h_*sc+7
 rect(CXo+22,CYo+22,113*sc,100*sc,"none",BLUE,1.3,"5 4")

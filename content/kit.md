@@ -34,7 +34,7 @@ The node folds all of it into one enclosure:
 | 10 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €41.64 (another shop lists €82.95; check) |
 | 11 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | Obelink | €49.90 |
 | 12 | 12 to 5 V buck | 5 V 3 A USB-C step-down (Pololu D24V22F5 €22.55 if you want the good one) | Kiwi / Eckstein | ~€10 |
-| 13 | Scheduler | Witty Pi 4 (power on/off by schedule; the node runs ~10 h a day) | UUGear | ~€25 |
+| 13 | Scheduler + DC/DC | Witty Pi 4: RTC, scheduled boot and shutdown, and an on-board 6 to 30 V converter that feeds the Pi at up to 3 A, so there is no separate buck | UUGear | €35.11 |
 | 14 | Enclosure | IP65 ABS box 300×200×130 mm, painted matt green (the paint is its UV protection; a polycarbonate Spelsberg AKi at ~€98 is the ten-year box) | reichelt | €32.49 |
 | 15 | Cable glands ×4 | M20, IP68 | Reichelt | €3.96 |
 | 16 | Post and mount | 2 m tube or fence post, 2 stainless hose clamps, cable lock, UV ties, silica, stake for the probe | Hornbach / Toolstation | ~€60 |
@@ -65,7 +65,7 @@ The bill of materials above lists boxes. Boxes do not talk to each other, and th
 
 **Ploughing is a siting question, not a cable question.** The probes sit at 10 and 30 cm and the lead runs in a spade slit at 12 cm, so on arable land the whole installation lives inside the plough layer no matter how the cable is routed. Burying deeper does not save it; a subsoiler goes further down than anything reasonable to dig by hand. What the short lead buys is that the node becomes one compact object, post and box and probes inside a two-metre circle, that can be lifted before ploughing and put back after. That has a consequence for the readings, and it is an honest one: on ploughed land the soil stream has a discontinuity every year, because the soil itself is inverted. The alternative is a headland or a permanent grass strip, where nothing is ploughed and the probes stay put, at the cost of measuring the margin rather than the field. Either is defensible; leaving it unsaid is not.
 
-Two decisions are worth stating rather than leaving in the drawing. The buck converter hangs on the charge controller's **load output** rather than on the battery, which puts Victron's low-voltage disconnect between the electronics and the cells for free. The probes do **not** hang there, and that is a correction to the earlier drawing: the load output is never itself switched, the Witty Pi schedules the Pi, so probes wired to the load output would draw about 0.4 W around the clock. That is 9.6 Wh/day, the entire winter budget. They go on a small MOSFET switch driven from a spare GPIO pin instead, live only while a reading is taken. And the battery lead carries an inline **15 A fuse** at the battery end, which is not optional on a lithium cell that can deliver a hundred amps into a shorted screwdriver.
+Two decisions are worth stating rather than leaving in the drawing. The Witty Pi 4 hangs on the charge controller's **load output** rather than on the battery, on its own 6 to 30 V input, which puts Victron's low-voltage disconnect between the electronics and the cells for free and needs exactly two wires. The probes take **5 V from a USB port on the Pi**, not 12 V from the load output: the load output is never itself switched, so probes wired there would draw around 0.5 W all day and night, which is more than the entire winter budget. On the Pi's USB they are on when the Pi is on, and the Witty Pi switches them along with everything else. That costs about 5 Wh a day in summer and half a watt-hour in winter, against margins of 25 and 40.
 
 Three things will bite a first build, so they are written on the drawing:
 
@@ -74,6 +74,18 @@ Three things will bite a first build, so they are written on the drawing:
 - **The probe wire colours are not published.** Meter them before splicing. The family convention is brown +V, black ground, yellow A, blue B, but convention is not a datasheet.
 
 One question that looked like a conflict is settled. The Witty Pi 4 Mini uses GPIO 2 and 3 for I2C, GPIO 4 for the shutdown signal and GPIO 17 for system-up, and it watches the voltage on GPIO 14 without driving it. The I2S pins the microphone needs, 18 to 21, are all free. The board still covers the header physically, so the build wants a stacking header underneath it, but that is for room rather than for a clash. Leave GPIO 14 alone: the Witty Pi reads it to know when the system has shut down.
+
+## Last pass: what integrated, and what did not
+
+A design accumulates parts faster than it sheds them, so the last pass over this one asked of every component whether something already in the box could do its job.
+
+**Three parts and two cables went.** The full-size Witty Pi 4 carries an MP4462 DC/DC converter that takes 6 to 30 V and delivers up to 3 A, so it replaces the Witty Pi 4 Mini, the separate 12-to-5 V buck and the cable between them, and it raises the tightest electrical margin in the box from 2.5 A to 3 A. Powering the probes from a USB port instead of a switched 12 V rail removed the MOSFET and its GPIO code. With those gone, the load output feeds a single thing, so the terminal block went too. Net cost about zero; net wiring, four fewer connections.
+
+**One tempting integration failed, and it is worth recording why.** The Victron controller has a Streetlight function that switches its load output on a timer anchored to sunset, solar midnight and sunrise, with the anchors adjusting themselves through the year and no clock to set. It looked like it could replace the scheduler outright: no Witty Pi, no daily rewrite of an absolute-time schedule, no RTC. It cannot, and the manual is precise about it. The sunrise action is either "switch off" or "switch on before sunrise, then off at sunrise". It is night-lighting logic, and a dawn chorus runs from an hour before sunrise to two or three hours after. A load output that cuts at sunrise would kill the node in the middle of the one window it exists for, and a Pi without a scheduler cannot wake itself. The Witty Pi stays, and the daily schedule rewrite with it.
+
+**Things that were considered and left alone.** An RS485 HAT instead of the USB adapter: saves a USB device, but the USB adapter is isolated and surge-protected for €9.90 and plugs in. Routing both probe leads through one gland: saves one euro. Dropping the vent gland because the microphone port already breathes: the port's membrane is thin and the vent's is not. None of those is worth a paragraph on a build sheet.
+
+**One addition for v1.1, not v1.** A VE.Direct-to-USB cable (about €12) would let the Pi read the charge controller and put battery voltage and state of charge into its hourly heartbeat, a hundred bytes. That is the difference between "node silent, drive out" and "node silent, battery at 11.8 V, wait for sun". It is not in the first build because it is another USB device and another thing to verify, but it is the first thing to add once a node has run through a winter.
 
 ## What was traded
 

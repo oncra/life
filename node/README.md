@@ -10,7 +10,7 @@ Software on the node:
 
 The schedule is seasonal: about ten hours a day from March to October, **one hour a day from November to February**, at a fixed clock time so the winter sample does not drift around the daily cycle. Set it in the Witty Pi schedule script. The soil timer keeps its 20-minute interval; in winter that simply yields three readings on the hour the node is awake, which is plenty for soil that moves slowly.
 
-The probe rail must be switched by the Pi (a logic-level MOSFET on a spare GPIO), not wired to the charge controller's load output. The load output is not scheduled, so probes there would draw about 0.4 W continuously, which is more than the entire winter energy budget.
+The probes take 5 V from a USB-A breakout on the Pi, so they are powered exactly when the Pi is: the Witty Pi switches them for free. Do not wire them to the charge controller's load output, which is never itself switched; there they would draw around 0.5 W all day and night, more than the whole winter budget. (`PROBE_POWER_GPIO` still exists for a build that wants a MOSFET-switched 12 V rail instead.)
 
 **Audio clip saving must be off in BirdNET-Go.** Detections leave the node, sound does not. It is what keeps the node honest with the people whose land it sits on, and what keeps a 500 MB SIM alive for ten years.
 

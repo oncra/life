@@ -15,7 +15,7 @@ RS485_PORT=${RS485_PORT:-/dev/ttyUSB0}
 PROBE_ADDRESSES=${PROBE_ADDRESSES:-1,2}
 PROBE_PROFILE=${PROBE_PROFILE:-sen0600}
 LIFE_POST_BATCH=${LIFE_POST_BATCH:-3}
-PROBE_POWER_GPIO=${PROBE_POWER_GPIO:-26}
+PROBE_POWER_GPIO=${PROBE_POWER_GPIO:-}   # empty: probes take 5 V from a USB port and go on and off with the Pi
 ENV
 install -m 0644 life-soil.service life-soil.timer life-sound.service life-sound.timer life-flush.service /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now life-soil.timer life-sound.timer && systemctl enable life-flush.service
