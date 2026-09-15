@@ -93,31 +93,54 @@ One question that looked like a conflict is settled. The Witty Pi 4 Mini uses GP
 
 - **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
-- **Do not cut**: the MPPT charge controller for a PWM one, the endurance SD card, the panel back down to 50 W, or the surge protection on the RS485 adapter. A 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Twenty-nine euros of SD card is cheaper than a site visit, and the twenty-metre probe cable is a lightning collector in an open field.
+- **Do not cut**: the MPPT charge controller for a PWM one, the endurance SD card, the panel back down to 50 W, or the surge protection on the RS485 adapter. A 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Twenty-nine euros of SD card is cheaper than a site visit.
 
-That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €520.
+That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €614.
 
 ## Before it ships
 
-1. Flash the golden image (Raspberry Pi OS Lite, BirdNET-Go, the node agent, read-only root so power cuts cannot corrupt the card).
-2. Register the place and three devices in the oracle; write the three device tokens and the APN into the node with `node/provision.sh`.
-3. Insert the SIM, test an upload on the bench, note the modem's IMEI on the place.
-4. Attach and label the two probe cables (10 cm, 30 cm), pack with the panel, the post clamps and the two-page sheet.
+1. Flash the golden image: Raspberry Pi OS Lite, BirdNET-Go, the node agent, a small writable partition for node state, read-only root for the rest.
+2. **Turn BirdNET-Go's audio clip saving off.** Detections leave the node; sound does not. That is what makes the one-sentence promise to a landowner true, and it is also what keeps a 500 MB SIM alive for ten years.
+3. Put each probe on the bench alone and set its Modbus address: one stays at 1, the other is written to 2 via register `0x07D0`. Two probes on the same address collide and neither reads.
+4. Register the place and three devices in the oracle; write the three device tokens into the node with `node/provision.sh`. Set the APN once in the modem's own web interface at `192.168.8.1`, not in the script.
+5. Conformal-coat the Pi, the buck, the RS485 adapter and the microphone board. Paint the enclosure matt green, which is both the UV protection an ABS box needs and the camouflage.
+6. Insert the SIM, run a full upload on the bench, watch the byte counter, note the modem's IMEI on the place.
+7. Label the two probes 10 cm and 30 cm, and pack them with the panel, the brackets and the two-page sheet.
 
-On the farm: post, box, panel facing south, probes in. "Last seen" turns green on the place page within twenty minutes.
+On the farm: post, box, panel facing south, probes 1.5 m south of the post. "Last seen" turns green on the place page within the hour.
 
 ## Where this design is most likely to fail
 
-Written down so that the first build knows what to watch, and so that a later failure is a confirmed prediction rather than a surprise. In rough order of how likely each one is to bite.
+Written down so that the first build knows what to watch, and so that a later failure is a confirmed prediction rather than a surprise. Three passes have been made over this list; items that a later pass closed are marked, because a list that only grows is not being used.
 
-1. **Winter power.** The largest risk and the reason the panel went from 50 to 100 W. The harvest figure is solid (PVGIS); the draw figure is not, because nobody has measured this node yet. If the real draw is 7 W rather than 5, a 50 W panel misses December by 20 Wh a day and the 230 Wh battery covers nine days before the node goes dark, less after an overcast week. Measure first, then size.
-2. **The battery will not charge below freezing.** LiFePO4 suffers lithium plating if charged below 0 °C, and the damage is cumulative and permanent. A good BMS refuses the charge, which protects the cells and flattens the node instead. In a Dutch frost week both outcomes are an outage. Check the cutoff on the datasheet, insulate the battery inside the enclosure, and let the electronics' waste heat work for you.
-3. **The buffered queue lives in RAM.** `life-soil-agent.py` writes its offline queue to `/var/lib/life-node/`, and the provisioning script switches the root filesystem to a read-only overlay. Under that overlay the queue is in RAM, so a power cut loses exactly the readings the queue exists to protect. It needs a small writable partition.
-4. **Heat in a sealed box.** An IP65 enclosure in full sun runs well above ambient, and a Pi 4 throttles at 80 °C. Mount the box on the shaded face of the post, let the panel shade it, and fit one vented membrane gland. The same gland handles condensation, which is the winter version of the same problem.
-5. **The probes draw power all day.** Two RS485 probes left powered pull roughly 0.4 W around the clock, close to 10 Wh a day, which is a fifth of the December budget for readings taken every twenty minutes. Switch them with the Pi's rail rather than wiring them straight to the battery.
-6. **A hung node is silent.** Nothing recovers a wedged Pi. `lastSeenAt` on the place page tells the oracle something is wrong, but only a visit fixes it. Enable the Pi's hardware watchdog and the scheduler's heartbeat; both are free.
-7. **The register maps are from datasheets.** Three probe profiles in the agent, none verified against a physical probe. Expect one to be wrong and plan the bench session around finding out.
-8. **The 4G stick next to a steel plate.** The chosen enclosure ships with a galvanised steel mounting plate. Keep the modem and its antenna away from it, or accept a weaker signal than the coverage map promises.
+1. **The draw is still an estimate.** Everything about the panel, the battery and the schedule rests on "about 5 W while awake", and nobody has measured it. That is why there is an inline USB meter in the order list. Measure first, then believe the rest of this page.
+2. **The battery will not charge below freezing.** LiFePO4 plates lithium if charged below 0 °C, cumulatively and permanently, so a good BMS refuses. Softened, not solved: with the winter schedule the node runs 19 days on a full battery with no charge at all, which is longer than a Dutch frost spell. Insulate the battery inside the box and let the electronics' waste heat work.
+3. **The 4G stick is out of its rated range at both ends of the year.** Huawei give −10 °C to +40 °C. A box in July passes the top even with the panel shading it; a frost night passes the bottom. It will probably survive; it is not rated to. The strongest argument for the SIM7080G in v1.1, which is rated −40 °C to +85 °C.
+4. **Node state in RAM.** Closed for the soil queue, still open for the rest: BirdNET-Go's database and the push cursor also sit under the read-only overlay. The golden image needs a writable partition for all of it, not just for one file.
+5. **The summer window is sunrise-relative and the scheduler is not.** Witty Pi 4 takes absolute times, so something has to rewrite its schedule each day from the sun times. A cron job, before the image is frozen.
+6. **Heat in a sealed box.** An IP65 enclosure in full sun runs well above ambient and a Pi 4 throttles at 80 °C. Mount on the shaded face, let the panel shade the box, fit one vented membrane gland.
+7. **A hung node is silent.** Nothing recovers a wedged Pi on its own. Enable the hardware watchdog and the scheduler's heartbeat; both are free.
+8. **The register maps come from datasheets.** The `sen0600` profile is written from the published register list, not from a probe on a desk. Expect a surprise and plan the bench session around finding it.
+9. *Closed.* The probes drew power around the clock, about 12 Wh a day against a 9.6 Wh winter budget, because the charge controller's load output is never itself switched. They now sit on a MOSFET driven from GPIO 26, live only while a reading is taken.
+10. *Closed.* The per-post TLS handshake was costing more than the data. At a post every ten and twenty minutes the ten-year SIM lasted 3.6 years. Batched hourly it lasts 9.7, and a flush unit runs before the scheduled power cut so the last batch is not lost.
+11. *Closed.* `provision.sh` configured a serial GSM modem. The E3372-325 is a HiLink stick that appears as a USB ethernet interface with its own DHCP, so the old line did nothing at all.
+12. *Closed.* The 4G antenna sat beside a galvanised steel mounting plate, which detunes it and puts nulls in the pattern. The plate is out; the boards go on a cut sheet of plastic.
+
+## Living with it on a working farm
+
+A node that survives the bench and fails the farm has not been designed, only assembled. This section is what a third pass over the design found when the question changed from "does it work" to "does it still work in year eight, on land somebody is trying to make a living from".
+
+**The sprayer boom is the real threat, not the thief.** A boom runs about half a metre above the crop. The node tops out at 1090 mm and wheat at harvest is around 900. That puts the panel at boom height, in the crop, invisible to the driver. Everything that makes the node hard to steal makes it hard to avoid. So mid-crop siting is not a slightly risky choice, it is a collision with a date on it: **headland or the edge of a tramline**, and the position on the farmer's own GPS.
+
+**On grassland, the threat is cattle.** A cow treats a post as a scratching brush and a cable as something to taste. A 60 × 60 post carrying half a square metre of sail does not survive a cow leaning on it. Grassland sites need a fenced corner, which is ordinary equipment on a livestock farm, or the node goes on the fence line.
+
+**Nothing in the box may need maintenance.** Silica gel is the obvious answer to condensation and the wrong one: it saturates in weeks and wants an oven, and no landowner is going to do that twice. The boards are conformal-coated instead, which is the standard field-electronics answer and needs nothing from anybody. The same test disqualifies anything else that would need an annual visit.
+
+**Materials fail on their own schedule.** The enclosure is ABS, which is not UV-stable and chalks and embrittles in two to five years outdoors, so it gets painted, and the paint is protection before it is camouflage. Open-cell foam over the microphone port crumbles in a season, so the foam sits inside a rigid hood that opens downward. Untreated timber rots at the ground line in three to five years against ten to fifteen for class 4, and the panel brackets are through-bolted rather than hose-clamped, because timber shrinks and clamps loosen around the one part the wind is pulling on.
+
+**On arable land the node is lifted every year, so make that cheap.** Pulling and re-driving an 800 mm post takes a driver and the better part of an hour. A galvanised ground screw takes a turning bar and ten minutes, and it goes back into the same hole. It is in the order list as the arable option; on a headland the timber post is fine and stays put.
+
+**It hears birds and stores no sound.** BirdNET-Go can be configured to keep an audio clip with each detection, and a clip can hold a human voice. That option is off in the golden image. It is worth saying plainly at handover, in one sentence, because a microphone in a field beside a footpath is a reasonable thing for someone to ask about and the true answer is a good one.
 
 ## When the farm network does reach the field
 
