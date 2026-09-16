@@ -17,3 +17,13 @@ The probes take 5 V from a USB-A breakout on the Pi, so they are powered exactly
 Before a node is built: **both soil probes leave the factory on Modbus address 1**. Re-address one of them to 2 by writing register `0x07D0`, on the bench, with only that probe on the bus. Two probes sharing an address collide and neither reads. The SEN0600 carries moisture and temperature only, so it uses the `sen0600` profile, which reads two registers; `generic-thc` reads a third for EC that this probe has not got.
 
 We build the image once ("golden image"), flash it per node with its three device tokens, and ship the box provisioned. The landowner mounts the post and pushes the probes in.
+
+
+## Specified, not yet built
+
+Four things borrowed from [acoupi](https://github.com/acoupi/acoupi) after reading its source. We are not taking the dependency: it runs on Celery with a RabbitMQ broker, which suits a device that stays powered rather than one that boots twice a day in winter, and it is GPL-3.0 against this repository's Apache-2.0. The designs are worth having anyway.
+
+1. **Queue in SQLite on the writable partition.** Replace `queue.jsonl` with a table holding the message, its creation time, and the server's response. Do not delete on success: a reading that was accepted and one that was never sent should still be distinguishable a month later.
+2. **Heartbeat with metrics.** Hourly, alongside the data: device id, status, battery voltage if the charge controller is readable over VE.Direct, free disk, CPU temperature, uptime, count of unsent messages. Silent and struggling are different failures.
+3. **Dawn and dusk on the node.** Use `astral` with the place's coordinates to compute the next window and write it to the Witty Pi before shutdown, instead of a nightly cron rewrite of an absolute-time schedule.
+4. **Bounded sending.** Oldest first, with a cap per run, so a node returning from a week offline does not spend a month of SIM budget in one afternoon.
