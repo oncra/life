@@ -49,7 +49,7 @@ Keep the `deviceToken` (`lo_dev_…`). Then install per the [sound installation 
 
 ## Step 3: sink the soil probes
 
-On a node the probes are wired into the same box, one at 10 cm and one at 30 cm, on a 20 m cable. Register each depth as its own device:
+On a node the probes are wired into the same box, one at 10 cm and one at 30 cm, about 1.5 m south of the post on the 2 m leads they ship with. Register each depth as its own device:
 
 ```bash
 curl -X POST https://life.oncra.org/api/v1/places/<slug>/devices \

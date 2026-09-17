@@ -73,7 +73,7 @@ The oracle works the same way.
 
 **A soil probe.** A stick in the ground per field, installed once. Moisture and temperature, and from those the rate at which the soil is breathing.
 
-In the standard kit the last two are one device: the probes are wired into the listening box on a 20 m cable, and that box carries both streams out over its own cellular link. There is no farm WiFi, no gateway and no monthly subscription in the design, because species recognition happens inside the box and only detections leave the field.
+In the standard kit the last two are one device: the probes are wired into the listening box on the short leads they ship with, and that box carries both streams out over its own cellular link. There is no farm WiFi, no gateway and no monthly subscription in the design, because species recognition happens inside the box and only detections leave the field.
 
 That is all the routine hardware. No traps, no lab samples on a calendar, no surveys. Field visits with soil cores, DNA samples or insect counts are not scheduled. They are triggered when the streams disagree, plus a small random draw so nobody knows in advance who gets checked.
 
