@@ -1,6 +1,6 @@
 ---
 title: "The kit: one box on one post"
-summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €613 in parts. Order list with suppliers and direct order links, prices and stock checked 2026-09-16, the first set ordered the same day."
+summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €687 in parts. Order list with suppliers and direct order links, prices and stock checked 2026-09-16, the first set ordered the same day."
 order: 3
 ---
 
@@ -32,8 +32,8 @@ The node folds all of it into one enclosure:
 | 7 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead | Berrybase | 2 × €26.90 = €53.80 |
 | 8 | RS485 adapter | Waveshare industrial USB to RS485, FT232RL, surge and ESD protected | Berrybase | €12.90 |
 | 9 | Probe power | USB-A socket to terminal block, so the probes run off the Pi and stop when it does | Berrybase | €8.90 |
-| 10 | Solar panel | 100 W mono 12 V, ships with 80 cm MC4 leads so no separate cable is needed | offgridtec.com | €63.02 |
-| 11 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €42.05 |
+| 10 | Solar panel | Enjoy Solar 100 W 12 V mono, anodised aluminium frame, 1190 × 540 mm, ships with 90 cm MC4 leads so no separate cable is needed | Accuweb (NL) | €85.00 |
+| 11 | Battery | LiFePO4 12.8 V 20 Ah, 256 Wh, 181 × 76 × 170 mm, M5 terminals | reichelt | €82.16 + €8.47 hazardous-goods surcharge |
 | 12 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | reichelt | €64.89 |
 | 13 | Scheduler + DC/DC | Witty Pi 4: RTC, scheduled boot and shutdown, and a 6 to 30 V converter feeding the Pi at up to 3 A, so there is no separate buck | UUGear | €35.11 |
 | 14 | Enclosure | IP65 ABS box 300×200×130 mm, painted matt green (the paint is its UV protection; a polycarbonate Spelsberg AKi at ~€98 is the ten-year box) | reichelt | €32.49 |
@@ -45,7 +45,9 @@ The node folds all of it into one enclosure:
 | 20 | Post and mount | 2 m post, pressure-treated class 4, two stainless clamps, M8 through-bolts for the panel brackets, cable lock, spade | bouwmarkt | ~€55 |
 | 21 | Meter | USB inline power meter, to measure the one number this whole design rests on | Amazon / Opencircuit | ~€15 |
 
-**Parts total: about €613** for one node, of which roughly €490 is verified against a live shop page and the rest estimated, plus about €30 of postage across the shops. The earlier distributed set was €1,110.
+> **Where you buy the panel and battery matters more than what they cost.** Offgridtec in Germany quoted **€232.90 of shipping on €88.30 of goods**: a hazardous-goods rate for the lithium battery plus freight for a bulky panel, crossing a border. Buying the same two things in the Netherlands and from reichelt costs more in parts and about €145 less delivered. Cheap parts behind expensive freight are not cheap.
+
+**Parts total: about €687** for one node, of which roughly €490 is verified against a live shop page and the rest estimated, plus about €30 of postage across the shops. The earlier distributed set was €1,110.
 
 ## How it is mounted
 
@@ -109,13 +111,13 @@ A design accumulates parts faster than it sheds them, so the last pass over this
 
 ## Cheaper builds
 
-€613 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
+€687 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
 
 - **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
 - **Do not cut**: the MPPT charge controller for a PWM one, the endurance SD card, the panel back down to 50 W, or the surge protection on the RS485 adapter. A 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Twenty-nine euros of SD card is cheaper than a site visit.
 
-That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €613.
+That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €687.
 
 ## Before it ships
 
@@ -195,4 +197,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries every line with a direct order link, a price and the date it was checked, grouped into shop baskets so the parts arrive in as few parcels as possible. **Berrybase**, eleven lines and about €194: computer, storage, both probes, the RS485 adapter, the microphone, the probe-power adapter, spacers, lacquer, ferrules and pliers, heatshrink and ties, stacking header. **reichelt**, three lines and about €102: enclosure, five glands, charge controller, each with its reichelt product number so all three go in through their Direct order form in one pass. **offgridtec**, about €102: panel and battery. Then one SIM, one modem, one scheduler, and a short list of generic parts from a builders' merchant or Amazon: the battery lead and its fuse, paint, tape, a plastic sheet, the microphone hood, a power meter, and the post. Six shops and a bouwmarkt trip, about €613 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts considered and not taken, each with the reason, including the 10 m solar cable kit that would have been bought to use 30 cm of it.
+`kit/order-list.csv` in the repository carries every line with a direct order link, a price and the date it was checked, grouped into shop baskets so the parts arrive in as few parcels as possible. **Berrybase**, eleven lines and about €194: computer, storage, both probes, the RS485 adapter, the microphone, the probe-power adapter, spacers, lacquer, ferrules and pliers, heatshrink and ties, stacking header. **reichelt**, three lines and about €102: enclosure, five glands, charge controller, each with its reichelt product number so all three go in through their Direct order form in one pass. **Accuweb** in the Netherlands, €85: the panel, shipped free. The battery moved to the reichelt basket. Then one SIM, one modem, one scheduler, and a short list of generic parts from a builders' merchant or Amazon: the battery lead and its fuse, paint, tape, a plastic sheet, the microphone hood, a power meter, and the post. Six shops and a bouwmarkt trip, about €687 in parts and roughly €25 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts considered and not taken, each with the reason, including the 10 m solar cable kit that would have been bought to use 30 cm of it.

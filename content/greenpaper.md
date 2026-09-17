@@ -18,7 +18,7 @@ That cost decides who gets paid for nature, and almost nobody notices it doing s
 
 Make the proof cheap and the shape of the whole field changes. Payments can follow a single field instead of a portfolio. A twelve-hectare farmer becomes fundable. Checking becomes continuous rather than a visit every five years. And because the answer is a number in a public place rather than a report in a drawer, a bank, a registry, a subsidy scheme or a piece of software can settle on it without anyone flying in.
 
-That is what this project is for. The satellite reading costs nothing, at any size, anywhere on Earth. The box that listens and feels the soil costs about €613 and should last years, so a place pays something like a hundred and twenty euros a year and no fee per hectare. Against several hundred euros for one survey visit, that is the difference between measuring one showcase project and measuring a whole region.
+That is what this project is for. The satellite reading costs nothing, at any size, anywhere on Earth. The box that listens and feels the soil costs about €687 and should last years, so a place pays something like a hundred and forty euros a year and no fee per hectare. Against several hundred euros for one survey visit, that is the difference between measuring one showcase project and measuring a whole region.
 
 ### The part that is easy to miss
 
@@ -83,7 +83,7 @@ Every part of that box is on sale today. Species recognition at the edge is a so
 
 That is not an engineering gap. It is what the market is for. These devices are sold in order to deliver data into the seller's platform, so nobody has a commercial reason to build the one that delivers it into somebody else's, least of all into a public registry the landowner can read and fork. The missing product is missing because the thing it would enable, a place's own evidence belonging to the place, is not a product.
 
-So the kit is part of the standard, not an accessory to it. About €613 in parts, a published bill of materials, and software anyone can audit or rebuild: [the kit](/docs/kit). The evidence behind the claim, device by device with prices and dates, is in [Prior art](/docs/prior-art) and the [hardware guide](/docs/hardware). If someone does sell the whole thing, we would rather buy it, and a correction by pull request is the fastest way to tell us.
+So the kit is part of the standard, not an accessory to it. About €687 in parts, a published bill of materials, and software anyone can audit or rebuild: [the kit](/docs/kit). The evidence behind the claim, device by device with prices and dates, is in [Prior art](/docs/prior-art) and the [hardware guide](/docs/hardware). If someone does sell the whole thing, we would rather buy it, and a correction by pull request is the fastest way to tell us.
 
 ## Seven readings, one verdict
 
