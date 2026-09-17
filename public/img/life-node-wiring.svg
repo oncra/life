@@ -74,8 +74,8 @@
 <rect x="92" y="627.5" width="568" height="17.5" fill="#9a9a94" opacity="0.07"/>
 <text x="96.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W1</text>
 <text x="133.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">panel to MPPT</text>
-<text x="300.0" y="639.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 4 mm2 solar cable, MC4 pigtail pair</text>
-<text x="655.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">1 m</text>
+<text x="300.0" y="639.5" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">the panel's own 80 cm leads, MC4 cut off, ferruled</text>
+<text x="655.0" y="639.5" font-size="9.4" fill="#111111" text-anchor="end" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">0.3 m</text>
 <text x="96.0" y="657.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="700" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">W2</text>
 <text x="133.0" y="657.0" font-size="9.4" fill="#111111" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">MPPT to battery</text>
 <text x="300.0" y="657.0" font-size="9.4" fill="#555555" text-anchor="start" font-weight="400" stroke="#fcfcfb" stroke-width="3" paint-order="stroke">2 x 2.5 mm2 + inline 15 A blade fuse + ring terminals</text>

@@ -63,7 +63,7 @@ for i,(c,lab) in enumerate([(RED,"12 V power, fused"),(ORANGE,"switched 12 V (MP
     line(lx,ly+i*17-4,lx+22,ly+i*17-4,c,2.6); txt(lx+28,ly+i*17,lab,9.6,MID)
 SY=by(190)+182
 txt(92,SY-16,"Cable schedule",12.5,INK,"start","600")
-rows=[("W1","panel to MPPT","2 x 4 mm2 solar cable, MC4 pigtail pair","1 m"),
+rows=[("W1","panel to MPPT","the panel's own 80 cm leads, MC4 cut off, ferruled","0.3 m"),
  ("W2","MPPT to battery","2 x 2.5 mm2 + inline 15 A blade fuse + ring terminals","0.4 m"),
  ("W3","MPPT LOAD to Witty Pi 4 VIN","Witty Pi's supplied 30 cm XH2.54 lead, ferrules at the MPPT","0.3 m"),
  ("W6","Witty Pi 4 to Pi","GPIO header, no cable; the Witty Pi powers the Pi through it","-"),
