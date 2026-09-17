@@ -1,12 +1,12 @@
 ---
 title: "The kit: one box on one post"
-summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €520 in parts, half the earlier set. Order list with suppliers and direct order links, checked 2026-09-13."
+summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €613 in parts. Order list with suppliers and direct order links, prices and stock checked 2026-09-16, the first set ordered the same day."
 order: 3
 ---
 
 # The kit: Life node v1
 
-One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices checked on live shop pages on 2026-09-12 and rechecked, with the order list regrouped into shop baskets, on 2026-09-13. Incl. VAT.
+One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices and stock checked on live shop pages, most recently on 2026-09-16, when the first set was ordered. Incl. VAT unless a line says otherwise. The order list in the repository is the source of truth; this table is a description of it.
 
 ## Why one box
 
@@ -23,23 +23,29 @@ The node folds all of it into one enclosure:
 
 | # | Part | Choice | Supplier | Price |
 | --- | --- | --- | --- | --- |
-| 1 | Computer | Raspberry Pi 4 Model B, 2 GB (runs BirdNET-Go; the Pi Zero 2 W is out of stock in the EU until December and BirdNET-Go no longer supports it) | Kiwi Electronics | ~€50 |
-| 2 | Storage | SanDisk High Endurance 32 GB microSD | DataIO | €24.99 |
-| 3 | Modem | Brovi/Huawei E3372-325 USB 4G stick (plug-and-play; the Waveshare SIM7080G LTE-M HAT is €34.90 but on a three-month lead) | TelecomShop / bol | ~€45 |
-| 4 | SIM | 1NCE IoT Lifetime Flat, 500 MB, 10 years, LTE-M and 4G in NL | 1nce.com | €12 |
-| 5 | Microphone | Boya BY-M1 lavalier + USB sound card, foam windscreen, downward hood (I2S MEMS INMP441 as the €5 alternative) | bol / Kiwi | ~€27 |
-| 6 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68 (Seeed S-Soil MTEC-02A with EC, €107 each, as the upgrade) | Berrybase | 2 × €26.90 = €53.80 |
-| 7 | RS485 adapter | Waveshare industrial USB to RS485 | Opencircuit | €13.50 |
-| 9 | Solar panel | 100 W mono 12 V. A 50 W panel harvests in December exactly what the node eats, which is not a margin | offgridtec.com | ~€60 |
-| 10 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €41.64 (another shop lists €82.95; check) |
-| 11 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | Obelink | €49.90 |
-| 12 | 12 to 5 V buck | 5 V 3 A USB-C step-down (Pololu D24V22F5 €22.55 if you want the good one) | Kiwi / Eckstein | ~€10 |
-| 13 | Scheduler + DC/DC | Witty Pi 4: RTC, scheduled boot and shutdown, and an on-board 6 to 30 V converter that feeds the Pi at up to 3 A, so there is no separate buck | UUGear | €35.11 |
+| 1 | Computer | Raspberry Pi 4 Model B, 2 GB, runs BirdNET-Go | Berrybase | €57.90 |
+| 2 | Storage | SanDisk High Endurance 32 GB microSD, continuous-write rated | Berrybase | €28.60 |
+| 3 | Modem | Brovi/Huawei E3372-325 USB 4G stick, plug-and-play as a USB ethernet device | TelecomShop | €53.55 |
+| 4 | SIM | 1NCE IoT Lifetime Flat, 500 MB, 10 years | 1nce.com | €12 |
+| 5 | Microphone | INMP441 I2S MEMS module, inside the box behind a 5 mm port | Berrybase | €3.10 |
+| 6 | Microphone port | IP67 ePTFE acoustic membrane, under 2 dB loss at 1 to 5 kHz, plus a foam-lined hood | PCB Artists / bouwmarkt | ~€19 |
+| 7 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead | Berrybase | 2 × €26.90 = €53.80 |
+| 8 | RS485 adapter | Waveshare industrial USB to RS485, FT232RL, surge and ESD protected | Berrybase | €12.90 |
+| 9 | Probe power | USB-A socket to terminal block, so the probes run off the Pi and stop when it does | Berrybase | €8.90 |
+| 10 | Solar panel | 100 W mono 12 V, ships with 80 cm MC4 leads so no separate cable is needed | offgridtec.com | €63.02 |
+| 11 | Battery | Offgridtec LiFePO4 12 V 18 Ah, BMS, 230 Wh | offgridtec.com | €42.05 |
+| 12 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | reichelt | €64.89 |
+| 13 | Scheduler + DC/DC | Witty Pi 4: RTC, scheduled boot and shutdown, and a 6 to 30 V converter feeding the Pi at up to 3 A, so there is no separate buck | UUGear | €35.11 |
 | 14 | Enclosure | IP65 ABS box 300×200×130 mm, painted matt green (the paint is its UV protection; a polycarbonate Spelsberg AKi at ~€98 is the ten-year box) | reichelt | €32.49 |
-| 15 | Cable glands ×4 | M20, IP68 | Reichelt | €3.96 |
-| 16 | Post and mount | 2 m tube or fence post, 2 stainless hose clamps, cable lock, UV ties, silica, stake for the probe | Hornbach / Toolstation | ~€60 |
+| 15 | Cable glands ×5 | M20, IP68: panel, two probe leads, one vented, one spare | reichelt | €5.05 |
+| 16 | Mounting plate | 3 mm plastic sheet cut to the box, replacing the galvanised steel plate it ships with | bouwmarkt | ~€5 |
+| 17 | Board protection | Nylon M2.5 spacers and acrylic protective lacquer, instead of silica gel nobody regenerates | Berrybase | €18.80 |
+| 18 | Terminations | Ferrule assortment, crimping pliers, heatshrink, UV ties, stacking header | Berrybase | €25.45 |
+| 19 | Battery lead | 2 × 2.5 mm² with ring terminals and an inline 15 A fuse | bouwmarkt | ~€8 |
+| 20 | Post and mount | 2 m post, pressure-treated class 4, two stainless clamps, M8 through-bolts for the panel brackets, cable lock, spade | bouwmarkt | ~€55 |
+| 21 | Meter | USB inline power meter, to measure the one number this whole design rests on | Amazon / Opencircuit | ~€15 |
 
-**Parts total: about €520** for one node (about €470 in verified lines, the rest estimated), plus shipping from several shops the first time. With the Seeed EC probes instead of the DFRobot ones: about €680. The earlier distributed set was €1,110.
+**Parts total: about €613** for one node, of which roughly €490 is verified against a live shop page and the rest estimated, plus about €30 of postage across the shops. The earlier distributed set was €1,110.
 
 ## How it is mounted
 
@@ -103,13 +109,13 @@ A design accumulates parts faster than it sheds them, so the last pass over this
 
 ## Cheaper builds
 
-€520 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
+€613 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
 
 - **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
 - **Do not cut**: the MPPT charge controller for a PWM one, the endurance SD card, the panel back down to 50 W, or the surge protection on the RS485 adapter. A 10 to 20% harvest loss is a winter gap, and a gap moves the very annual mean that Cycling compares. Twenty-nine euros of SD card is cheaper than a site visit.
 
-That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €614.
+That lands a field node near €300 to €330 and a bench node near €85. Those two numbers are indicative: they depend on second-hand and generic prices that are not verified in the order list, unlike the €613.
 
 ## Before it ships
 
@@ -117,7 +123,7 @@ That lands a field node near €300 to €330 and a bench node near €85. Those
 2. **Turn BirdNET-Go's audio clip saving off.** Detections leave the node; sound does not. That is what makes the one-sentence promise to a landowner true, and it is also what keeps a 500 MB SIM alive for ten years.
 3. Put each probe on the bench alone and set its Modbus address: one stays at 1, the other is written to 2 via register `0x07D0`. Two probes on the same address collide and neither reads.
 4. Register the place and three devices in the oracle; write the three device tokens into the node with `node/provision.sh`. Set the APN once in the modem's own web interface at `192.168.8.1`, not in the script.
-5. Conformal-coat the Pi, the buck, the RS485 adapter and the microphone board. Paint the enclosure matt green, which is both the UV protection an ABS box needs and the camouflage.
+5. Conformal-coat the Pi, the RS485 adapter and the microphone board. Paint the enclosure matt green, which is both the UV protection an ABS box needs and the camouflage.
 6. Insert the SIM, run a full upload on the bench, watch the byte counter, note the modem's IMEI on the place.
 7. Label the two probes 10 cm and 30 cm, and pack them with the panel, the brackets and the two-page sheet.
 
@@ -189,4 +195,4 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## Order list
 
-`kit/order-list.csv` in the repository carries every line with a direct order link, a price and a check date, grouped into shop baskets so the parts arrive in as few parcels as possible. **A** Berrybase, about €185 and seven lines: computer, storage, microphone, both probes, the RS485 adapter, the scheduler and a power meter. **B** reichelt, about €101: enclosure, glands, charge controller, each with its reichelt product number so the three go in through their Direct order form in one pass. **C** offgridtec, about €102: panel and battery. Then one SIM, one modem and one trip to a builders' merchant for the post and the cable. Five shops plus a basket of cable and connectors, about €592 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts that were considered and not taken, with the reason, including the cheaper charge controller that costs an extra shipment.
+`kit/order-list.csv` in the repository carries every line with a direct order link, a price and the date it was checked, grouped into shop baskets so the parts arrive in as few parcels as possible. **Berrybase**, eleven lines and about €194: computer, storage, both probes, the RS485 adapter, the microphone, the probe-power adapter, spacers, lacquer, ferrules and pliers, heatshrink and ties, stacking header. **reichelt**, three lines and about €102: enclosure, five glands, charge controller, each with its reichelt product number so all three go in through their Direct order form in one pass. **offgridtec**, about €102: panel and battery. Then one SIM, one modem, one scheduler, and a short list of generic parts from a builders' merchant or Amazon: the battery lead and its fuse, paint, tape, a plastic sheet, the microphone hood, a power meter, and the post. Six shops and a bouwmarkt trip, about €613 in parts and roughly €30 in postage. Neither German shop ships free at this size: Berrybase is €9.90 to the Netherlands and free only from €250, reichelt is €6.95. Rows marked `alt` are the parts considered and not taken, each with the reason, including the 10 m solar cable kit that would have been bought to use 30 cm of it.
