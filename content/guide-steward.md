@@ -1,7 +1,7 @@
 ---
 title: "Steward guide: from zero to seven readings"
 summary: "Register a place, watch the satellite readings arrive, put up a node or an alternative set, deliver the data. Step by step, with the exact commands."
-order: 7
+order: 8
 ---
 
 # Steward guide

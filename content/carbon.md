@@ -1,7 +1,7 @@
 ---
 title: "How carbon is inferred"
 summary: "Net ecosystem carbon balance as a yearly range from the three streams, credits issued for the lower bound, and a worked example on two Oncra land projects: Horaholm and Boer in Natuur."
-order: 4
+order: 5
 ---
 
 # How carbon is inferred

@@ -1,7 +1,7 @@
 ---
 title: "How a place could earn"
 summary: "A design for paying land stewards on a verified life state: a published tariff per hectare-season, a connection payment so nobody fronts the hardware, and release as confidence grows. Proposal, open for comment. Nothing is being paid yet."
-order: 5
+order: 6
 ---
 
 # How a place could earn

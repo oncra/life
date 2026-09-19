@@ -1,7 +1,7 @@
 ---
 title: "Coupling with Restor, and the open layers behind it"
 summary: "What Restor holds per site, what its APIs allow, what the terms permit, and how the oracle now pulls the useful layers straight from their open sources. Checked 2026-09-12."
-order: 16
+order: 17
 ---
 
 # Coupling with Restor

@@ -14,7 +14,15 @@ The probes take 5 V from a USB-A breakout on the Pi, so they are powered exactly
 
 **Audio clip saving must be off in BirdNET-Go.** Detections leave the node, sound does not. It is what keeps the node honest with the people whose land it sits on, and what keeps a 500 MB SIM alive for ten years.
 
-Before a node is built: **both soil probes leave the factory on Modbus address 1**. Re-address one of them to 2 by writing register `0x07D0`, on the bench, with only that probe on the bus. Two probes sharing an address collide and neither reads. The SEN0600 carries moisture and temperature only, so it uses the `sen0600` profile, which reads two registers; `generic-thc` reads a third for EC that this probe has not got.
+The order of work for building one is `/docs/build`. Before a node is built: **both soil probes leave the factory on Modbus address 1**, so on one bus they collide and neither answers. On the bench, with only that probe connected:
+
+```
+life-soil-agent --scan                      # who answers, and with what raw registers
+life-soil-agent --set-address 2 --addr 1    # write register 0x07D0
+life-soil-agent --scan                      # confirm, then wire both
+```
+
+`--scan` prints the raw words next to the decoded values, because the profiles here were written from datasheets: stable words with nonsense values mean the register map is wrong and not the probe. The SEN0600 carries moisture and temperature only, so it uses the `sen0600` profile, which reads two registers; `generic-thc` reads a third for EC that this probe has not got.
 
 We build the image once ("golden image"), flash it per node with its three device tokens, and ship the box provisioned. The landowner mounts the post and pushes the probes in.
 

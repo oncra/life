@@ -11,6 +11,9 @@ Config /etc/life-node.env:
     LIFE_POST_BATCH=3                        # post once every N runs (3 x 20 min = hourly), to spare the SIM's data budget
     PROBE_POWER_GPIO=26                      # BCM pin driving the MOSFET on the 12 V probe rail; unset = rail always on
     PROBE_SETTLE_S=2                         # seconds to wait after powering the rail before the first Modbus query
+Bench modes, for a probe that has never been read before:
+    life-soil-agent --scan                     # walk Modbus addresses, print raw registers and decoded values
+    life-soil-agent --set-address 2 --addr 1    # write register 0x07D0 on the ONE probe on the bus
 Runs every 20 minutes from a systemd timer. Reads go to /var/lib/life-node/queue.jsonl and are posted every
 LIFE_POST_BATCH runs, or at once with --flush (the shutdown unit calls that), so nothing is lost and the
 per-post TLS overhead stays inside a 500 MB / 10 yr SIM.
@@ -31,6 +34,14 @@ QUEUE = Path("/var/lib/life-node/queue.jsonl"); QUEUE.parent.mkdir(parents=True,
 RUNS = QUEUE.with_name("runs")                      # counts runs since the last post
 BATCH = int(os.environ.get("LIFE_POST_BATCH", "3"))
 FLUSH = "--flush" in sys.argv
+SCAN = "--scan" in sys.argv
+
+def flag(name, default=None):
+    """Value of --name X, or None."""
+    if name in sys.argv:
+        i = sys.argv.index(name)
+        if i + 1 < len(sys.argv): return sys.argv[i + 1]
+    return default
 PWR_GPIO = os.environ.get("PROBE_POWER_GPIO")
 SETTLE = float(os.environ.get("PROBE_SETTLE_S", "2"))
 
@@ -53,19 +64,76 @@ PROFILES = {
     "smt100": (0x0000, 5, lambda r: {"vwc": r[2] / 100, "tempC": (r[3] - 65536 if r[3] > 32767 else r[3]) / 100, "ec": None}),
 }
 
+ADDRESS_REGISTER = 0x07D0   # SEN0600 and the common Chinese RS485 probes: holding register that holds the slave id
+
+def instrument(addr, timeout=0.4):
+    inst = minimalmodbus.Instrument(PORT, addr)
+    inst.serial.baudrate = int(os.environ.get("RS485_BAUD", "9600")); inst.serial.timeout = timeout
+    inst.mode = minimalmodbus.MODE_RTU
+    return inst
+
 def read(addr):
     start, count, decode = PROFILES[PROFILE]
-    inst = minimalmodbus.Instrument(PORT, addr)
-    inst.serial.baudrate = 9600; inst.serial.timeout = 1.5; inst.mode = minimalmodbus.MODE_RTU
-    regs = inst.read_registers(start, count, functioncode=3)
-    return decode(regs)
+    return decode(instrument(addr, timeout=1.5).read_registers(start, count, functioncode=3))
 
 def post(token, rows):
     req = urllib.request.Request(f"{API}/ingest/soil", data=json.dumps({"readings": rows}).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {token}"}, method="POST")
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.load(resp)
 
+def scan():
+    """Walk Modbus addresses and print what answers, raw words first.
+
+    The raw registers are the point. Every profile here was written from a datasheet, so a probe that answers
+    with stable words but nonsense values means the register map is wrong, not the probe. Air reads near zero
+    moisture, a glass of water near saturation, a hand round the prongs moves the temperature within a minute.
+    """
+    lo, hi = (int(x) for x in os.environ.get("SCAN_RANGE", "1-16").split("-"))
+    start, count, decode = PROFILES[PROFILE]
+    print(f"scanning {PORT} addresses {lo}-{hi}, profile {PROFILE}, registers {start:#06x}+{count}")
+    found = 0
+    for addr in range(lo, hi + 1):
+        try:
+            regs = instrument(addr).read_registers(start, count, functioncode=3)
+        except Exception:
+            continue
+        found += 1
+        words = " ".join(f"{r:#06x}" for r in regs)
+        try:
+            v = decode(regs)
+            decoded = ", ".join(f"{k}={v[k]}" for k in v if v[k] is not None)
+        except Exception as e:
+            decoded = f"profile {PROFILE} could not decode: {e}"
+        print(f"  addr {addr:>3}: raw [{words}]  ->  {decoded}")
+    if not found:
+        print("  nothing answered. Check A/B are not swapped, the probe has 5 V, and the baud rate is 9600.")
+    elif found > 1 and len(set(ADDRS)) < found:
+        print(f"  {found} probes answered; give each its own address with --set-address before wiring them together.")
+    return found
+
+def set_address(new, old):
+    """Write the slave id. ONE probe on the bus: every factory probe answers to 1, so a write reaches all of them."""
+    print(f"writing address {new} to the probe at {old} (register {ADDRESS_REGISTER:#06x})")
+    print("this must be the only probe on the bus, or every probe on it will take the new address")
+    instrument(old).write_register(ADDRESS_REGISTER, new, functioncode=6)
+    time.sleep(1.0)
+    start, count, _ = PROFILES[PROFILE]
+    try:
+        instrument(new).read_registers(start, count, functioncode=3)
+        print(f"confirmed: the probe answers at {new}")
+        return True
+    except Exception as e:
+        print(f"no answer at {new} after the write: {e}", file=sys.stderr)
+        print("some probes need a power cycle before the new address takes effect; cycle it and run --scan", file=sys.stderr)
+        return False
+
 def main():
+    if SCAN:
+        sys.exit(0 if scan() else 1)
+    if "--set-address" in sys.argv:
+        new = int(flag("--set-address"))
+        if not 1 <= new <= 247: sys.exit("a Modbus slave id is 1 to 247")
+        sys.exit(0 if set_address(new, int(flag("--addr", "1"))) else 1)
     now = datetime.now(timezone.utc).isoformat()
     pending = []
     if not FLUSH:
