@@ -6,7 +6,7 @@ Software on the node:
 - **BirdNET-Go** (or BirdNET-Pi) does the listening and species detection; only detections leave the node, so a 500 MB ten-year IoT SIM is enough.
 - `life-soil-agent.py` reads the probes over Modbus RTU every 20 minutes, buffers when offline, posts to `/api/v1/ingest/soil`.
 - `life-push` (= `clients/birdnet-pi-push.py`) posts new detections every 10 minutes to `/api/v1/ingest/sound`.
-- `provision.sh` writes the tokens, enables the timers, configures the modem (ModemManager + NetworkManager, APN `iot.1nce.net`) and switches the root filesystem to overlay (read-only) so power cuts do not corrupt the SD card.
+- `provision.sh` installs all of it onto a Raspberry Pi OS Lite root, and `image/build.sh` runs it inside a stock image on a workstation to make the golden image: read-only overlay root, a writable `/data` partition for everything that must persist, BirdNET-Go with clip saving off, the Witty Pi daemon and the season's schedule. Per-node settings (tokens, hostname, coordinates) go on the boot partition as `life-node.env` after flashing; see `image/README.md`.
 
 The schedule is seasonal: about ten hours a day from March to October, **one hour a day from November to February**, at a fixed clock time so the winter sample does not drift around the daily cycle. Set it in the Witty Pi schedule script. The soil timer keeps its 20-minute interval; in winter that simply yields three readings on the hour the node is awake, which is plenty for soil that moves slowly.
 
@@ -24,7 +24,7 @@ life-soil-agent --scan                      # confirm, then wire both
 
 `--scan` prints the raw words next to the decoded values, because the profiles here were written from datasheets: stable words with nonsense values mean the register map is wrong and not the probe. The SEN0600 carries moisture and temperature only, so it uses the `sen0600` profile, which reads two registers; `generic-thc` reads a third for EC that this probe has not got.
 
-We build the image once ("golden image"), flash it per node with its three device tokens, and ship the box provisioned. The landowner mounts the post and pushes the probes in.
+We build the image once ("golden image", `image/`), flash it per node, drop that node's `life-node.env` with its three device tokens on the boot partition, and ship the box provisioned. The landowner mounts the post and pushes the probes in.
 
 
 ## Specified, not yet built

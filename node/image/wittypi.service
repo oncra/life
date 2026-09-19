@@ -1,0 +1,11 @@
+[Unit]
+Description=Witty Pi 4 daemon (scheduled power, RTC, shutdown on the button and on low input voltage)
+After=life-firstboot.service
+[Service]
+Type=simple
+WorkingDirectory=/data/wittypi
+ExecStart=/data/wittypi/daemon.sh
+Restart=on-failure
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

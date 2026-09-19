@@ -1,0 +1,5 @@
+# Life node, November to February: on for 1 hour from 07:00, off for 23. A fixed clock time so the winter sample does not drift
+BEGIN	2026-11-01 07:00:00
+END	2035-12-31 23:59:59
+ON	H1
+OFF	H23

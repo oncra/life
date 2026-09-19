@@ -1,0 +1,9 @@
+[Unit]
+Description=Life node: apply the season's Witty Pi schedule
+After=wittypi.service time-sync.target
+Wants=time-sync.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/life-schedule
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=BirdNET-Go: listens on the I2S microphone, keeps detections in /data/birdnet-go
+After=sound.target life-firstboot.service
+Wants=sound.target
+[Service]
+Type=simple
+WorkingDirectory=/data/birdnet-go
+Environment=HOME=/data/birdnet-go XDG_CONFIG_HOME=/data/birdnet-go/.config
+ExecStart=/usr/local/bin/birdnet-go serve -c /data/birdnet-go/config.yaml
+Restart=on-failure
+RestartSec=10
+[Install]
+WantedBy=multi-user.target

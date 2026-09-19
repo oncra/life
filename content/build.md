@@ -27,17 +27,18 @@ Fill in [`kit/bench-log.csv`](https://github.com/oncra/life/blob/main/kit/bench-
 
 None of this needs hardware, so none of it is an excuse to wait.
 
-**0.1 Register a bench place and mint three device tokens.** Use a throwaway place so that field data starts clean later.
+**0.1 Register a bench place and mint three device tokens.** Use a throwaway place so that field data starts clean later. A place is a GeoJSON polygon; a 20 m square round the desk is enough.
 
 ```bash
 curl -s -XPOST https://life.oncra.org/api/v1/places -H "authorization: Bearer $LIFE_ADMIN_KEY" \
   -H 'content-type: application/json' \
-  -d '{"name":"Bench","slug":"bench","lat":52.38,"lon":4.92,"areaHa":0.01}'
+  -d '{"name":"Bench, Tolhuisweg","public":false,"country":"NL","landUse":"bench",
+       "geometry":{"type":"Polygon","coordinates":[[[4.9012,52.3836],[4.9016,52.3836],[4.9016,52.3839],[4.9012,52.3839],[4.9012,52.3836]]]}}'
 
-for d in '{"kind":"SOUND","model":"life-node-v1 birdnet-go","heightM":0.5}' \
+for d in '{"kind":"SOUND","model":"Life node v1, BirdNET-Go on Raspberry Pi 4, INMP441","heightM":0.5}' \
          '{"kind":"SOIL","model":"DFRobot SEN0600","depthCm":10}' \
          '{"kind":"SOIL","model":"DFRobot SEN0600","depthCm":30}'; do
-  curl -s -XPOST https://life.oncra.org/api/v1/places/bench/devices \
+  curl -s -XPOST https://life.oncra.org/api/v1/places/bench-tolhuisweg/devices \
     -H "authorization: Bearer $LIFE_ADMIN_KEY" -H 'content-type: application/json' -d "$d"
 done
 ```
@@ -50,18 +51,18 @@ Each call returns a `deviceToken` (`lo_dev_...`) **once**. Write all three into 
 curl -s -XPOST https://life.oncra.org/api/v1/ingest/soil -H "authorization: Bearer $TOK_SOIL_1" \
   -H 'content-type: application/json' \
   -d '{"readings":[{"ts":"2026-09-19T12:00:00Z","vwc":24.1,"tempC":15.3}]}'
-curl -s https://life.oncra.org/api/v1/places/bench/devices | jq '.items[] | {kind, depthCm, lastSeenAt}'
+curl -s https://life.oncra.org/api/v1/places/bench-tolhuisweg/devices | jq '.items[] | {kind, depthCm, lastSeenAt}'
 ```
 
 Gate: `lastSeenAt` is populated on the device you posted as, and only that one.
 
 **0.3 Order what is still missing**, in this order of urgency: the 1NCE SIM (nothing over LTE works without it and the earlier signup was never completed), the [Accuweb panel](https://www.accuweb.nl/zonnepaneel-12-volt-100-watt.html), the generic list from basket G (USB meter, fuse, paint, membrane, tape, plastic sheet, foam and hood), and the post from a builders' merchant. The reichelt battery is available on 8 October and is **not** on the critical path: stages 0 and 1 run off a USB supply.
 
-**0.4 Build the golden image.** Raspberry Pi OS Lite 64-bit, then BirdNET-Go, then `node/provision.sh`. Three things have to be right in the image or they are wrong in every node built from it afterwards:
+**0.4 Build the golden image.** `node/image/build.sh` takes a stock Raspberry Pi OS Lite 64-bit image, the BirdNET-Go arm64 release and the Witty Pi 4 software, and produces a 12 GiB image on any Linux workstation (the arm64 root is entered through `qemu-user-static`). Nothing per-node is inside it. The layout is in `node/image/README.md`; three things have to be right in the image or they are wrong in every node built from it afterwards:
 
-1. **Audio clip saving off.** Detections leave the node, sound does not. It is a promise to the landowner and it is what keeps a 500 MB SIM alive for ten years.
-2. **All node state on a writable partition.** The overlay makes root read-only, which protects the card from power cuts, but BirdNET-Go's database, the push cursor and `queue.jsonl` must live outside the overlay or every shutdown throws away the readings that the shutdown was supposed to preserve.
-3. **The APN goes in the modem, not the script.** The E3372-325 is a HiLink stick with its own DHCP and NAT; `iot.1nce.net` is set once at `http://192.168.8.1`.
+1. **Audio clip saving off.** `build.sh` runs BirdNET-Go once to write its default config, then sets `realtime.audio.export.enabled: false`. Detections leave the node, sound does not. It is a promise to the landowner and it is what keeps a 500 MB SIM alive for ten years.
+2. **All node state on a writable partition.** Root is a read-only tmpfs overlay from the first boot, which is what protects the card from power cuts; a third partition, `/data`, grows to fill the card at the first boot and carries BirdNET-Go's database and config, the soil queue, the push cursor, the Witty Pi schedule, the journal, the SSH host keys and the network connections. Nothing the node must remember lives on root.
+3. **Per-node settings ride in on the boot partition.** `life-node.env` (three tokens, hostname, coordinates, `SCHEDULE=bench` and a WiFi for the desk) is copied onto the FAT partition from any laptop after flashing; the first boot moves it to `/data` and off the boot partition. The 4G APN is set once in the modem's own web UI at `http://192.168.8.1`.
 
 Gate: the card boots, `systemctl list-timers` shows `life-soil.timer` and `life-sound.timer`, and a reboot does not lose a file written to the state partition.
 

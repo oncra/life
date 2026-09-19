@@ -1,0 +1,5 @@
+# Life node on the bench: on for 15 minutes in every hour, so a day of testing gives two dozen cycles
+BEGIN	2026-01-01 00:00:00
+END	2035-12-31 23:59:59
+ON	M15
+OFF	M45

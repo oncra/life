@@ -1,0 +1,12 @@
+[Unit]
+Description=Life node: keep /data in shape and take per-node settings from the boot partition
+DefaultDependencies=no
+After=local-fs.target
+Before=network-pre.target NetworkManager.service ssh.service wittypi.service birdnet-go.service life-schedule.service
+Wants=network-pre.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/life-firstboot
+[Install]
+WantedBy=sysinit.target

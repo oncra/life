@@ -1,0 +1,5 @@
+# Life node, March to October: on for 10 hours from 05:00, off for 14
+BEGIN	2026-03-01 05:00:00
+END	2035-12-31 23:59:59
+ON	H10
+OFF	H14
