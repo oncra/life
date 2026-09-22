@@ -8,6 +8,10 @@ order: 3
 
 One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices and stock checked on live shop pages, most recently on 2026-09-16, when the first set was ordered. Incl. VAT unless a line says otherwise. The order list in the repository is the source of truth; this table is a description of it.
 
+![Impression of the Life node in an agroforestry alley: a small matt green box mounted on a short square wooden post under a tilted solar panel, with two grey probe leads running down the post and into a slit in the turf](/img/life-node-impression.webp)
+
+*An impression of the design, not a photograph. The kit is designed and ordered; nothing has been built yet, and the [build plan](/docs/build) says where that stands. What the picture is right about is the shape and the size: one box the size of a shoebox at knee height, one panel above it doing the work of a roof, one post, two leads into the ground, and nothing else.*
+
 ## Why one box
 
 The first set had three radios (WiFi to the recorder, LoRaWAN to the probes, the farm's internet for both), two hubs (an access point on the barn, a gateway on the window sill), and a dependence on the farm network reaching the field. It was €1,110. Most fields are not within WiFi reach of a barn, and every extra device is a thing that can be unplugged.
@@ -52,6 +56,10 @@ The node folds all of it into one enclosure:
 ## How it is mounted
 
 A node in an arable field has two predators: people who take things, and the sprayer that never saw it. Both are answered by the same choice, which is to keep the solid part of the node below the crop and put only a 6 mm rod above it.
+
+![Impression of the same node standing in ripening wheat, with only the tilted panel showing above the ears](/img/life-node-in-crop.webp)
+
+*The same design in June wheat, and the reason for every dimension below: at 1090 mm nothing stands above the crop. An impression, not a photograph.*
 
 ![Structural drawing of the low-profile field mount: side and front elevation, enclosure interior and probe trench](/img/life-node-low-mount.svg)
 

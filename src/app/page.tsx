@@ -54,6 +54,32 @@ export default async function Home() {
       </section>
 
       <section className="py-10">
+        <div className="rounded-lg border border-line bg-white overflow-hidden grid md:grid-cols-2">
+          <Image
+            src="/img/life-node-impression.webp"
+            alt="Impression of the Life node in an agroforestry alley: a small matt green box on a short square wooden post under a tilted solar panel, with two grey probe leads running into the ground"
+            width={1600}
+            height={900}
+            className="w-full h-full object-cover min-h-[220px]"
+            sizes="(min-width: 768px) 50vw, 100vw"
+          />
+          <div className="p-6 md:p-8 flex flex-col justify-center">
+            <h2 className="text-2xl font-semibold">One box on one post</h2>
+            <p className="mt-3 text-sm text-muted leading-relaxed">
+              Two of the three streams come out of a single device. Inside the box a small computer listens and names the birds itself, so only detections leave the field; two probes wired into the same box read moisture and temperature at 10 and 30 cm; one 4G stick on a twelve-euro ten-year SIM carries both. A solar panel doubles as its roof. Nothing stands higher than 1,090 mm, which is how it disappears into a standing crop, and there is no farm network, no gateway and no subscription anywhere in it. About €687 in parts, with the bill of materials, the order list and the failure modes published.
+            </p>
+            <p className="mt-3 text-xs text-muted leading-relaxed">
+              The picture is an impression of the design, not a photograph: the kit is ordered and nothing has been built yet.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/docs/kit" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">See the kit</Link>
+              <Link href="/docs/build" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Follow the build</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-10">
         <h2 className="text-2xl font-semibold">Start where you stand</h2>
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           {[
