@@ -6,7 +6,41 @@ order: 1
 
 # An oracle for Life
 
-*Green paper, version 0.1, September 2026. Open for comment. Licence CC BY 4.0. Edit it on GitHub.*
+*Green paper, version 0.2, September 2026. Open for comment. Licence CC BY 4.0. Edit it on GitHub.*
+
+## The short version
+
+### Why
+
+The living world is thinning out while every balance sheet says things are fine. Money, policy and, increasingly, software agents optimise hard against whatever they can measure, and what they can measure about life is almost nothing. So they optimise proxies (tons of carbon, trees planted, hectares restored) and the proxy gets delivered without the thing: a eucalyptus plantation for the carbon, a dead watershed for free. As long as life cannot answer for itself, every optimiser on Earth will keep pulling away from it, not out of malice but because the compass points at the proxy.
+
+This project exists to give life a voice that money can hear: a cheap, fast, hard-to-fool way for a place itself to say whether life there is thriving. Everything else follows from that. Once the answer is cheap, the twelve-hectare farmer becomes fundable, checking becomes continuous, and the economy's own optimisation pressure can be turned from extracting from life to regenerating it.
+
+### What an oracle is
+
+An oracle is anything that tells you, cheaply and reliably, whether an attempt worked. Software has the compiler, finance has the ledger, carbon has grown registries. Life has nothing, and that gap is why life keeps losing. A good oracle scores on three things: what it costs, how long it takes, and how hard it is to fool. A life oracle cannot be a better metric, because every metric gets gamed the moment money points at it. It has to be a different structure: the measured behaviour of the living system in a place, read by several independent witnesses, with the weakest one deciding.
+
+### The strategy, in four moves
+
+1. **Make the proof nearly free.** The satellite stream costs nothing, at any size, anywhere. Sound and soil come out of one box on one post, about €687 in parts and no subscription, so a place pays something like €140 a year and nothing per hectare.
+2. **Let the place answer, not the applicant.** Seven readings of what life is doing there, from three streams that cannot compare notes. The verdict is the weakest reading. Field visits are triggered by disagreement, not by a calendar.
+3. **Connect the verdict to money that already flows.** First as gates on carbon credits in the Oncra registry, then as a published tariff paid per hectare per season on a public verdict, then as the monitoring method for the public schemes that are being written now.
+4. **Keep it a commons.** Open standard, open code, open hardware, open data. The evidence belongs to the place. The oracle, the payer and the registry are never the same party. Anyone can rerun a verdict or fork the method.
+
+### What is different here
+
+Eight claims. Each one says what it is, why it matters for life, and whether it is new or inherited, because a standard that cannot cite its ancestors cannot defend its differences. The evidence is in [Prior art](/docs/prior-art).
+
+1. **Life is the measure, and life answers.** The verdict is the measured behaviour of the living system, not the inputs people control. Trees planted, hectares restored and euros spent are what people game; whether birds breed, soil breathes and greenness comes back after a drought is not. Birds and bats are the insect sensor, breeding song the renewal sensor, machine noise the autonomy sensor. *The science is established; the framing is new.*
+2. **The weakest reading is the verdict, and unknown is a reading.** Nothing is summed, so nobody can buy diversity with carbon or greenness with fertiliser. Low confidence returns "insufficient, do not pay" instead of being replaced by a proxy or counted as zero change. *Weakest-link verdicts exist in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; they are absent from sensor products and explicitly rejected by the leading credit frameworks. Unknown blocking payment is new.*
+3. **Three cheap witnesses, one verdict.** Satellite, a sound recorder and a soil probe are each easy to fool alone and fused into a single site verdict. Faking all three, in step with the seasons, is growing an ecosystem. *Not found anywhere: the products and programmes that run several streams report them side by side.*
+4. **Proof cheap enough for twelve hectares.** The cost of proving an outcome is what decides who gets paid for nature, and today it keeps everything below a few hundred hectares out of finance. Free satellite for every place, one box for the rest, no farm network, no gateway, no monthly fee. This is what lets payment follow a single field and lets a region be measured instead of a showcase. *On a live market check no vendor sells a device that carries species detection, soil and a cellular link into an open registry; every one covers a single stream and keeps the readings in its own cloud.*
+5. **Disagreement sends a human, not a calendar.** Cores, DNA samples and insect counts are ordered when the streams contradict each other, plus a small random draw so nobody knows in advance who gets checked. Expensive measurement becomes the exception, aimed where it is worth spending. *Adaptive sampling is old science; as a rule of a payment framework it was not found.*
+6. **It gets more trustworthy as it grows.** A place is read against its own history and against the crowd of neighbours on the same soil under the same weather. With ten thousand places a dry summer is subtracted rather than mistaken for decline, and the method's own errors become countable. The expensive survey does not improve with numbers; this does. *Reference crowds are prior art in river science; the application to per-parcel phenology and soundscapes is ours, and the neighbour crowd is specified, not yet built.*
+7. **It rewards the wild and keeps humans in.** A place that holds its state with little management scores at least as well as one held up by constant care, so the oracle does not breed gardeners. Humans are a population inside the readings, so it cannot be optimised by removing them. *Framing is new.*
+8. **It publishes its own errors.** Every method version is scored later against what actually happened, and the gap is public and drives the next version. The oracle is a proxy too and it says so. *Carbon-credit rating agencies come closest; in nature monitoring it was not found. Specified, not yet running.*
+
+What is deliberately not on this list: a new credit, a new token, a new platform. The oracle publishes readings and is paid by those who read them, never by those it measures. The rest of this paper is the long form of the above.
 
 ## Why this exists
 

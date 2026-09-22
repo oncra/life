@@ -5,6 +5,19 @@ import { marked } from "marked";
 
 const root = path.join(process.cwd(), "content");
 
+export function slugify(text: string): string {
+  return text.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+}
+
+marked.use({
+  renderer: {
+    heading({ tokens, depth }) {
+      const text = this.parser.parseInline(tokens);
+      return `<h${depth} id="${slugify(text)}">${text}</h${depth}>\n`;
+    },
+  },
+});
+
 export interface Doc { slug: string; title: string; summary?: string; order?: number; html: string; raw: string }
 
 export function listDocs(): Omit<Doc, "html" | "raw">[] {
