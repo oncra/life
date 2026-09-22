@@ -54,6 +54,47 @@ export default async function Home() {
       </section>
 
       <section className="py-10">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-lg border border-line bg-white p-6">
+            <h2 className="text-2xl font-semibold">Why</h2>
+            <p className="mt-3 text-sm text-muted leading-relaxed">
+              Money, policy and software agents optimise hard against whatever they can measure, and what they can measure about life is almost nothing. So they optimise proxies, tons of carbon, trees planted, hectares restored, and the proxy gets delivered without the thing. As long as life cannot answer for itself, every optimiser on Earth keeps pulling away from it. This project gives a place a cheap, fast, hard-to-fool way to say whether life there is thriving, so that the same pressure can be turned from extracting from life to regenerating it.
+            </p>
+          </div>
+          <div className="rounded-lg border border-line bg-white p-6">
+            <h2 className="text-2xl font-semibold">What an oracle is</h2>
+            <p className="mt-3 text-sm text-muted leading-relaxed">
+              Anything that tells you, cheaply and reliably, whether an attempt worked. Software has the compiler, finance has the ledger, carbon has registries. Life has nothing, which is why life keeps losing. A life oracle cannot be a better metric, because every metric is gamed the moment money points at it. It has to be a different structure: the measured behaviour of the living system, read by several witnesses that cannot compare notes, with the weakest one deciding.
+            </p>
+          </div>
+        </div>
+        <h2 className="mt-10 text-2xl font-semibold">What is different here</h2>
+        <p className="mt-2 text-sm text-muted max-w-2xl">Eight claims, each marked new or inherited, with the evidence in <Link className="underline" href="/docs/prior-art">Prior art</Link>. The long form is in the <Link className="underline" href="/docs/greenpaper#what-is-different-here">green paper</Link>.</p>
+        <ol className="mt-6 grid md:grid-cols-2 gap-4 text-sm list-none">
+          {[
+            ["Life is the measure, and life answers", "The verdict is what the living system does, not what people put in. Trees planted and euros spent get gamed; breeding birds, breathing soil and recovery after drought do not.", "Framing new"],
+            ["The weakest reading is the verdict, and unknown is a reading", "Nothing is summed, so nobody buys diversity with carbon or greenness with fertiliser. Low confidence means insufficient, do not pay.", "Rule inherited from water law and IUCN; unknown blocking payment new"],
+            ["Three cheap witnesses, one verdict", "Satellite, sound and soil are each easy to fool alone. Faking all three in step with the seasons is growing an ecosystem.", "Not found elsewhere"],
+            ["Proof cheap enough for twelve hectares", "Free satellite for every place, one box on one post for the rest, no farm network, no monthly fee. Payment can follow a single field.", "No vendor sells the device"],
+            ["Disagreement sends a human, not a calendar", "Cores and counts are ordered when the streams contradict each other, plus a random draw. Expensive measurement becomes the exception.", "Not found as a framework rule"],
+            ["It gets more trustworthy as it grows", "Every place is read against its own history and the crowd of neighbours on the same soil. Ten thousand places subtract a dry summer.", "Reference crowds inherited; neighbour crowd specified, not built"],
+            ["It rewards the wild and keeps humans in", "A place that holds itself scores at least as well as one held up by constant care. Humans are a population inside the readings.", "Framing new"],
+            ["It publishes its own errors", "Every method version is scored later against what actually happened, and the gap is public.", "Not found in nature monitoring; specified, not running"],
+          ].map(([t, b, st], i) => (
+            <li key={t} className="rounded-lg border border-line bg-white p-4 flex gap-3">
+              <span className="text-muted font-mono text-xs pt-1">{i + 1}</span>
+              <div>
+                <div className="font-medium">{t}</div>
+                <div className="mt-1 text-muted leading-relaxed">{b}</div>
+                <div className="mt-2 text-xs text-muted italic">{st}</div>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-4 text-sm text-muted max-w-2xl">Not on this list on purpose: a new credit, a new token, a new platform. The oracle publishes readings and is paid by those who read them, never by those it measures. <Link className="underline" href="/docs/money">How a place could earn</Link>.</p>
+      </section>
+
+      <section className="py-10">
         <div className="rounded-lg border border-line bg-white overflow-hidden grid md:grid-cols-2">
           <Image
             src="/img/life-node-impression.webp"
