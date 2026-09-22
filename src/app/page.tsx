@@ -57,7 +57,7 @@ export default async function Home() {
         <div className="rounded-lg border border-line bg-white overflow-hidden grid md:grid-cols-2">
           <Image
             src="/img/life-node-impression.webp"
-            alt="Impression of the Life node in an agroforestry alley: a small matt green box on a short square wooden post under a tilted solar panel, with two grey probe leads running into the ground"
+            alt="Impression of the Life node in an agroforestry alley: a small matt green box on a short square wooden post under a tilted solar panel, with two grey probe leads running into the ground, a skylark singing on the corner of the panel and a hare sitting further down the alley"
             width={1600}
             height={900}
             className="w-full h-full object-cover min-h-[220px]"
