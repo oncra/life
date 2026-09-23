@@ -10,7 +10,7 @@ A steward is whoever answers for a place: farmer, land manager, nature organisat
 
 ## Step 0: get a key
 
-During the pilot, keys are handed out by the operator of this instance: mail [sven@climatecleanup.org](mailto:sven@climatecleanup.org) with the name of your place and where it is. Or run your own instance (see [Contributing](/docs/contributing)): the admin key in your `.env` can create steward keys:
+During the pilot, keys are handed out by the operator of this instance: mail [sven@climatecleanup.org](mailto:sven@climatecleanup.org) with the name of your place and where it is. Or run your own instance (see [Contributing](contributing.md)): the admin key in your `.env` can create steward keys:
 
 ```bash
 curl -X POST https://life.oncra.org/api/v1/keys \
@@ -20,7 +20,7 @@ curl -X POST https://life.oncra.org/api/v1/keys \
 
 ## Step 1: register the place (five minutes, satellite stream starts now)
 
-In the browser: [Register a place](/places/new), click the boundary on the map, name it, paste your key. Or by API, with a GeoJSON polygon (WGS84, longitude first):
+In the browser: [Register a place](https://life.oncra.org/places/new), click the boundary on the map, name it, paste your key. Or by API, with a GeoJSON polygon (WGS84, longitude first):
 
 ```bash
 curl -X POST https://life.oncra.org/api/v1/places \
@@ -37,7 +37,7 @@ The answer contains the place, a **steward key scoped to this place** (shown onc
 
 ## Step 2: put up the node
 
-The standard kit is one box on one post: [the kit](/docs/kit). It hears, reads the soil and posts both over its own 4G link, so nothing depends on the farm's network. A node is three devices on the place: one SOUND and two SOIL. Register all three first, because each returns a token that goes into the box before it ships. If you are not building a node, pick one of the alternative sets in the [hardware guide](/docs/hardware) instead; the registration below is the same either way.
+The standard kit is one box on one post: [the kit](kit.md). It hears, reads the soil and posts both over its own 4G link, so nothing depends on the farm's network. A node is three devices on the place: one SOUND and two SOIL. Register all three first, because each returns a token that goes into the box before it ships. If you are not building a node, pick one of the alternative sets in the [hardware guide](hardware.md) instead; the registration below is the same either way.
 
 ```bash
 curl -X POST https://life.oncra.org/api/v1/places/<slug>/devices \
@@ -45,7 +45,7 @@ curl -X POST https://life.oncra.org/api/v1/places/<slug>/devices \
   -d '{"kind":"SOUND","model":"Life node v1","lat":52.0518,"lon":5.0531,"heightM":1.8,"installedAt":"2026-09-20T09:00:00Z"}'
 ```
 
-Keep the `deviceToken` (`lo_dev_…`). Then install per the [sound installation protocol](/docs/install-sound) and deliver data per the [data protocols](/docs/data-protocols). A node (or any BirdNET-Pi) pushes every ten minutes with the client script; an AudioMoth card is analysed on your laptop and pushed in one go; a BirdWeather PUC is polled by the operator if you give them your station id as the device `serial`.
+Keep the `deviceToken` (`lo_dev_…`). Then install per the [sound installation protocol](install-sound.md) and deliver data per the [data protocols](data-protocols.md). A node (or any BirdNET-Pi) pushes every ten minutes with the client script; an AudioMoth card is analysed on your laptop and pushed in one go; a BirdWeather PUC is polled by the operator if you give them your station id as the device `serial`.
 
 ## Step 3: sink the soil probes
 
@@ -63,7 +63,7 @@ A stand-alone LoRaWAN probe is registered the same way plus its `devEui`, so the
   -d '{"kind":"SOIL","model":"Dragino SE01-LB","devEui":"A84041000181C2F1","depthCm":10}'
 ```
 
-Install per the [soil installation protocol](/docs/install-soil). A node posts the first reading within twenty minutes. For a LoRaWAN probe, add a webhook in The Things Stack (see [data protocols](/docs/data-protocols)); the first uplink appears under Devices as "last seen" within the hour.
+Install per the [soil installation protocol](install-soil.md). A node posts the first reading within twenty minutes. For a LoRaWAN probe, add a webhook in The Things Stack (see [data protocols](data-protocols.md)); the first uplink appears under Devices as "last seen" within the hour.
 
 ## Step 4: read the place
 
@@ -83,4 +83,4 @@ Readings for the sound and soil streams say **unknown** until a second year exis
 
 ## What you get in return
 
-A public, reproducible record that life on your land is doing what you say it is doing, readable by the people who fund, buy, insure or regulate you, and by their software. And a lighter carbon-verification burden when the life readings and the carbon claim agree (see the [green paper](/docs/greenpaper)).
+A public, reproducible record that life on your land is doing what you say it is doing, readable by the people who fund, buy, insure or regulate you, and by their software. And a lighter carbon-verification burden when the life readings and the carbon claim agree (see the [green paper](greenpaper.md)).

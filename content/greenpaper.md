@@ -29,7 +29,7 @@ An oracle is anything that tells you, cheaply and reliably, whether an attempt w
 
 ### What is different here
 
-Eight claims. Each one says what it is, why it matters for life, and whether it is new or inherited, because a standard that cannot cite its ancestors cannot defend its differences. The evidence is in [Prior art](/docs/prior-art).
+Eight claims. Each one says what it is, why it matters for life, and whether it is new or inherited, because a standard that cannot cite its ancestors cannot defend its differences. The evidence is in [Prior art](prior-art.md).
 
 1. **Life is the measure, and life answers.** The verdict is the measured behaviour of the living system, not the inputs people control. Trees planted, hectares restored and euros spent are what people game; whether birds breed, soil breathes and greenness comes back after a drought is not. Birds and bats are the insect sensor, breeding song the renewal sensor, machine noise the autonomy sensor. *The science is established; the framing is new.*
 2. **The weakest reading is the verdict, and unknown is a reading.** Nothing is summed, so nobody can buy diversity with carbon or greenness with fertiliser. Low confidence returns "insufficient, do not pay" instead of being replaced by a proxy or counted as zero change. *Weakest-link verdicts exist in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; they are absent from sensor products and explicitly rejected by the leading credit frameworks. Unknown blocking payment is new.*
@@ -117,7 +117,7 @@ Every part of that box is on sale today. Species recognition at the edge is a so
 
 That is not an engineering gap. It is what the market is for. These devices are sold in order to deliver data into the seller's platform, so nobody has a commercial reason to build the one that delivers it into somebody else's, least of all into a public registry the landowner can read and fork. The missing product is missing because the thing it would enable, a place's own evidence belonging to the place, is not a product.
 
-So the kit is part of the standard, not an accessory to it. About €687 in parts, a published bill of materials, and software anyone can audit or rebuild: [the kit](/docs/kit). The evidence behind the claim, device by device with prices and dates, is in [Prior art](/docs/prior-art) and the [hardware guide](/docs/hardware). If someone does sell the whole thing, we would rather buy it, and a correction by pull request is the fastest way to tell us.
+So the kit is part of the standard, not an accessory to it. About €687 in parts, a published bill of materials, and software anyone can audit or rebuild: [the kit](kit.md). The evidence behind the claim, device by device with prices and dates, is in [Prior art](prior-art.md) and the [hardware guide](hardware.md). If someone does sell the whole thing, we would rather buy it, and a correction by pull request is the fastest way to tell us.
 
 ## Seven readings, one verdict
 
@@ -147,7 +147,7 @@ Each reading is **rising, holding, falling or unknown**, with a confidence (0 to
 
 Soil carbon is verified today with thirty or more cores per field every five years, the same burden for every field. That is backwards.
 
-Carbon change follows from what the streams already see: satellite gives capture, the soil probe gives the breathing, satellite plus sound give removal (harvest, tractor hours). A simple model of those three estimates carbon change per field per season; cores calibrate it once per soil type. Version 0.1 of that model runs today, as a yearly range with every parameter carrying a low and a high: [How carbon is inferred](/docs/carbon).
+Carbon change follows from what the streams already see: satellite gives capture, the soil probe gives the breathing, satellite plus sound give removal (harvest, tractor hours). A simple model of those three estimates carbon change per field per season; cores calibrate it once per soil type. Version 0.1 of that model runs today, as a yearly range with every parameter carrying a low and a high: [How carbon is inferred](carbon.md).
 
 **Let life set the carbon burden.** A place where diversity, structure, cycling and productivity all rise is accumulating carbon almost by definition. A place claiming carbon gain while life readings are flat or falling is the monoculture case, and that is where the cores belong. Sampling intensity is set by agreement between the life readings and the carbon claim. The life oracle becomes the risk model for the carbon oracle.
 
@@ -160,7 +160,7 @@ land stewards for ecological outcomes is large, slow and expensive to administer
 credits specifically is tiny. So the aim is not a new credit. It is a published tariff paid on a verdict, per hectare per
 season, with a connection payment so that nobody has to front the cost of being measured, and the balance released as
 confidence grows. The design, its costs, and the three roles that must never be merged are in
-[How a place could earn](/docs/money). It is a proposal, not an offer: nothing is being paid yet.
+[How a place could earn](money.md). It is a proposal, not an offer: nothing is being paid yet.
 
 ## Where Oncra fits
 
@@ -170,7 +170,7 @@ Oncra's registry is already a one-dimensional life oracle, for carbon: methodolo
 
 Does: registers places anywhere on Earth; computes the satellite stream for them (Sentinel-2, 2019 to now, cloud-masked, per polygon); reads Productivity and a first Resilience from it; accepts sound detections, acoustic indices and soil readings by API, including The Things Stack webhooks; publishes seven readings with confidence and maturity, and the verdict; estimates a yearly carbon balance as a range and what is issuable at its lower bound; documents hardware, installation and data delivery for a global network of volunteers and professionals.
 
-Does not yet: compare a place against its neighbour crowd (the regional reference); compute acoustic indices server-side from audio; run the random-draw and triggered-visit scheduler; publish the self-drift ledger; calibrate the carbon model against cores, or use it as a gate on issuance. Each is specified in the [specification](/docs/spec) with its status.
+Does not yet: compare a place against its neighbour crowd (the regional reference); compute acoustic indices server-side from audio; run the random-draw and triggered-visit scheduler; publish the self-drift ledger; calibrate the carbon model against cores, or use it as a gate on issuance. Each is specified in the [specification](spec.md) with its status.
 
 ## What would make this fail
 
@@ -182,7 +182,7 @@ Does not yet: compare a place against its neighbour crowd (the regional referenc
 
 ## Related work
 
-A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, with an account of what here is inherited and what is new, is in [Prior art](/docs/prior-art). Short form: the weakest-link verdict has ancestors in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; the fused three-stream verdict, disagreement-triggered visits, the published drift ledger and a single field device carrying all three streams into an open registry do not.
+A scan of credit methodologies, scientific condition frameworks, Dutch farmland indicator sets and sensor products, with an account of what here is inherited and what is new, is in [Prior art](prior-art.md). Short form: the weakest-link verdict has ancestors in water law, the IUCN Red List of Ecosystems and the Dutch Biodiversiteitsmonitor; the fused three-stream verdict, disagreement-triggered visits, the published drift ledger and a single field device carrying all three streams into an open registry do not.
 
 ## Join
 

@@ -9,7 +9,20 @@ export function slugify(text: string): string {
   return text.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
 }
 
+// Links in content/ are written so that GitHub resolves them when it renders the same file:
+// a sibling document is `kit.md`, an image is `../public/img/x`. Both are rewritten here to the
+// routes this site serves, so one link works in both places.
+function siteHref(href: string): string {
+  const doc = /^([a-z0-9-]+)\.md(#.*)?$/.exec(href);
+  if (doc) return `/docs/${doc[1]}${doc[2] ?? ""}`;
+  if (href.startsWith("../public/")) return href.slice("../public".length);
+  return href;
+}
+
 marked.use({
+  walkTokens(token) {
+    if ((token.type === "link" || token.type === "image") && typeof token.href === "string") token.href = siteHref(token.href);
+  },
   renderer: {
     heading({ tokens, depth }) {
       const text = this.parser.parseInline(tokens);

@@ -10,7 +10,7 @@ order: 6
 
 ## The problem this is aimed at
 
-The [green paper](/docs/greenpaper) says the scarce thing in nature finance is affordable proof, not money. The numbers behind that, checked in September 2026:
+The [green paper](greenpaper.md) says the scarce thing in nature finance is affordable proof, not money. The numbers behind that, checked in September 2026:
 
 - Payments for ecosystem services run at roughly **$36 to 42 billion a year across more than 550 programmes** worldwide, almost all of it public money for watersheds and forests.
 - Against that, the entire **voluntary biodiversity-credit market sold about $3.2 million in 2025**. It is not the place to look for scale.
@@ -60,7 +60,7 @@ Collapse any two of these and the meter starts working for the person being meas
 
 ## Rules taken from other people's mistakes
 
-The [specification](/docs/spec), section 5b, carries nine measurement rules learned from the audit record of the largest programme that pays smallholders on satellite data, set out in [Prior art](/docs/prior-art). Four of them are about money specifically:
+The [specification](spec.md), section 5b, carries nine measurement rules learned from the audit record of the largest programme that pays smallholders on satellite data, set out in [Prior art](prior-art.md). Four of them are about money specifically:
 
 - **Never credit a change smaller than the instrument error.** Issue for the lower bound; a range spanning zero pays nothing.
 - **Publish money paid per steward per season, never stewards enrolled.** Enrolment is a vanity metric, and the gap between the two is where this field loses its credibility.

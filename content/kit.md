@@ -8,9 +8,9 @@ order: 3
 
 One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices and stock checked on live shop pages, most recently on 2026-09-16, when the first set was ordered. Incl. VAT unless a line says otherwise. The order list in the repository is the source of truth; this table is a description of it.
 
-![Impression of the Life node in an agroforestry alley: a small matt green box mounted on a short square wooden post under a tilted solar panel, with two grey probe leads running down the post and into a slit in the turf. A skylark sings on the corner of the panel, bumblebees work the flowering strip, a hare sits further down the mown alley and two swallows cross the sky](/img/life-node-impression.webp)
+![Impression of the Life node in an agroforestry alley: a small matt green box mounted on a short square wooden post under a tilted solar panel, with two grey probe leads running down the post and into a slit in the turf. A skylark sings on the corner of the panel, bumblebees work the flowering strip, a hare sits further down the mown alley and two swallows cross the sky](../public/img/life-node-impression.webp)
 
-*An impression of the design, not a photograph. The kit is designed and ordered; nothing has been built yet, and the [build plan](/docs/build) says where that stands. What the picture is right about is the shape and the size: one box the size of a shoebox at knee height, one panel above it doing the work of a roof, one post, two leads into the ground, and nothing else. The skylark, the hare and the bees are the point of the whole exercise rather than decoration: they are what the node is there to notice, and the bird on the panel is the one that ends up in the Diversity reading.*
+*An impression of the design, not a photograph. The kit is designed and ordered; nothing has been built yet, and the [build plan](build.md) says where that stands. What the picture is right about is the shape and the size: one box the size of a shoebox at knee height, one panel above it doing the work of a roof, one post, two leads into the ground, and nothing else. The skylark, the hare and the bees are the point of the whole exercise rather than decoration: they are what the node is there to notice, and the bird on the panel is the one that ends up in the Diversity reading.*
 
 ## Why one box
 
@@ -57,11 +57,11 @@ The node folds all of it into one enclosure:
 
 A node in an arable field has two predators: people who take things, and the sprayer that never saw it. Both are answered by the same choice, which is to keep the solid part of the node below the crop and put only a 6 mm rod above it.
 
-![Impression of the same node standing in ripening wheat, with only the tilted panel showing above the ears. A skylark sings on the corner of the panel, another is up over the field, and a hare watches from the tramline with only its head and ears above the crop](/img/life-node-in-crop.webp)
+![Impression of the same node standing in ripening wheat, with only the tilted panel showing above the ears. A skylark sings on the corner of the panel, another is up over the field, and a hare watches from the tramline with only its head and ears above the crop](../public/img/life-node-in-crop.webp)
 
 *The same design in June wheat, and the reason for every dimension below: at 1090 mm nothing stands above the crop. An impression, not a photograph.*
 
-![Structural drawing of the low-profile field mount: side and front elevation, enclosure interior and probe trench](/img/life-node-low-mount.svg)
+![Structural drawing of the low-profile field mount: side and front elevation, enclosure interior and probe trench](../public/img/life-node-low-mount.svg)
 
 Nothing stands higher than 1090 mm, and nothing sticks up at all. The enclosure sits at 500 mm above grade, clear of splash and standing water, on a 60 x 60 post driven 800 mm with no concrete and no spoil heap to mark the spot. The 500 mm is a deliberate compromise: every 100 mm of height helps both the microphone and the radio, and a panel whose top edge is at 1090 mm still disappears in wheat or maize. It is not free, because the panel is a half-square-metre sail. At 25 m/s it pushes about 170 N sideways, and moving the box up from 300 to 500 mm raises the overturning moment at ground level from roughly 120 to 155 Nm, which is why the post goes 800 mm down rather than 600. Push hard on the post after driving it: if it moves, go deeper. The panel is tilted 40° south directly over the box, where it doubles as the sunshade and rain cap that the heat and condensation problems both want. Everything is matt green, without branding or reflective labels, and a cable lock passes through the post and the enclosure lugs.
 
@@ -77,7 +77,7 @@ The remaining risk is not theft. A box this low is invisible to a sprayer too, s
 
 The bill of materials above lists boxes. Boxes do not talk to each other, and the wire between them turned out to be about a hundred euros that the first list did not have in it.
 
-![Enclosure wiring: interior layout with cable routing, one-line schematic and the cable schedule](/img/life-node-wiring.svg)
+![Enclosure wiring: interior layout with cable routing, one-line schematic and the cable schedule](../public/img/life-node-wiring.svg)
 
 **Ploughing is a siting question, not a cable question.** The probes sit at 10 and 30 cm and the lead runs in a spade slit at 12 cm, so on arable land the whole installation lives inside the plough layer no matter how the cable is routed. Burying deeper does not save it; a subsoiler goes further down than anything reasonable to dig by hand. What the short lead buys is that the node becomes one compact object, post and box and probes inside a two-metre circle, that can be lifted before ploughing and put back after. That has a consequence for the readings, and it is an honest one: on ploughed land the soil stream has a discontinuity every year, because the soil itself is inverted. The alternative is a headland or a permanent grass strip, where nothing is ploughed and the probes stay put, at the cost of measuring the margin rather than the field. Either is defensible; leaving it unsaid is not.
 
@@ -110,7 +110,7 @@ A design accumulates parts faster than it sheds them, so the last pass over this
 - **Compute instead of radio.** A Pi 4 draws about 3 W while listening. That is the price of doing BirdNET at the edge; the reward is a ten-year SIM and no network on the farm.
 - **Scheduled, not continuous, and seasonal.** The node listens about ten hours a day from March to October, and **one hour a day from November to February**. A waking hour costs 5 Wh, and underneath it sits a parasitic floor of about 4.6 Wh/day that never goes away: the charge controller's own self-consumption is 10 mA at 12 V with the load output off and 19 mA with it on, and the step-down converter idles at a few more. So the winter node eats 9.6 Wh/day and the summer node 54.6, a factor of about six rather than the ten the duty cycle suggests. The winter hour has to fall at the same clock time every day or it aliases the daily cycle it is meant to sample. One hour a day across those four months is 120 recording hours, about where acoustic-index variance settles (Bradfer-Lawrence 2019), so the winter block is thin but not below the floor. A seasonal change in effort belongs in the method and in the confidence attached to those months: a reading drawn from a tenth of the evidence should say so. **The draw itself is still an estimate**: measure it with an inline USB meter on the bench before trusting any of these numbers.
 
-![Monthly harvest against node load, for a 100 Wp and a 50 Wp panel, with a winter schedule](/img/life-node-energy-balance.svg)
+![Monthly harvest against node load, for a 100 Wp and a 50 Wp panel, with a winter schedule](../public/img/life-node-energy-balance.svg)
 
 - **The panel is sized by the crop, not by December.** This is the least obvious number in the design. With the winter schedule December is comfortable on any panel: 50 Wp harvests about 50 Wh/day against a 9.6 Wh load. What decides the panel is **April to September under a standing crop**. If a canopy takes the harvest down to something like a fifth, a 50 Wp panel runs 15 to 23 Wh/day short every summer month, and no winter schedule repairs that. So: **100 Wp where a crop will grow over the panel, 50 Wp on grass, a short crop or a headland** where it will not. Where the site allows the smaller panel it is worth taking, because it also halves the sail area, drops the overturning moment from about 155 to 86 Nm and lets the post go back to 600 mm. The shading fraction is a guess until someone measures it, and it is the first thing worth measuring at the first site.
 
@@ -174,7 +174,7 @@ A node that survives the bench and fails the farm has not been designed, only as
 
 ## When the farm network does reach the field
 
-If a place has WiFi at the field edge (a barn, a house), the earlier distributed set still works and needs no compute: a BirdWeather PUC (€289) on a Voltaic always-on battery, LoRaWAN probes and a gateway on the window sill. It is listed in the [hardware guide](/docs/hardware). The node is the default.
+If a place has WiFi at the field edge (a barn, a house), the earlier distributed set still works and needs no compute: a BirdWeather PUC (€289) on a Voltaic always-on battery, LoRaWAN probes and a gateway on the window sill. It is listed in the [hardware guide](hardware.md). The node is the default.
 
 ## What we learned from the open projects, and why we still build
 
@@ -195,7 +195,7 @@ So four things move from their design into ours, as specifications rather than a
 
 **[`acoupi_birdnet`](https://github.com/acoupi/acoupi_birdnet)** is MIT, untouched since January 2025, and pins `acoupi>=0.3.0` against a core now at 0.8.0. The integration point it uses is still exported and the model interface is a single method, so refreshing it is a small job. Worth doing as a contribution when there is a spare afternoon, independently of whether we ever use it.
 
-**[Bugg](https://github.com/bugg-resources)** publishes its full hardware design, PCBs and enclosure CAD included, under a non-commercial licence, with 97 units in the field across Europe under [TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308). We are not building this node because nobody has built one. We are building it because the ones that exist either upload raw audio, or cannot be used commercially, or are closed. The full scan is in [Prior art](/docs/prior-art).
+**[Bugg](https://github.com/bugg-resources)** publishes its full hardware design, PCBs and enclosure CAD included, under a non-commercial licence, with 97 units in the field across Europe under [TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308). We are not building this node because nobody has built one. We are building it because the ones that exist either upload raw audio, or cannot be used commercially, or are closed. The full scan is in [Prior art](prior-art.md).
 
 ## Next step down: an integrated board
 
@@ -205,7 +205,7 @@ Everything in the box except the panel and battery could be one printed circuit 
 
 ## How it gets built
 
-The order of work, from the first parcel to a node on a post, is the [build plan](/docs/build): bench electronics first, then the power chain, then the box, then the post, then a fortnight of not touching it. Each stage ends in a number written into `kit/bench-log.csv`, which carries every modelled value on this page next to an empty column for the measured one. Every energy figure here is still a model.
+The order of work, from the first parcel to a node on a post, is the [build plan](build.md): bench electronics first, then the power chain, then the box, then the post, then a fortnight of not touching it. Each stage ends in a number written into `kit/bench-log.csv`, which carries every modelled value on this page next to an empty column for the measured one. Every energy figure here is still a model.
 
 ## Order list
 

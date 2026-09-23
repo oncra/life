@@ -156,7 +156,7 @@ reported uncertainty without the model improving.
 None of this is a reason to dismiss the programme. It is the most valuable body of evidence available to anyone building
 in this space, it is public because its certifier and auditors published it, and the methodology was rewritten in
 September 2025 to address much of it. It is the direct source of the nine measurement rules in the
-[specification](/docs/spec), section 5b. The general lesson is the one this whole design is built around: a single
+[specification](spec.md), section 5b. The general lesson is the one this whole design is built around: a single
 number with no second witness, carrying a payment, fails in exactly this way, and the failure is invisible until someone
 walks the field.
 

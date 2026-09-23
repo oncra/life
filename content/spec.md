@@ -41,7 +41,7 @@ A device of kind SOIL delivers `{ts, depthCm, vwc %, tempC, ec µS/cm, co2Ppm?, 
 
 ### 2.3b Context layers (built: SoilGrids; specified: the rest)
 
-At registration and yearly, each place is enriched from open global layers, stored as `place.context` and used by the readings. Built: ISRIC SoilGrids v2.0 at the centroid (clay, sand, silt, organic carbon, pH, bulk density, WRB class; 250 m; CC BY 4.0), setting the Cycling model's moisture optimum from clay fraction. Specified: ETH 10 m canopy height 2020 (Structure witness), Walker et al. potential carbon and Bastin potential tree cover (distance to potential for Productivity and Structure), Hansen tree-cover loss and ESRI 10 m land cover (land-use context), NASA FIRMS and OPERA disturbance alerts (dated shocks for Resilience), RESOLVE ecoregion (neighbour-crowd stratum). Rationale and the Restor assessment: [Coupling with Restor](/docs/restor).
+At registration and yearly, each place is enriched from open global layers, stored as `place.context` and used by the readings. Built: ISRIC SoilGrids v2.0 at the centroid (clay, sand, silt, organic carbon, pH, bulk density, WRB class; 250 m; CC BY 4.0), setting the Cycling model's moisture optimum from clay fraction. Specified: ETH 10 m canopy height 2020 (Structure witness), Walker et al. potential carbon and Bastin potential tree cover (distance to potential for Productivity and Structure), Hansen tree-cover loss and ESRI 10 m land cover (land-use context), NASA FIRMS and OPERA disturbance alerts (dated shocks for Resilience), RESOLVE ecoregion (neighbour-crowd stratum). Rationale and the Restor assessment: [Coupling with Restor](restor.md).
 
 ### 2.4 Visits (built: storage; specified: scheduler)
 
@@ -99,13 +99,13 @@ Consecutive periods with the same direction. Users who pay on verdicts are expec
 
 ## 5. Carbon coupling (built: v0.1 inference; specified: calibration and gate)
 
-Built: a yearly net ecosystem carbon balance per place as a low/central/high range (`src/lib/carbon.ts`, `GET /api/v1/places/{id}/carbon`): NPP from monthly fAPAR (from NDVI) × PAR climatology × light-use efficiency by vegetation class, GPP→NPP 0.45 to 0.55; heterotrophic respiration from a reference rate by vegetation class × Q10 (1.8 to 2.4) × moisture hump with texture-dependent optimum, integrated from the soil stream or, without a probe, from a soil-temperature climatology; harvest export as a land-use fraction of NPP. Low/high are the corners of the parameter box; issuable = max(0, low) × area. Method and a worked example on two Oncra projects: [How carbon is inferred](/docs/carbon). Specified: per-place calibration of the light-use efficiency against cores at two depths once per soil type; declared yields and imports; manure; the sampling gate: all life readings rising or holding → light (one core set per soil type per decade); any life reading falling or unknown → full methodology sampling. Credits issue for the lower bound and release as the range narrows with maturity.
+Built: a yearly net ecosystem carbon balance per place as a low/central/high range (`src/lib/carbon.ts`, `GET /api/v1/places/{id}/carbon`): NPP from monthly fAPAR (from NDVI) × PAR climatology × light-use efficiency by vegetation class, GPP→NPP 0.45 to 0.55; heterotrophic respiration from a reference rate by vegetation class × Q10 (1.8 to 2.4) × moisture hump with texture-dependent optimum, integrated from the soil stream or, without a probe, from a soil-temperature climatology; harvest export as a land-use fraction of NPP. Low/high are the corners of the parameter box; issuable = max(0, low) × area. Method and a worked example on two Oncra projects: [How carbon is inferred](carbon.md). Specified: per-place calibration of the light-use efficiency against cores at two depths once per soil type; declared yields and imports; manure; the sampling gate: all life readings rising or holding → light (one core set per soil type per decade); any life reading falling or unknown → full methodology sampling. Credits issue for the lower bound and release as the range narrows with maturity.
 
 ## 5b. Measurement rules (built as constraints on every stream)
 
 Nine rules that govern any model or statistic this oracle uses. They are written down because the largest working
 precedent for paying land stewards on remote sensing, Rabobank's Acorn programme, was found by its own auditors to
-break several of them, twice, in public. The evidence is in [Prior art](/docs/prior-art); these are the rules we took
+break several of them, twice, in public. The evidence is in [Prior art](prior-art.md); these are the rules we took
 from it.
 
 1. **Never credit a change smaller than the instrument error.** If the uncertainty of a quantity exceeds the change
@@ -164,7 +164,7 @@ Keys are stored hashed (SHA-256). Specified: magic-link login for stewards and v
 
 ## 9. API (built)
 
-See [API](/docs/api) and `/api/v1/openapi.json`.
+See [API](api.md) and `/api/v1/openapi.json`.
 
 ## 10. Global scale
 

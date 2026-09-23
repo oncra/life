@@ -38,7 +38,7 @@ The carbon range never travels alone. The seven life readings sit next to it, an
 
 Both are public projects on registry.oncra.org, pathway Land Stored Carbon, method regenerative farming. The boundaries are the registry's public KML files, registered here by the operator so that the numbers can be reproduced by anyone.
 
-Both places are live here, with their full Sentinel-2 history: [Horaholm](/places/horaholm-oncra-hor-l-001-hornhuizen) and [Boer in Natuur, home parcel](/places/boer-in-natuur-maashorst-oncra-bin-n01-m01-home-parcel). The numbers below are what the API returned on 2026-09-13; they move as scenes and readings arrive.
+Both places are live here, with their full Sentinel-2 history: [Horaholm](https://life.oncra.org/places/horaholm-oncra-hor-l-001-hornhuizen) and [Boer in Natuur, home parcel](https://life.oncra.org/places/boer-in-natuur-maashorst-oncra-bin-n01-m01-home-parcel). The numbers below are what the API returned on 2026-09-13; they move as scenes and readings arrive.
 
 ### Horaholm, Hornhuizen (HOR-L-001)
 

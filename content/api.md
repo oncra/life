@@ -6,7 +6,7 @@ order: 13
 
 # API v1
 
-Base URL `https://life.oncra.org/api/v1`. JSON in, JSON out. OpenAPI 3.1: [`/api/v1/openapi.json`](/api/v1/openapi.json).
+Base URL `https://life.oncra.org/api/v1`. JSON in, JSON out. OpenAPI 3.1: [`/api/v1/openapi.json`](https://life.oncra.org/api/v1/openapi.json).
 
 ## Authentication
 
@@ -26,7 +26,7 @@ Reading public places needs no key.
 | `GET /places?format=geojson` | FeatureCollection for maps |
 | `GET /places/{id or slug}` | place, seven readings for the latest period, verdict, satellite series, devices, visits, jobs |
 | `GET /places/{id}/satellite[?format=csv]` | NDVI observations |
-| `GET /places/{id}/carbon` | yearly net ecosystem carbon balance as a low/central/high range, and what is issuable at the lower bound ([method](/docs/carbon)) |
+| `GET /places/{id}/carbon` | yearly net ecosystem carbon balance as a low/central/high range, and what is issuable at the lower bound ([method](carbon.md)) |
 | `GET /places/{id}/readings` | all readings, all periods |
 | `GET /places/{id}/devices` | devices and last-seen |
 | `GET /places/{id}/visits` | visits |
@@ -35,7 +35,7 @@ Reading public places needs no key.
 Example:
 
 ```bash
-curl -s https://life.oncra.org/api/v1/places/achterste-weiland | jq '.verdict, [.readings[] | {dimension, direction, confidence, maturity}]'
+curl -s https://life.oncra.org/api/v1/places/horaholm-oncra-hor-l-001-hornhuizen | jq '.verdict, [.readings[] | {dimension, direction, confidence, maturity}]'
 ```
 
 ## Write
@@ -53,7 +53,7 @@ curl -s https://life.oncra.org/api/v1/places/achterste-weiland | jq '.verdict, [
 | `POST /ingest/soil` | device | soil readings |
 | `POST /ingest/ttn` | device, or steward/admin key + registered DevEUI | The Things Stack uplink webhook |
 
-Full request shapes are in [data protocols](/docs/data-protocols) and the OpenAPI document.
+Full request shapes are in [data protocols](data-protocols.md) and the OpenAPI document.
 
 ## Reading object
 
@@ -68,7 +68,7 @@ Full request shapes are in [data protocols](/docs/data-protocols) and the OpenAP
 }
 ```
 
-`evidence` is always the numbers the direction came from. If you cannot reproduce a direction from its evidence and the [specification](/docs/spec), that is a bug; open an issue.
+`evidence` is always the numbers the direction came from. If you cannot reproduce a direction from its evidence and the [specification](spec.md), that is a bug; open an issue.
 
 ## Verdict object
 
