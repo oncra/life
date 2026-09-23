@@ -9,7 +9,8 @@
     "lint": "eslint",
     "worker": "tsx scripts/worker.ts",
     "sat:test": "tsx scripts/sat-test.ts",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
