@@ -30,7 +30,7 @@ Up to 5,000 detections and 5,000 index rows per request. Species strings are the
 
 ### From a Life node
 
-A [node](/docs/kit) delivers both streams by itself and needs nothing on the farm. `life-push` (the same `clients/birdnet-pi-push.py`) posts new detections from BirdNET-Go every ten minutes, and `life-soil-agent.py` posts the probes every twenty. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
+A [node](kit.md) delivers both streams by itself and needs nothing on the farm. `life-push` (the same `clients/birdnet-pi-push.py`) posts new detections from BirdNET-Go every ten minutes, and `life-soil-agent.py` posts the probes every twenty. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
 
 ### From a BirdNET-Pi or BirdNET-Go
 

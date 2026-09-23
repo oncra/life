@@ -6,7 +6,7 @@ order: 4
 
 # Build plan: assembling node 1
 
-The [kit](/docs/kit) is designed and ordered. Nothing has been built and nothing has been measured. This page is the order of work, written so that someone who is not us can follow it, because that is the point of publishing it.
+The [kit](kit.md) is designed and ordered. Nothing has been built and nothing has been measured. This page is the order of work, written so that someone who is not us can follow it, because that is the point of publishing it.
 
 Two definitions of done, in sequence: **a node on a bench with a meter on it**, then **a node on a post**. The first one is where the design is allowed to be wrong. The second one is where it is not.
 

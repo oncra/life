@@ -14,7 +14,7 @@ Answers for a place. Registers it, decides what is public, invites installers, r
 
 ## Installer / node host
 
-Buys, mounts and connects hardware; often a local volunteer, a student, an agricultural adviser or a contractor serving many stewards. Works with the steward's key or their own unscoped steward key. Their product is a device that shows "last seen" every interval for five years. The [kit](/docs/kit), [hardware](/docs/hardware) and [installation](/docs/install-sound) pages are written for them.
+Buys, mounts and connects hardware; often a local volunteer, a student, an agricultural adviser or a contractor serving many stewards. Works with the steward's key or their own unscoped steward key. Their product is a device that shows "last seen" every interval for five years. The [kit](kit.md), [hardware](hardware.md) and [installation](install-sound.md) pages are written for them.
 
 ## Verifier
 
@@ -42,4 +42,4 @@ Has no key and the final word.
 
 ## Governance (specified)
 
-Method versions are released by an open methodology group with a published change log; any operator may fork. The reference instance publishes the drift ledger. No single organisation, including Oncra, can change the method for everyone. Details in the [specification](/docs/spec), section 6 and 11.
+Method versions are released by an open methodology group with a published change log; any operator may fork. The reference instance publishes the drift ledger. No single organisation, including Oncra, can change the method for everyone. Details in the [specification](spec.md), section 6 and 11.

@@ -6,7 +6,7 @@ order: 7
 
 # Hardware guide
 
-> **The standard set is a single solar 4G box on one post: [The kit: Life node v1](/docs/kit).** It needs no farm WiFi, no LoRaWAN gateway and no monthly subscription, because species recognition runs inside the box and the soil probes are wired into it. This page is the wider market scan behind that choice, plus the alternative sets for the places where the node is not the right answer: no signal at all, or WiFi already at the field edge.
+> **The standard set is a single solar 4G box on one post: [The kit: Life node v1](kit.md).** It needs no farm WiFi, no LoRaWAN gateway and no monthly subscription, because species recognition runs inside the box and the soil probes are wired into it. This page is the wider market scan behind that choice, plus the alternative sets for the places where the node is not the right answer: no signal at all, or WiFi already at the field edge.
 
 Prices were checked live on 2026-09-12, and the ready-made devices at the bottom of the page on 2026-09-13. They include VAT where the shop shows it. They will drift; the repository is the place to correct them. Everything here was chosen on one criterion: **install once, leave it for years, data comes out without a visit.** Where that is not possible yet (offline recorders), the guide says so.
 
@@ -97,7 +97,7 @@ For the oracle's Cycling reading you need **temperature and moisture together**,
 
 ### Soil CO2 (flux) is not in the standard kit
 
-Purpose-built flux instruments (Eosense eosFD, LI-COR LI-8250) are quote-only research equipment, mains or large solar, with moving parts or annual membrane changes. No LoRaWAN buried CO2 probe exists as a product; the one long field trial of buried Seeed CO2 nodes saw 20 units fall to 1 survivor in four years (humidity). The oracle therefore derives soil breathing from moisture and temperature (a Q10 model, see the [specification](/docs/spec)) and treats any CO2 probe as an optional extra witness or a triggered-visit instrument. If you want one anyway, the honest budget route is a Sensirion SCD30 in a membrane housing with desiccant (~$60 module) as published in Nguyen and Levintal 2025 (doi 10.5194/soil-11-639-2025).
+Purpose-built flux instruments (Eosense eosFD, LI-COR LI-8250) are quote-only research equipment, mains or large solar, with moving parts or annual membrane changes. No LoRaWAN buried CO2 probe exists as a product; the one long field trial of buried Seeed CO2 nodes saw 20 units fall to 1 survivor in four years (humidity). The oracle therefore derives soil breathing from moisture and temperature (a Q10 model, see the [specification](spec.md)) and treats any CO2 probe as an optional extra witness or a triggered-visit instrument. If you want one anyway, the honest budget route is a Sensirion SCD30 in a membrane housing with desiccant (~$60 module) as published in Nguyen and Levintal 2025 (doi 10.5194/soil-11-639-2025).
 
 ## LoRaWAN gateways and networks
 
@@ -150,9 +150,9 @@ Farm21's FS31 is the one product that could replace the soil half of the node ou
 
 ### The combination is what is missing
 
-No product hears, reads the soil, carries both over one cellular link, and posts the result to a registry the landowner and anyone else can read. The nearest buyable approximation is a PUC plus an FS31, roughly €664 plus €89 a year, and it stops at the first field without WiFi. Adding a 4G router to rescue it rebuilds the €1,110 distributed set that [the kit](/docs/kit) replaced.
+No product hears, reads the soil, carries both over one cellular link, and posts the result to a registry the landowner and anyone else can read. The nearest buyable approximation is a PUC plus an FS31, roughly €664 plus €89 a year, and it stops at the first field without WiFi. Adding a 4G router to rescue it rebuilds the €1,110 distributed set that [the kit](kit.md) replaced.
 
-This is not a gap in engineering. Every part of it is available and cheap. It is a gap in what the market is for: these devices are sold to deliver data into the seller's platform, so nobody has a reason to build the one that delivers it into someone else's. That is the reason to build it rather than buy it, and it is recorded with its evidence in [Prior art](/docs/prior-art).
+This is not a gap in engineering. Every part of it is available and cheap. It is a gap in what the market is for: these devices are sold to deliver data into the seller's platform, so nobody has a reason to build the one that delivers it into someone else's. That is the reason to build it rather than buy it, and it is recorded with its evidence in [Prior art](prior-art.md).
 
 One thing worth buying anyway: a PUC next to the first node, as an independent BirdNET implementation to check our own detections against. €289 answers the first question any auditor will ask.
 

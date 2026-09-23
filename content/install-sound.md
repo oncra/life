@@ -8,7 +8,7 @@ order: 9
 
 The point of a protocol is comparability. Two recorders installed the same way in two places hear the same fraction of what is there. Deviations are fine; write them in the device notes.
 
-This applies to the standard [Life node](/docs/kit), where the microphone sits in the same enclosure as the computer and the modem, and to the alternative sets in the [hardware guide](/docs/hardware). One rule that matters more than any of the numbers below: **keep one microphone type across every node in a network.** Diversity and Renewal compare species counts between years and between places, so a change of microphone is a systematic shift in exactly the thing being compared.
+This applies to the standard [Life node](kit.md), where the microphone sits in the same enclosure as the computer and the modem, and to the alternative sets in the [hardware guide](hardware.md). One rule that matters more than any of the numbers below: **keep one microphone type across every node in a network.** Diversity and Renewal compare species counts between years and between places, so a change of microphone is a systematic shift in exactly the thing being compared.
 
 ## Placement
 
