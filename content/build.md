@@ -70,7 +70,7 @@ Gate: the card boots, `systemctl list-timers` shows `life-soil.timer` and `life-
 
 Everything loose on a desk, powered from a USB supply through the inline meter. No enclosure, no battery, no MPPT. One thing added at a time, and a line in the log after each.
 
-**1.1 Inventory against the order list.** Eleven lines from Berrybase, three from reichelt, one from UUGear, one from TelecomShop. Check the SEN0600 leads for a published colour code; they are undocumented, so if there is no code, meter them before applying power.
+**1.1 Inventory against the order list.** Three lines from reichelt, one from UUGear, one from TelecomShop (all delivered), then the Opencircuit parcel (Pi, RS485 adapter, card, header), the DigiKey parcel (three probes) and the Amazon.nl small parts. Check the SEN0600 leads for a published colour code; they are undocumented, so if there is no code, meter them before applying power.
 
 **1.2 Measure the Pi alone.** This is the most important half hour of the build, because every energy number on the kit page rests on the phrase "about 5 W while awake" and nobody has measured it. Record: idle at the prompt, boot peak, and steady state with BirdNET-Go running. If the awake figure comes in above about 6.5 W, the summer margin is gone and either the schedule or the panel changes, so record it before buying anything else.
 
