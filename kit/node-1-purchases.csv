@@ -2,12 +2,12 @@ date,shop,order,what,total_eur,vat,status,notes
 2026-09-16,reichelt (DE),I-653887,"enclosure, 5 glands, Victron MPPT 75/10",90.38,net (reverse charge),delivered,
 2026-09-16,UUGear (DE),14639,Witty Pi 4,45.08,,delivered,
 2026-09-16,TelecomShop (NL),ORD546258919,Brovi E3372-325 4G stick,71.30,,delivered,
-2026-09-16,Berrybase (DE),1070372,"Pi 4 2 GB, 2x SEN0600, card, mic, RS485, small parts",211.25,21% charged,cancelled by Berrybase 2026-09-17,"cancelled and refunded in full when asked to add the VAT number after checkout; the Pi and probes then sold out"
+2026-09-16,Berrybase (DE),1070372,"Pi 4 2 GB, 2x SEN0600, card, mic, RS485, small parts",211.25,21% charged,cancelled by Berrybase 2026-09-17,cancelled and refunded in full when asked to add the VAT number after checkout; the Pi and probes then sold out
 2026-09-22,1NCE,2075397086,IoT Lifetime Flat SIM,,,shipped UPS 1Z1W4W526820825232,invoice 20312527
 2026-09-24,Kiwi Electronics (NL),817879,"Pi 4 4 GB, Waveshare USB-RS485, stacking header, nylon standoffs, ferrules + crimp pliers, Silicon Power 64 GB card",199.38,21% (NL),shipped PostNL 3SYXFA8598894,"invoice 90382574, business order in the name of Stichting Climate Cleanup, paid via PayPal"
 2026-09-24,DigiKey (NL),101831753,4x DFRobot SEN0600,99.32,ex VAT on the confirmation; check the invoice,processing (UPS DDP ~4 working days),"guest checkout; VAT number was in the address form, billing address on the confirmation shows no company name"
 2026-09-24,Amazon.nl,407-3046675-8788322,"Pi 15 W PSU, USB-C meter, INMP441 3-pack, Dupont wires, USB-A screw terminal 2x, Plastik 70 400 ml, heat shrink, UV ties, silicone tape",90.69,incl VAT,delivery Sat 26 Sep,
 2026-09-24,AliExpress (JIXIN),3076667881947488,"ePTFE acoustic membrane OD10/ID6, 50 pcs",16.37,,arrives 12-24 Oct,unverified part
-,Accuweb (NL),,Enjoy Solar 100 W panel,85.00,,not ordered,
-,reichelt (DE),,GC LFP12 20AH battery,90.63,,not ordered (available 8 Oct),
+,Accuweb (NL),,"solar panel: now 40-50 W instead of 100 W (Victron BlueSolar 40 W at Dekker Watersport Zaandam 48, or Enjoy Solar 50 W at Accuweb 79)",,,not ordered,"shrunk with the battery, on condition the panel stands unshaded"
+2026-09-24,"Battery Empire (NL site, ships from PL)",UERDBPLSK,Green Cell CUBE LiFePO4 12.8 V 10 Ah 128 Wh (+ USB-C cable 3.95),57.85,incl 21% (8.29),"paid, GLS","replaces the reichelt 20 Ah: with an unshaded panel and a 4 h shoulder schedule in March and October, 10 Ah is enough (PVGIS off-grid runs, 2026-09-24). Charge blocked below 0 C by its BMS. Delivery address on the confirmation reads ""1033 HW Nederland"" without the city"
 ,bouwmarkt,,"paint + primer, battery lead, M5 rings, 15 A fuse, 3 mm sheet, foam, post",,,not bought,
