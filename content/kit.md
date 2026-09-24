@@ -1,6 +1,6 @@
 ---
 title: "The kit: one box on one post"
-summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €777 in parts. Order list with suppliers and direct order links, prices and stock checked 2026-09-24, after the first order for the computer and probes fell through."
+summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €820 in parts. Order list with suppliers and direct order links, prices and stock checked 2026-09-24, after the first order for the computer and probes fell through."
 order: 3
 ---
 
@@ -27,15 +27,15 @@ The node folds all of it into one enclosure:
 
 | # | Part | Choice | Supplier | Price |
 | --- | --- | --- | --- | --- |
-| 1 | Computer | Raspberry Pi 4 Model B, 2 GB, runs BirdNET-Go | Opencircuit (NL) | €78.60 |
-| 2 | Storage | SanDisk High Endurance 64 GB microSD, continuous-write rated | Opencircuit (NL) | €37.25 |
+| 1 | Computer | Raspberry Pi 4 Model B, runs BirdNET-Go. 2 GB is enough (Opencircuit, €78.60); node 1 has a 4 GB because it was the only Pi 4 a Dutch shop could ship the same day | Kiwi Electronics (NL) | €106.49 |
+| 2 | Storage | 64 GB microSD. The bench card is a Silicon Power A2; the field node wants a SanDisk High Endurance (Opencircuit, €37.25), because `/data` takes every write | Kiwi Electronics (NL) | €25.99 |
 | 3 | Modem | Brovi/Huawei E3372-325 USB 4G stick, plug-and-play as a USB ethernet device | TelecomShop | €53.55 |
 | 4 | SIM | 1NCE IoT Lifetime Flat, 500 MB, 10 years | 1nce.com | €12 |
-| 5 | Microphone | INMP441 I2S MEMS module, inside the box behind a 5 mm port | Amazon.nl / TinyTronics | ~€8 |
-| 6 | Microphone port | IP67 ePTFE acoustic membrane, under 2 dB loss at 1 to 5 kHz, plus a foam-lined hood | PCB Artists / bouwmarkt | ~€19 |
-| 7 | Soil probes ×2 (+1 spare) | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead | DigiKey (NL) | 3 × €30.04 = €90.12 |
-| 8 | RS485 adapter | Waveshare industrial USB to RS485, CH343G, surge and ESD protected | Opencircuit (NL) | €13.50 |
-| 9 | Probe power | USB-A socket to terminal block, so the probes run off the Pi and stop when it does | Amazon.nl | ~€8 |
+| 5 | Microphone | INMP441 I2S MEMS module (3-pack, for spares), inside the box behind a 5 mm port, wired to the stacking header with 10 cm jumpers | Amazon.nl | €8.39 + €9.99 wires |
+| 6 | Microphone port | IP67 ePTFE acoustic membrane, 10 mm outside, 6 mm opening, 50 pcs, plus a foam-lined hood. Not yet tested against a bare port | AliExpress / bouwmarkt | €16.37 + ~€7 |
+| 7 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead (node 1 bought four: three sat €0.51 under DigiKey's free-shipping line) | DigiKey (NL) | 2 × €30.04 = €60.08 |
+| 8 | RS485 adapter | Waveshare industrial USB to RS485, FT232RL, surge and ESD protected | Kiwi Electronics (NL) | €14.27 |
+| 9 | Probe power | USB-A plug to screw terminal, so the probes run off the Pi and stop when it does | Amazon.nl | €8.99 (2 pcs) |
 | 10 | Solar panel | Enjoy Solar 100 W 12 V mono, anodised aluminium frame, 1190 × 540 mm, ships with 90 cm MC4 leads so no separate cable is needed | Accuweb (NL) | €85.00 |
 | 11 | Battery | LiFePO4 12.8 V 20 Ah, 256 Wh, 181 × 76 × 170 mm, M5 terminals | reichelt | €82.16 + €8.47 hazardous-goods surcharge |
 | 12 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | reichelt | €64.89 |
@@ -43,15 +43,15 @@ The node folds all of it into one enclosure:
 | 14 | Enclosure | IP65 ABS box 300×200×130 mm, painted matt green (the paint is its UV protection; a polycarbonate Spelsberg AKi at ~€98 is the ten-year box) | reichelt | €32.49 |
 | 15 | Cable glands ×5 | M20, IP68: panel, two probe leads, one vented, one spare | reichelt | €5.05 |
 | 16 | Mounting plate | 3 mm plastic sheet cut to the box, replacing the galvanised steel plate it ships with | bouwmarkt | ~€5 |
-| 17 | Board protection | Nylon M2.5 spacers and acrylic protective lacquer, instead of silica gel nobody regenerates | Amazon.nl | ~€24 |
-| 18 | Terminations | Ferrule assortment, crimping pliers, heatshrink, UV ties (Amazon.nl, ~€23) and the stacking header (Opencircuit, €2.10) | Amazon.nl / Opencircuit | ~€25 |
+| 17 | Board protection | Nylon M2.5 standoff set and Plastik 70 acrylic lacquer (400 ml), instead of silica gel nobody regenerates | Kiwi / Amazon.nl | €11.89 + €21.97 |
+| 18 | Terminations | Ferrule assortment and crimping pliers (Kiwi, €35.68), heatshrink and UV ties (Amazon, €10.98), stacking header (Kiwi, €1.77) | Kiwi / Amazon.nl | €48.43 |
 | 19 | Battery lead | 2 × 2.5 mm² with ring terminals and an inline 15 A fuse | bouwmarkt | ~€8 |
 | 20 | Post and mount | 2 m post, pressure-treated class 4, two stainless clamps, M8 through-bolts for the panel brackets, cable lock, spade | bouwmarkt | ~€55 |
-| 21 | Meter | USB inline power meter, to measure the one number this whole design rests on | Amazon / Opencircuit | ~€15 |
+| 21 | Meter and bench supply | USB-C in/out inline meter, to measure the one number this whole design rests on, and the official 15 W Pi supply the bench runs on until the battery is in | Amazon.nl | €10.99 + €12.38 |
 
 > **Where you buy the panel and battery matters more than what they cost.** Offgridtec in Germany quoted **€232.90 of shipping on €88.30 of goods**: a hazardous-goods rate for the lithium battery plus freight for a bulky panel, crossing a border. Buying the same two things in the Netherlands and from reichelt costs more in parts and about €145 less delivered. Cheap parts behind expensive freight are not cheap.
 
-**Parts total: about €777** for one node, of which roughly €545 is verified against a live shop page and the rest estimated, plus about €20 of postage across the shops. The earlier distributed set was €1,110. It was €687 until 24 September: Berrybase cancelled the first order over a VAT number added after checkout, and by the time the refund landed the Pi 4 2 GB and the SEN0600 were sold out there and almost everywhere else. The Pi now comes from an external warehouse at €20 more, the probes from DigiKey (three, to clear its free-shipping line), and the small parts from Amazon.nl at retail-pack prices.
+**Parts total: about €820** for node 1 as bought, of which roughly €690 is paid or verified against a live shop page and the rest estimated (panel, battery and the bouwmarkt run), plus about €10 of postage so far. With the 2 GB Pi, two probes and a high-endurance card the same node is about €800. The earlier distributed set was €1,110. It was €687 until 24 September: Berrybase cancelled the first order over a VAT number added after checkout, and by the time the refund landed the Pi 4 2 GB and the SEN0600 were sold out there and almost everywhere else. The computer and small parts then came from Kiwi Electronics, the probes from DigiKey, the rest from Amazon.nl, and the microphone membrane from AliExpress because no European shop sells it singly. What was ordered where, with order numbers and status, is `kit/node-1-purchases.csv`.
 
 ## How it is mounted
 
@@ -119,7 +119,7 @@ A design accumulates parts faster than it sheds them, so the last pass over this
 
 ## Cheaper builds
 
-€777 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
+€820 is the verified build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares a soil-activity index **at one place, year over year**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
 
 - **Free**: the second probe (`cycling()` pools depths and never reads `depthCm`, so the 30 cm probe buys no reading today), a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
