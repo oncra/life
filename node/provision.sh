@@ -22,6 +22,7 @@ python3 -c "import minimalmodbus, serial, astral"
 # the node's own programs
 install -m 0755 "$HERE/life-soil-agent.py" /usr/local/bin/life-soil-agent
 install -m 0755 "$HERE/../clients/birdnet-pi-push.py" /usr/local/bin/life-push
+install -m 0755 "$HERE/life-heartbeat.py" /usr/local/bin/life-heartbeat
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
 install -d /usr/share/life-node/schedules /usr/share/life-node/wittypi
@@ -50,7 +51,7 @@ systemctl disable regenerate_ssh_host_keys.service 2>/dev/null || true
 # BirdNET database are pinned to /data too, so a power cut never loses what was not yet posted.
 install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service /etc/systemd/system/
 install -m 0644 "$HERE"/image/life-firstboot.service "$HERE"/image/life-schedule.service "$HERE"/image/birdnet-go.service "$HERE"/image/wittypi.service /etc/systemd/system/
-sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service
+sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json"\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service
 systemctl enable ssh life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service >/dev/null 2>&1
 systemctl disable userconfig.service 2>/dev/null || true
 

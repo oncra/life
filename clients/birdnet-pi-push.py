@@ -11,8 +11,11 @@ Environment:
     LIFE_API            default https://life.oncra.org/api/v1
     BIRDNET_DB          default ~/BirdNET-Pi/scripts/birds.db (BirdNET-Pi) or birdnet.db (BirdNET-Go)
     LIFE_MIN_CONFIDENCE default 0.5
+    LIFE_HEARTBEAT_CMD  optional: a command printing one JSON heartbeat (the Life node sets
+                        `life-heartbeat --json`); it rides on the post, and a post goes out even with no detections
+    LIFE_HEARTBEAT_EVENT optional: boot | hourly | shutdown | manual, passed to that command as --event
 """
-import json, os, sqlite3, sys, urllib.request
+import json, os, shlex, sqlite3, subprocess, sys, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,13 +50,30 @@ else:
     sys.exit(f"unknown schema in {db}: tables {sorted(tables)}")
 
 rows = [(t, d) for t, d in rows if d["confidence"] >= MINCONF]
-if not rows:
+
+heartbeat = None
+if os.environ.get("LIFE_HEARTBEAT_CMD"):
+    cmd = shlex.split(os.environ["LIFE_HEARTBEAT_CMD"])
+    if os.environ.get("LIFE_HEARTBEAT_EVENT"):
+        cmd += ["--event", os.environ["LIFE_HEARTBEAT_EVENT"]]
+    try:
+        heartbeat = json.loads(subprocess.run(cmd, capture_output=True, text=True, timeout=30, check=True).stdout)
+    except Exception as e:  # noqa: BLE001 - a missing heartbeat must not hold back the detections
+        print(f"heartbeat skipped: {e}", file=sys.stderr)
+
+if not rows and not heartbeat:
     print("nothing new"); sys.exit(0)
 
-for i in range(0, len(rows), 2000):
-    batch = rows[i:i + 2000]
-    req = urllib.request.Request(f"{API}/ingest/sound", data=json.dumps({"detections": [d for _, d in batch]}).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
+batches = [rows[i:i + 2000] for i in range(0, len(rows), 2000)] or [[]]
+for n, batch in enumerate(batches):
+    body = {"detections": [d for _, d in batch]}
+    if heartbeat and n == len(batches) - 1:
+        body["heartbeat"] = heartbeat
+    req = urllib.request.Request(f"{API}/ingest/sound", data=json.dumps(body).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
     with urllib.request.urlopen(req, timeout=60) as resp:
         out = json.load(resp)
-    CURSOR.write_text(batch[-1][0])
-    print(f"pushed {out.get('detections')} detections up to {batch[-1][0]}")
+    if batch:
+        CURSOR.write_text(batch[-1][0])
+        print(f"pushed {out.get('detections')} detections up to {batch[-1][0]}")
+    if "heartbeat" in body:
+        print(f"heartbeat: {out.get('heartbeat')}")

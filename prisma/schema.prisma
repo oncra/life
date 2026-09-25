@@ -44,6 +44,11 @@ enum KeyRole {
   CONSUMER
 }
 
+enum AlertKind {
+  SILENT
+  MOVED
+}
+
 model Place {
   id             String   @id @default(cuid())
   slug           String   @unique
@@ -88,13 +93,46 @@ model Device {
   mapping     Json?
   notes       String?
   lastSeenAt  DateTime?
+  /// last heartbeat received (node liveness); null for devices that never send one (polled stations, LoRaWAN probes)
+  lastHeartbeatAt DateTime?
+  /// the cell the node was installed in: {plmn, cellId, tac?} as first heard, or re-homed by the steward after a move
+  homeCell    Json?
+  /// the cell last heard, with signal figures
+  cell        Json?
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]
   acousticIndices AcousticIndex[]
   soilReadings    SoilReading[]
+  heartbeats      Heartbeat[]
+  alerts          Alert[]
 
   @@index([placeId])
+}
+
+model Heartbeat {
+  id       BigInt   @id @default(autoincrement())
+  deviceId String
+  device   Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts       DateTime
+  event    String?
+  cell     Json?
+  metrics  Json?
+
+  @@index([deviceId, ts])
+}
+
+model Alert {
+  id         String    @id @default(cuid())
+  deviceId   String
+  device     Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  kind       AlertKind
+  detail     Json?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?
+
+  @@index([deviceId, resolvedAt])
 }
 
 model SoundDetection {

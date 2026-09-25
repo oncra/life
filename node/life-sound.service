@@ -1,5 +1,5 @@
 [Unit]
-Description=Life node: push BirdNET detections to the oracle
+Description=Life node: push BirdNET detections and the hourly heartbeat to the oracle
 After=network-online.target
 [Service]
 Type=oneshot

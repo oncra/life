@@ -3,6 +3,7 @@
  * Run with `npm run worker`. One process is enough for thousands of places; scale by running more.
  */
 import "dotenv/config";
+import { sweepSilent } from "../src/lib/alerts";
 import { prisma } from "../src/lib/db";
 import { defaultFrom, ndviForScene, searchScenes } from "../src/lib/satellite";
 import { computeReadings } from "../src/lib/compute";
@@ -73,6 +74,8 @@ async function schedule() {
   if (now - lastPoll >= 3600e3) {
     lastPoll = now;
     await pollBirdWeather(log);
+    const q = await sweepSilent(log);
+    if (q.opened) log(`silent sweep: ${q.opened} alert(s) opened`);
     for (const p of await prisma.place.findMany({ where: { devices: { some: { kind: "SOUND" } } }, select: { id: true } })) {
       const open = await prisma.job.findFirst({ where: { placeId: p.id, status: { in: ["queued", "running"] } } });
       if (!open) await prisma.job.create({ data: { kind: "readings.recompute", placeId: p.id } });

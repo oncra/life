@@ -88,7 +88,7 @@ life-soil-agent --scan                      # confirm, then connect both
 
 **1.5 Microphone.** Stacking header first so the I2S pins stay reachable once the Witty Pi is on. Wire the INMP441 to pins 18, 19 and 20 with a short lead, check the level with `arecord`, then let BirdNET-Go listen. Play a known bird call from a phone speaker: a confident detection of the right species is the gate. An empty room with a hissing microphone means a wiring or gain problem, not a quiet room.
 
-**1.6 Modem and SIM.** Stick in, APN in its web UI, then a full cycle over LTE with WiFi and ethernet disabled, which is the only way to be sure you are not testing the desk network. Record the bytes: the SIM budget assumes hourly batched posts, and the earlier arithmetic showed that at ten and twenty minute intervals the TLS handshakes alone would eat a ten-year SIM in three and a half years.
+**1.6 Modem and SIM.** Stick in, APN in its web UI, then a full cycle over LTE with WiFi and ethernet disabled, which is the only way to be sure you are not testing the desk network. Record the bytes: the SIM budget assumes hourly batched posts, and the earlier arithmetic showed that at ten and twenty minute intervals the TLS handshakes alone would eat a ten-year SIM in three and a half years. Then `life-heartbeat --json` on the node: it must print the stick's PLMN and cell id, and after the next push the bench place shows a heartbeat time on the SOUND device. That first cell becomes the node's home; carry the bench to another cell and the oracle must raise *moved*.
 
 Gate for stage 1: both probes answer on their own addresses, one detection and two soil rows arrived at the bench place over LTE, and the awake draw is a number in the log.
 
@@ -134,7 +134,7 @@ Gate: `lastSeenAt` moves within one interval on all three devices, and the next 
 
 ## Stage 5. Soak, fourteen days, hands off
 
-Watch four things and resist the urge to touch anything: the lowest battery voltage each night, the length of the unsent queue, detections per day against the first day, and whether the state partition is growing without bound. Fourteen days with no intervention is the gate. Anything that needed a visit becomes a line on the kit page's failure list, which is where this design keeps its honesty.
+Watch four things and resist the urge to touch anything: the lowest battery voltage each night, the length of the unsent queue, detections per day against the first day, and whether the state partition is growing without bound. The heartbeat shows the last three from the desk. Once in the fourteen days, pull the panel lead for two days: the *silent* alert must arrive after 36 hours and clear on the first heartbeat after power returns. Fourteen days with no intervention is the gate. Anything that needed a visit becomes a line on the kit page's failure list, which is where this design keeps its honesty.
 
 ## What could send us back, and what we would do
 

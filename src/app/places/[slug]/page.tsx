@@ -22,13 +22,14 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const place = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
   if (!place) notFound();
-  const [sat, readings, devices, jobs, visits, soilRows] = await Promise.all([
+  const [sat, readings, devices, jobs, visits, soilRows, alerts] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" } }),
     prisma.reading.findMany({ where: { placeId: place.id }, orderBy: { computedAt: "desc" } }),
     prisma.device.findMany({ where: { placeId: place.id } }),
     prisma.job.findMany({ where: { placeId: place.id }, orderBy: { createdAt: "desc" }, take: 3 }),
     prisma.visit.findMany({ where: { placeId: place.id }, orderBy: { date: "desc" }, take: 10 }),
     prisma.soilReading.findMany({ where: { device: { placeId: place.id } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
+    prisma.alert.findMany({ where: { device: { placeId: place.id }, resolvedAt: null }, orderBy: { createdAt: "desc" }, include: { device: { select: { model: true } } } }),
   ]);
   const clayPct = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
   const carbon = carbonSeries(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean })), soilRows, place.landUse, clayPct);
@@ -127,8 +128,13 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
       {devices.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold">Devices</h2>
-          <table className="mt-2 text-sm w-full"><thead><tr className="text-left text-muted"><th className="py-1">Kind</th><th>Model</th><th>Position</th><th>Installed</th><th>Last seen</th></tr></thead>
-            <tbody>{devices.map((d) => <tr key={d.id} className="border-t border-line"><td className="py-1">{d.kind}</td><td>{d.model}</td><td>{d.lat && d.lon ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : ""}{d.heightM ? ` · ${d.heightM} m` : ""}{d.depthCm ? ` · ${d.depthCm} cm` : ""}</td><td>{d.installedAt?.toISOString().slice(0, 10) ?? ""}</td><td>{d.lastSeenAt?.toISOString().slice(0, 16).replace("T", " ") ?? "never"}</td></tr>)}</tbody></table>
+          {alerts.length > 0 && (
+            <ul className="mt-2 text-sm">
+              {alerts.map((a) => <li key={a.id} className="text-falling">{a.kind === "SILENT" ? `${a.device.model}: silent since ${((a.detail as { lastHeartbeatAt?: string } | null)?.lastHeartbeatAt ?? a.createdAt.toISOString()).slice(0, 16).replace("T", " ")} UTC` : `${a.device.model}: on another cell than it was installed in, since ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC`}</li>)}
+            </ul>
+          )}
+          <table className="mt-2 text-sm w-full"><thead><tr className="text-left text-muted"><th className="py-1">Kind</th><th>Model</th><th>Position</th><th>Installed</th><th>Last seen</th><th>Heartbeat</th></tr></thead>
+            <tbody>{devices.map((d) => <tr key={d.id} className="border-t border-line"><td className="py-1">{d.kind}</td><td>{d.model}</td><td>{d.lat && d.lon ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : ""}{d.heightM ? ` · ${d.heightM} m` : ""}{d.depthCm ? ` · ${d.depthCm} cm` : ""}</td><td>{d.installedAt?.toISOString().slice(0, 10) ?? ""}</td><td>{d.lastSeenAt?.toISOString().slice(0, 16).replace("T", " ") ?? "never"}</td><td>{d.lastHeartbeatAt ? d.lastHeartbeatAt.toISOString().slice(0, 16).replace("T", " ") : ""}</td></tr>)}</tbody></table>
         </section>
       )}
     </div>

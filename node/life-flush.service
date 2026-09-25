@@ -6,6 +6,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
+Environment=LIFE_HEARTBEAT_EVENT=shutdown
 ExecStart=/usr/local/bin/life-soil-agent --flush
 ExecStart=/usr/local/bin/life-push
 TimeoutStartSec=90

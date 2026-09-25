@@ -22,7 +22,28 @@ export const Index = z.object({
   spl: z.number().optional(),
 });
 
-export const SoundBody = z.object({ detections: z.array(Detection).max(5000).default([]), indices: z.array(Index).max(5000).default([]) });
+export const CellIn = z.object({
+  plmn: z.string().max(8).optional(),
+  cellId: z.union([z.string().max(32), z.number().int().nonnegative()]).optional(),
+  tac: z.union([z.string().max(16), z.number().int().nonnegative()]).optional(),
+  pci: z.number().int().optional(),
+  band: z.string().max(16).optional(),
+  rsrp: z.number().optional(),
+  rssi: z.number().optional(),
+  sinr: z.number().optional(),
+  mode: z.string().max(16).optional(),
+});
+
+/** A node's liveness message: when, why, on which cell, and how it is doing. All optional but the shape. */
+export const HeartbeatIn = z.object({
+  ts: z.string().datetime({ offset: true }).optional(),
+  event: z.enum(["boot", "hourly", "shutdown", "manual"]).optional(),
+  cell: CellIn.optional(),
+  metrics: z.record(z.string(), z.union([z.number(), z.string(), z.boolean(), z.null()])).optional(),
+});
+
+export const SoundBody = z.object({ detections: z.array(Detection).max(5000).default([]), indices: z.array(Index).max(5000).default([]), heartbeat: HeartbeatIn.optional() });
+export const HeartbeatBody = z.object({ heartbeat: HeartbeatIn });
 
 export const SoilRow = z.object({
   ts: z.string().datetime({ offset: true }),
