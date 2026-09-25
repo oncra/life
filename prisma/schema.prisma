@@ -47,6 +47,7 @@ enum KeyRole {
 enum AlertKind {
   SILENT
   MOVED
+  TAMPER
 }
 
 model Place {
@@ -99,6 +100,9 @@ model Device {
   homeCell    Json?
   /// the cell last heard, with signal figures
   cell        Json?
+  /// steward-declared maintenance window: the node may silence its tamper alarm while now < maintenanceUntil
+  maintenanceFrom  DateTime?
+  maintenanceUntil DateTime?
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]

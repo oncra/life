@@ -54,6 +54,7 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
   const where = `${d.place.name} (${d.model})`;
   if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}`, `life-moved-${deviceId}`);
+  else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}`, `life-tamper-${deviceId}`);
   else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}`, `life-silent-${deviceId}`);
   return alert;
 }
@@ -62,12 +63,21 @@ export async function resolveAlerts(deviceId: string, kind: AlertKind, by: strin
   return prisma.alert.updateMany({ where: { deviceId, kind, resolvedAt: null }, data: { resolvedAt: new Date(), resolvedBy: by } });
 }
 
-export type HeartbeatIn = { ts?: string; event?: string; cell?: Cell; metrics?: Record<string, unknown> };
+export type HeartbeatIn = { ts?: string; event?: string; tamper?: { loop: string; state?: string }; cell?: Cell; metrics?: Record<string, unknown> };
+
+export type MaintenanceOut = { from: string | null; until: string; active: boolean } | null;
+
+/** The steward's maintenance window as the node should see it: null when none or already over. */
+export function maintenanceOut(d: { maintenanceFrom: Date | null; maintenanceUntil: Date | null }, now = new Date()): MaintenanceOut {
+  if (!d.maintenanceUntil || d.maintenanceUntil <= now) return null;
+  const from = d.maintenanceFrom ?? null;
+  return { from: from?.toISOString() ?? null, until: d.maintenanceUntil.toISOString(), active: !from || from <= now };
+}
 
 /** Store a heartbeat, keep the device's cell and home cell, open or resolve alerts. */
 export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   const ts = hb.ts ? new Date(hb.ts) : new Date();
-  const dev = await prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { homeCell: true } });
+  const dev = await prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true } });
   await prisma.heartbeat.create({ data: { deviceId, ts, event: hb.event, cell: hb.cell as object | undefined, metrics: hb.metrics as object | undefined } });
   const key = cellKey(hb.cell);
   const homeKey = cellKey(dev.homeCell as Cell | null);
@@ -77,8 +87,13 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   await prisma.device.update({ where: { id: deviceId }, data });
   const silent = await resolveAlerts(deviceId, "SILENT", "heartbeat");
   let moved = null;
-  if (key && homeKey && key !== homeKey) moved = await openAlert(deviceId, "MOVED", { from: dev.homeCell, to: hb.cell, at: ts.toISOString() });
-  return { recovered: silent.count > 0, moved: moved !== null, homeCell: key && !homeKey ? "set" : undefined };
+  const cellChanged = Boolean(key && homeKey && key !== homeKey);
+  if (cellChanged) moved = await openAlert(deviceId, "MOVED", { from: dev.homeCell, to: hb.cell, at: ts.toISOString() });
+  const maintenance = maintenanceOut(dev);
+  let tamper = null;
+  // a tamper inside an active window is the steward at work: recorded in the heartbeat, no alert, no push
+  if (hb.event === "alarm" && !(maintenance && maintenance.active)) tamper = await openAlert(deviceId, "TAMPER", { loop: hb.tamper?.loop ?? "unknown", state: hb.tamper?.state, cell: hb.cell, cellChanged, maintenance: false, at: ts.toISOString() });
+  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
 }
 
 /** Worker sweep: devices that have sent heartbeats and then stopped. */

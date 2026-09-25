@@ -1,0 +1,1878 @@
+
+/home/sven/.cache/arduino/sketches/8158DE172FD1B2547B6080E9F5A75FF9/life-guard.ino.elf:     file format elf32-avr
+
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+__vectors():
+   0:	2b c0       	rjmp	.+86     	; 0x58 <__ctors_end>
+   2:	3a c0       	rjmp	.+116    	; 0x78 <__bad_interrupt>
+   4:	6e c2       	rjmp	.+1244   	; 0x4e2 <__vector_2>
+   6:	38 c0       	rjmp	.+112    	; 0x78 <__bad_interrupt>
+   8:	7b c2       	rjmp	.+1270   	; 0x500 <__vector_4>
+   a:	36 c0       	rjmp	.+108    	; 0x78 <__bad_interrupt>
+   c:	35 c0       	rjmp	.+106    	; 0x78 <__bad_interrupt>
+   e:	34 c0       	rjmp	.+104    	; 0x78 <__bad_interrupt>
+  10:	33 c0       	rjmp	.+102    	; 0x78 <__bad_interrupt>
+  12:	32 c0       	rjmp	.+100    	; 0x78 <__bad_interrupt>
+  14:	31 c0       	rjmp	.+98     	; 0x78 <__bad_interrupt>
+  16:	1b c2       	rjmp	.+1078   	; 0x44e <__vector_11>
+  18:	2f c0       	rjmp	.+94     	; 0x78 <__bad_interrupt>
+  1a:	2e c0       	rjmp	.+92     	; 0x78 <__bad_interrupt>
+  1c:	2d c0       	rjmp	.+90     	; 0x78 <__bad_interrupt>
+  1e:	2c c0       	rjmp	.+88     	; 0x78 <__bad_interrupt>
+  20:	2b c0       	rjmp	.+86     	; 0x78 <__bad_interrupt>
+
+00000022 <__trampolines_end>:
+__trampolines_start():
+  22:	00 00       	nop
+  24:	3a 00       	.word	0x003a	; ????
+  26:	37 00       	.word	0x0037	; ????
+
+00000028 <port_to_output_PGM>:
+  28:	00 00 3b 00 38 00                                   ..;.8.
+
+0000002e <digital_pin_to_timer_PGM>:
+  2e:	00 00 00 00 00 04 03 02 01 00 00 00                 ............
+
+0000003a <port_to_input_PGM>:
+  3a:	00 00 39 00 36 00                                   ..9.6.
+
+00000040 <digital_pin_to_port_PGM>:
+  40:	01 01 01 01 01 01 01 01 02 02 02 02                 ............
+
+0000004c <digital_pin_to_bit_mask_PGM>:
+  4c:	01 02 04 08 10 20 40 80 04 02 01 08                 ..... @.....
+
+00000058 <__ctors_end>:
+__dtors_end():
+  58:	11 24       	eor	r1, r1
+  5a:	1f be       	out	0x3f, r1	; 63
+  5c:	cf e5       	ldi	r28, 0x5F	; 95
+  5e:	d2 e0       	ldi	r29, 0x02	; 2
+  60:	de bf       	out	0x3e, r29	; 62
+  62:	cd bf       	out	0x3d, r28	; 61
+
+00000064 <__do_clear_bss>:
+__do_clear_bss():
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2441
+  64:	20 e0       	ldi	r18, 0x00	; 0
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2442
+  66:	a0 e6       	ldi	r26, 0x60	; 96
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2443
+  68:	b0 e0       	ldi	r27, 0x00	; 0
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2444
+  6a:	01 c0       	rjmp	.+2      	; 0x6e <.do_clear_bss_start>
+
+0000006c <.do_clear_bss_loop>:
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2446
+  6c:	1d 92       	st	X+, r1
+
+0000006e <.do_clear_bss_start>:
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2448
+  6e:	ab 37       	cpi	r26, 0x7B	; 123
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2449
+  70:	b2 07       	cpc	r27, r18
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2450
+  72:	e1 f7       	brne	.-8      	; 0x6c <.do_clear_bss_loop>
+.do_clear_bss_start():
+  74:	68 d2       	rcall	.+1232   	; 0x546 <main>
+  76:	bc c3       	rjmp	.+1912   	; 0x7f0 <_exit>
+
+00000078 <__bad_interrupt>:
+__vector_1():
+  78:	c3 cf       	rjmp	.-122    	; 0x0 <__vectors>
+
+0000007a <micros>:
+micros():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:360
+    unsigned int r; // needed for some frequencies, optimized away otherwise
+    unsigned char f; // temporary storage for millis fraction counter
+    unsigned char q = 0; // record whether an overflow is flagged
+#endif
+    unsigned long m;
+    uint8_t t, oldSREG = SREG;
+  7a:	3f b7       	in	r19, 0x3f	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:362
+
+    cli();
+  7c:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:367
+#ifdef CORRECT_EXACT_MICROS
+    m = millis_timer_millis;
+    f = millis_timer_fract;
+#else
+    m = millis_timer_overflow_count;
+  7e:	80 91 77 00 	lds	r24, 0x0077	; 0x800077 <millis_timer_overflow_count>
+  82:	90 91 78 00 	lds	r25, 0x0078	; 0x800078 <millis_timer_overflow_count+0x1>
+  86:	a0 91 79 00 	lds	r26, 0x0079	; 0x800079 <millis_timer_overflow_count+0x2>
+  8a:	b0 91 7a 00 	lds	r27, 0x007A	; 0x80007a <millis_timer_overflow_count+0x3>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:370
+#endif
+  #if defined(TCNT0) && (TIMER_TO_USE_FOR_MILLIS == 0) && !defined(TCW0)
+    t = TCNT0;
+  8e:	22 b7       	in	r18, 0x32	; 50
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:382
+  #else
+    #error "Millis()/Micros() timer not defined"
+  #endif
+
+  #if defined(TIFR0) && (TIMER_TO_USE_FOR_MILLIS == 0)
+    if ((TIFR0 & _BV(TOV0)) && (t < 255))
+  90:	08 b6       	in	r0, 0x38	; 56
+  92:	00 fe       	sbrs	r0, 0
+  94:	05 c0       	rjmp	.+10     	; 0xa0 <micros+0x26>
+  96:	2f 3f       	cpi	r18, 0xFF	; 255
+  98:	19 f0       	breq	.+6      	; 0xa0 <micros+0x26>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:384
+    #ifndef CORRECT_EXACT_MICROS
+      m++;
+  9a:	01 96       	adiw	r24, 0x01	; 1
+  9c:	a1 1d       	adc	r26, r1
+  9e:	b1 1d       	adc	r27, r1
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:411
+    #else
+      q = 1;
+    #endif
+  #endif
+
+    SREG = oldSREG;
+  a0:	3f bf       	out	0x3f, r19	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:453
+  #else
+  #if F_CPU < 1000000L
+    return ((m << 8) + t) * MillisTimer_Prescale_Value * (1000000L/F_CPU);
+  #else
+    #if (MillisTimer_Prescale_Value % clockCyclesPerMicrosecond() == 0 && (F_CPU % 1000000 == 0 )) // Can we just do it the naive way? If so great!
+      return ((m << 8) + t) * (MillisTimer_Prescale_Value / clockCyclesPerMicrosecond());
+  a2:	ba 2f       	mov	r27, r26
+  a4:	a9 2f       	mov	r26, r25
+  a6:	98 2f       	mov	r25, r24
+  a8:	88 27       	eor	r24, r24
+  aa:	bc 01       	movw	r22, r24
+  ac:	cd 01       	movw	r24, r26
+  ae:	62 0f       	add	r22, r18
+  b0:	71 1d       	adc	r23, r1
+  b2:	81 1d       	adc	r24, r1
+  b4:	91 1d       	adc	r25, r1
+  b6:	43 e0       	ldi	r20, 0x03	; 3
+  b8:	66 0f       	add	r22, r22
+  ba:	77 1f       	adc	r23, r23
+  bc:	88 1f       	adc	r24, r24
+  be:	99 1f       	adc	r25, r25
+  c0:	4a 95       	dec	r20
+  c2:	d1 f7       	brne	.-12     	; 0xb8 <micros+0x3e>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:508
+      //return ((m << 8 )/clockCyclesPerMicrosecond()* MillisTimer_Prescale_Value) + ((t+(((m<<8)%clockCyclesPerMicrosecond())) * MillisTimer_Prescale_Value / clockCyclesPerMicrosecond()));
+      return ((m << 8 )/clockCyclesPerMicrosecond()* MillisTimer_Prescale_Value) + (t * MillisTimer_Prescale_Value / clockCyclesPerMicrosecond());
+    #endif
+  #endif
+  #endif // !CORRECT_EXACT_MICROS
+  }
+  c4:	08 95       	ret
+
+000000c6 <delay>:
+delay():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:516
+    // Empty
+  }
+  void yield(void) __attribute__ ((weak, alias("__empty")));
+
+  void delay(unsigned long ms)
+  {
+  c6:	cf 92       	push	r12
+  c8:	df 92       	push	r13
+  ca:	ef 92       	push	r14
+  cc:	ff 92       	push	r15
+  ce:	cf 93       	push	r28
+  d0:	df 93       	push	r29
+  d2:	6b 01       	movw	r12, r22
+  d4:	7c 01       	movw	r14, r24
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:518
+    #if (F_CPU>=1000000L)
+    uint16_t start = (uint16_t)micros();
+  d6:	d1 df       	rcall	.-94     	; 0x7a <micros>
+  d8:	eb 01       	movw	r28, r22
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:520
+
+    while (ms > 0) {
+  da:	c1 14       	cp	r12, r1
+  dc:	d1 04       	cpc	r13, r1
+  de:	e1 04       	cpc	r14, r1
+  e0:	f1 04       	cpc	r15, r1
+  e2:	41 f4       	brne	.+16     	; 0xf4 <delay+0x2e>
+  e4:	12 c0       	rjmp	.+36     	; 0x10a <delay+0x44>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:523
+      yield();
+      while (((uint16_t)micros() - start) >= 1000 && ms) {
+        ms--;
+  e6:	81 e0       	ldi	r24, 0x01	; 1
+  e8:	c8 1a       	sub	r12, r24
+  ea:	d1 08       	sbc	r13, r1
+  ec:	e1 08       	sbc	r14, r1
+  ee:	f1 08       	sbc	r15, r1
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:524
+        start += 1000;
+  f0:	c8 51       	subi	r28, 0x18	; 24
+  f2:	dc 4f       	sbci	r29, 0xFC	; 252
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:522
+    #if (F_CPU>=1000000L)
+    uint16_t start = (uint16_t)micros();
+
+    while (ms > 0) {
+      yield();
+      while (((uint16_t)micros() - start) >= 1000 && ms) {
+  f4:	c2 df       	rcall	.-124    	; 0x7a <micros>
+  f6:	6c 1b       	sub	r22, r28
+  f8:	7d 0b       	sbc	r23, r29
+  fa:	68 3e       	cpi	r22, 0xE8	; 232
+  fc:	73 40       	sbci	r23, 0x03	; 3
+  fe:	68 f3       	brcs	.-38     	; 0xda <delay+0x14>
+ 100:	c1 14       	cp	r12, r1
+ 102:	d1 04       	cpc	r13, r1
+ 104:	e1 04       	cpc	r14, r1
+ 106:	f1 04       	cpc	r15, r1
+ 108:	71 f7       	brne	.-36     	; 0xe6 <delay+0x20>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:532
+    #else
+    uint32_t start = millis();
+    while((millis() - start) < ms)  /* NOP */yield();
+    return;
+    #endif
+  }
+ 10a:	df 91       	pop	r29
+ 10c:	cf 91       	pop	r28
+ 10e:	ff 90       	pop	r15
+ 110:	ef 90       	pop	r14
+ 112:	df 90       	pop	r13
+ 114:	cf 90       	pop	r12
+ 116:	08 95       	ret
+
+00000118 <millis>:
+millis():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:341
+  }
+
+  unsigned long millis()
+  {
+    unsigned long m;
+    uint8_t oldSREG = SREG;
+ 118:	2f b7       	in	r18, 0x3f	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:345
+
+    // disable interrupts while we read millis_timer_millis or we might get an
+    // inconsistent value (e.g. in the middle of a write to millis_timer_millis)
+    cli();
+ 11a:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:346
+    m = millis_timer_millis;
+ 11c:	60 91 73 00 	lds	r22, 0x0073	; 0x800073 <millis_timer_millis>
+ 120:	70 91 74 00 	lds	r23, 0x0074	; 0x800074 <millis_timer_millis+0x1>
+ 124:	80 91 75 00 	lds	r24, 0x0075	; 0x800075 <millis_timer_millis+0x2>
+ 128:	90 91 76 00 	lds	r25, 0x0076	; 0x800076 <millis_timer_millis+0x3>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:347
+    SREG = oldSREG;
+ 12c:	2f bf       	out	0x3f, r18	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:350
+
+    return m;
+  }
+ 12e:	08 95       	ret
+
+00000130 <sleepNow(bool)>:
+_ZL8sleepNowb():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:110
+  enter(BYPASS);
+}
+
+/* Sleep until a pin changes; with wdt8s also every 8 s, for the bypass countdown and the LED. */
+static void sleepNow(bool wdt8s) {
+  if (wdt8s) { wdt_reset(); WDTCSR = _BV(WDCE) | _BV(WDE); WDTCSR = _BV(WDIE) | _BV(WDP3) | _BV(WDP0); }
+ 130:	88 23       	and	r24, r24
+ 132:	a9 f0       	breq	.+42     	; 0x15e <sleepNow(bool)+0x2e>
+ 134:	a8 95       	wdr
+ 136:	88 e1       	ldi	r24, 0x18	; 24
+ 138:	81 bd       	out	0x21, r24	; 33
+ 13a:	81 e6       	ldi	r24, 0x61	; 97
+ 13c:	81 bd       	out	0x21, r24	; 33
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:112
+  else { wdt_reset(); WDTCSR = _BV(WDCE) | _BV(WDE); WDTCSR = 0; }
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+ 13e:	85 b7       	in	r24, 0x35	; 53
+ 140:	87 7e       	andi	r24, 0xE7	; 231
+ 142:	80 61       	ori	r24, 0x10	; 16
+ 144:	85 bf       	out	0x35, r24	; 53
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:113
+  woke = false;
+ 146:	10 92 64 00 	sts	0x0064, r1	; 0x800064 <woke>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:114
+  cli(); sleep_enable(); sei(); sleep_cpu(); sleep_disable();
+ 14a:	f8 94       	cli
+ 14c:	85 b7       	in	r24, 0x35	; 53
+ 14e:	80 62       	ori	r24, 0x20	; 32
+ 150:	85 bf       	out	0x35, r24	; 53
+ 152:	78 94       	sei
+ 154:	88 95       	sleep
+ 156:	85 b7       	in	r24, 0x35	; 53
+ 158:	8f 7d       	andi	r24, 0xDF	; 223
+ 15a:	85 bf       	out	0x35, r24	; 53
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:115
+}
+ 15c:	08 95       	ret
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:111
+}
+
+/* Sleep until a pin changes; with wdt8s also every 8 s, for the bypass countdown and the LED. */
+static void sleepNow(bool wdt8s) {
+  if (wdt8s) { wdt_reset(); WDTCSR = _BV(WDCE) | _BV(WDE); WDTCSR = _BV(WDIE) | _BV(WDP3) | _BV(WDP0); }
+  else { wdt_reset(); WDTCSR = _BV(WDCE) | _BV(WDE); WDTCSR = 0; }
+ 15e:	a8 95       	wdr
+ 160:	88 e1       	ldi	r24, 0x18	; 24
+ 162:	81 bd       	out	0x21, r24	; 33
+ 164:	11 bc       	out	0x21, r1	; 33
+ 166:	eb cf       	rjmp	.-42     	; 0x13e <sleepNow(bool)+0xe>
+
+00000168 <digitalRead>:
+digitalRead():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:169
+
+int digitalRead(uint8_t pin)
+{
+  if (pin&128) {pin=analogInputToDigitalPin((pin&127));}
+  //uint8_t timer = digitalPinToTimer(pin);
+  uint8_t bit = digitalPinToBitMask(pin);
+ 168:	90 e0       	ldi	r25, 0x00	; 0
+ 16a:	fc 01       	movw	r30, r24
+ 16c:	e4 5b       	subi	r30, 0xB4	; 180
+ 16e:	ff 4f       	sbci	r31, 0xFF	; 255
+ 170:	24 91       	lpm	r18, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:170
+  uint8_t port = digitalPinToPort(pin);
+ 172:	fc 01       	movw	r30, r24
+ 174:	e0 5c       	subi	r30, 0xC0	; 192
+ 176:	ff 4f       	sbci	r31, 0xFF	; 255
+ 178:	e4 91       	lpm	r30, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:172
+
+  if (port == NOT_A_PIN) return LOW;
+ 17a:	ee 23       	and	r30, r30
+ 17c:	71 f0       	breq	.+28     	; 0x19a <digitalRead+0x32>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:180
+  // "read" should *NEVER* change the behavior of the thing you're using it on.
+  // That's why it's called "read" not "write". As an added bonus, sets the
+  // stage for auto-fast-digitalRead() for compile time known pins.
+  // if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+
+  if (*portInputRegister(port) & bit) return HIGH;
+ 17e:	f0 e0       	ldi	r31, 0x00	; 0
+ 180:	ee 0f       	add	r30, r30
+ 182:	ff 1f       	adc	r31, r31
+ 184:	e6 5c       	subi	r30, 0xC6	; 198
+ 186:	ff 4f       	sbci	r31, 0xFF	; 255
+ 188:	a5 91       	lpm	r26, Z+
+ 18a:	b4 91       	lpm	r27, Z
+ 18c:	ec 91       	ld	r30, X
+ 18e:	e2 23       	and	r30, r18
+ 190:	81 e0       	ldi	r24, 0x01	; 1
+ 192:	90 e0       	ldi	r25, 0x00	; 0
+ 194:	21 f4       	brne	.+8      	; 0x19e <digitalRead+0x36>
+ 196:	80 e0       	ldi	r24, 0x00	; 0
+ 198:	08 95       	ret
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:172
+  if (pin&128) {pin=analogInputToDigitalPin((pin&127));}
+  //uint8_t timer = digitalPinToTimer(pin);
+  uint8_t bit = digitalPinToBitMask(pin);
+  uint8_t port = digitalPinToPort(pin);
+
+  if (port == NOT_A_PIN) return LOW;
+ 19a:	80 e0       	ldi	r24, 0x00	; 0
+ 19c:	90 e0       	ldi	r25, 0x00	; 0
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:182
+  // stage for auto-fast-digitalRead() for compile time known pins.
+  // if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+
+  if (*portInputRegister(port) & bit) return HIGH;
+  return LOW;
+}
+ 19e:	08 95       	ret
+
+000001a0 <readDisarm()>:
+_ZL10readDisarmv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:89
+  digitalWrite(PIN_SIREN, s == SIREN);
+  if (s == ARMED) { lastLoop = NONE; showLoop(NONE); digitalWrite(PIN_LED, LOW); }
+}
+
+/* DISARM: measure the pulse the Pi holds high. Returns 0 (none), 1 (short), 2 (long), 3 (double = re-arm). */
+static uint8_t readDisarm() {
+ 1a0:	cf 92       	push	r12
+ 1a2:	df 92       	push	r13
+ 1a4:	ef 92       	push	r14
+ 1a6:	ff 92       	push	r15
+ 1a8:	cf 93       	push	r28
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:90
+  if (digitalRead(PIN_DISARM) != HIGH) return 0;
+ 1aa:	83 e0       	ldi	r24, 0x03	; 3
+ 1ac:	dd df       	rcall	.-70     	; 0x168 <digitalRead>
+ 1ae:	01 97       	sbiw	r24, 0x01	; 1
+ 1b0:	41 f0       	breq	.+16     	; 0x1c2 <readDisarm()+0x22>
+ 1b2:	c0 e0       	ldi	r28, 0x00	; 0
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:99
+  if (len < 60) return 0;                                   // noise
+  uint8_t kind = len >= 2000 ? 2 : 1;
+  if (millis() - lastDisarmEdge < 1000) kind = 3;           // second pulse within a second
+  lastDisarmEdge = millis();
+  return kind;
+}
+ 1b4:	8c 2f       	mov	r24, r28
+ 1b6:	cf 91       	pop	r28
+ 1b8:	ff 90       	pop	r15
+ 1ba:	ef 90       	pop	r14
+ 1bc:	df 90       	pop	r13
+ 1be:	cf 90       	pop	r12
+ 1c0:	08 95       	ret
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:91
+}
+
+/* DISARM: measure the pulse the Pi holds high. Returns 0 (none), 1 (short), 2 (long), 3 (double = re-arm). */
+static uint8_t readDisarm() {
+  if (digitalRead(PIN_DISARM) != HIGH) return 0;
+  uint32_t t0 = millis();
+ 1c2:	aa df       	rcall	.-172    	; 0x118 <millis>
+ 1c4:	6b 01       	movw	r12, r22
+ 1c6:	7c 01       	movw	r14, r24
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:92
+  while (digitalRead(PIN_DISARM) == HIGH && millis() - t0 < 5000) delay(5);
+ 1c8:	83 e0       	ldi	r24, 0x03	; 3
+ 1ca:	ce df       	rcall	.-100    	; 0x168 <digitalRead>
+ 1cc:	01 97       	sbiw	r24, 0x01	; 1
+ 1ce:	81 f4       	brne	.+32     	; 0x1f0 <readDisarm()+0x50>
+ 1d0:	a3 df       	rcall	.-186    	; 0x118 <millis>
+ 1d2:	6c 19       	sub	r22, r12
+ 1d4:	7d 09       	sbc	r23, r13
+ 1d6:	8e 09       	sbc	r24, r14
+ 1d8:	9f 09       	sbc	r25, r15
+ 1da:	68 38       	cpi	r22, 0x88	; 136
+ 1dc:	73 41       	sbci	r23, 0x13	; 19
+ 1de:	81 05       	cpc	r24, r1
+ 1e0:	91 05       	cpc	r25, r1
+ 1e2:	30 f4       	brcc	.+12     	; 0x1f0 <readDisarm()+0x50>
+ 1e4:	65 e0       	ldi	r22, 0x05	; 5
+ 1e6:	70 e0       	ldi	r23, 0x00	; 0
+ 1e8:	80 e0       	ldi	r24, 0x00	; 0
+ 1ea:	90 e0       	ldi	r25, 0x00	; 0
+ 1ec:	6c df       	rcall	.-296    	; 0xc6 <delay>
+ 1ee:	ec cf       	rjmp	.-40     	; 0x1c8 <readDisarm()+0x28>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:93
+  uint32_t len = millis() - t0;
+ 1f0:	93 df       	rcall	.-218    	; 0x118 <millis>
+ 1f2:	dc 01       	movw	r26, r24
+ 1f4:	cb 01       	movw	r24, r22
+ 1f6:	8c 19       	sub	r24, r12
+ 1f8:	9d 09       	sbc	r25, r13
+ 1fa:	ae 09       	sbc	r26, r14
+ 1fc:	bf 09       	sbc	r27, r15
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:94
+  if (len < 60) return 0;                                   // noise
+ 1fe:	8c 33       	cpi	r24, 0x3C	; 60
+ 200:	91 05       	cpc	r25, r1
+ 202:	a1 05       	cpc	r26, r1
+ 204:	b1 05       	cpc	r27, r1
+ 206:	a8 f2       	brcs	.-86     	; 0x1b2 <readDisarm()+0x12>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:95
+  uint8_t kind = len >= 2000 ? 2 : 1;
+ 208:	c1 e0       	ldi	r28, 0x01	; 1
+ 20a:	80 3d       	cpi	r24, 0xD0	; 208
+ 20c:	97 40       	sbci	r25, 0x07	; 7
+ 20e:	a1 05       	cpc	r26, r1
+ 210:	b1 05       	cpc	r27, r1
+ 212:	08 f0       	brcs	.+2      	; 0x216 <readDisarm()+0x76>
+ 214:	c2 e0       	ldi	r28, 0x02	; 2
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:96
+  if (millis() - lastDisarmEdge < 1000) kind = 3;           // second pulse within a second
+ 216:	80 df       	rcall	.-256    	; 0x118 <millis>
+ 218:	c0 90 60 00 	lds	r12, 0x0060	; 0x800060 <__DATA_REGION_ORIGIN__>
+ 21c:	d0 90 61 00 	lds	r13, 0x0061	; 0x800061 <__DATA_REGION_ORIGIN__+0x1>
+ 220:	e0 90 62 00 	lds	r14, 0x0062	; 0x800062 <__DATA_REGION_ORIGIN__+0x2>
+ 224:	f0 90 63 00 	lds	r15, 0x0063	; 0x800063 <__DATA_REGION_ORIGIN__+0x3>
+ 228:	6c 19       	sub	r22, r12
+ 22a:	7d 09       	sbc	r23, r13
+ 22c:	8e 09       	sbc	r24, r14
+ 22e:	9f 09       	sbc	r25, r15
+ 230:	68 3e       	cpi	r22, 0xE8	; 232
+ 232:	73 40       	sbci	r23, 0x03	; 3
+ 234:	81 05       	cpc	r24, r1
+ 236:	91 05       	cpc	r25, r1
+ 238:	08 f4       	brcc	.+2      	; 0x23c <readDisarm()+0x9c>
+ 23a:	c3 e0       	ldi	r28, 0x03	; 3
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:97
+  lastDisarmEdge = millis();
+ 23c:	6d df       	rcall	.-294    	; 0x118 <millis>
+ 23e:	60 93 60 00 	sts	0x0060, r22	; 0x800060 <__DATA_REGION_ORIGIN__>
+ 242:	70 93 61 00 	sts	0x0061, r23	; 0x800061 <__DATA_REGION_ORIGIN__+0x1>
+ 246:	80 93 62 00 	sts	0x0062, r24	; 0x800062 <__DATA_REGION_ORIGIN__+0x2>
+ 24a:	90 93 63 00 	sts	0x0063, r25	; 0x800063 <__DATA_REGION_ORIGIN__+0x3>
+ 24e:	b2 cf       	rjmp	.-156    	; 0x1b4 <readDisarm()+0x14>
+
+00000250 <openLoop()>:
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:60
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+
+static Loop openLoop() {
+ 250:	cf 93       	push	r28
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:62
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+ 252:	c2 e0       	ldi	r28, 0x02	; 2
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 254:	80 e0       	ldi	r24, 0x00	; 0
+ 256:	88 df       	rcall	.-240    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:63
+
+static Loop openLoop() {
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+ 258:	01 97       	sbiw	r24, 0x01	; 1
+ 25a:	49 f4       	brne	.+18     	; 0x26e <__stack+0xf>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:64
+    delay(20);
+ 25c:	64 e1       	ldi	r22, 0x14	; 20
+ 25e:	70 e0       	ldi	r23, 0x00	; 0
+ 260:	80 e0       	ldi	r24, 0x00	; 0
+ 262:	90 e0       	ldi	r25, 0x00	; 0
+ 264:	30 df       	rcall	.-416    	; 0xc6 <delay>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:62
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+
+static Loop openLoop() {
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+ 266:	c1 30       	cpi	r28, 0x01	; 1
+ 268:	61 f0       	breq	.+24     	; 0x282 <__stack+0x23>
+ 26a:	c1 e0       	ldi	r28, 0x01	; 1
+ 26c:	f3 cf       	rjmp	.-26     	; 0x254 <openLoop()+0x4>
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 26e:	81 e0       	ldi	r24, 0x01	; 1
+ 270:	7b df       	rcall	.-266    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:63
+
+static Loop openLoop() {
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+ 272:	01 97       	sbiw	r24, 0x01	; 1
+ 274:	99 f3       	breq	.-26     	; 0x25c <openLoop()+0xc>
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 276:	82 e0       	ldi	r24, 0x02	; 2
+ 278:	77 df       	rcall	.-274    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:63
+
+static Loop openLoop() {
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+ 27a:	01 97       	sbiw	r24, 0x01	; 1
+ 27c:	79 f3       	breq	.-34     	; 0x25c <openLoop()+0xc>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:68
+    delay(20);
+  }
+  if (contactOpen(PIN_PANEL)) return PANEL;   // the attractive part first
+  if (contactOpen(PIN_TILT)) return TILT;
+  if (contactOpen(PIN_LID)) return LID;
+ 27e:	20 e0       	ldi	r18, 0x00	; 0
+ 280:	0f c0       	rjmp	.+30     	; 0x2a0 <__stack+0x41>
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 282:	81 e0       	ldi	r24, 0x01	; 1
+ 284:	71 df       	rcall	.-286    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:66
+  // read twice 20 ms apart: a contact that bounces is not a contact that opened
+  for (uint8_t pass = 0; pass < 2; pass++) {
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+    delay(20);
+  }
+  if (contactOpen(PIN_PANEL)) return PANEL;   // the attractive part first
+ 286:	22 e0       	ldi	r18, 0x02	; 2
+ 288:	01 97       	sbiw	r24, 0x01	; 1
+ 28a:	51 f0       	breq	.+20     	; 0x2a0 <__stack+0x41>
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 28c:	82 e0       	ldi	r24, 0x02	; 2
+ 28e:	6c df       	rcall	.-296    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:67
+  for (uint8_t pass = 0; pass < 2; pass++) {
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+    delay(20);
+  }
+  if (contactOpen(PIN_PANEL)) return PANEL;   // the attractive part first
+  if (contactOpen(PIN_TILT)) return TILT;
+ 290:	23 e0       	ldi	r18, 0x03	; 3
+ 292:	01 97       	sbiw	r24, 0x01	; 1
+ 294:	29 f0       	breq	.+10     	; 0x2a0 <__stack+0x41>
+contactOpen():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:58
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ISR(WDT_vect) { woke = true; }
+
+static bool contactOpen(uint8_t pin) { return digitalRead(pin) == HIGH; } // pull-up: closed contact reads LOW
+ 296:	80 e0       	ldi	r24, 0x00	; 0
+ 298:	67 df       	rcall	.-306    	; 0x168 <digitalRead>
+_ZL8openLoopv():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:68
+    if (!contactOpen(PIN_LID) && !contactOpen(PIN_PANEL) && !contactOpen(PIN_TILT)) return NONE;
+    delay(20);
+  }
+  if (contactOpen(PIN_PANEL)) return PANEL;   // the attractive part first
+  if (contactOpen(PIN_TILT)) return TILT;
+  if (contactOpen(PIN_LID)) return LID;
+ 29a:	21 e0       	ldi	r18, 0x01	; 1
+ 29c:	01 97       	sbiw	r24, 0x01	; 1
+ 29e:	79 f7       	brne	.-34     	; 0x27e <__stack+0x1f>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:70
+  return NONE;
+}
+ 2a0:	82 2f       	mov	r24, r18
+ 2a2:	cf 91       	pop	r28
+ 2a4:	08 95       	ret
+
+000002a6 <digitalWrite>:
+digitalWrite():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:139
+}
+
+void digitalWrite(uint8_t pin, uint8_t val)
+{
+  if (pin&128) {pin=analogInputToDigitalPin((pin&127));}
+  uint8_t timer = digitalPinToTimer(pin);
+ 2a6:	90 e0       	ldi	r25, 0x00	; 0
+ 2a8:	fc 01       	movw	r30, r24
+ 2aa:	e2 5d       	subi	r30, 0xD2	; 210
+ 2ac:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2ae:	34 91       	lpm	r19, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:140
+  uint8_t bit = digitalPinToBitMask(pin);
+ 2b0:	fc 01       	movw	r30, r24
+ 2b2:	e4 5b       	subi	r30, 0xB4	; 180
+ 2b4:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2b6:	24 91       	lpm	r18, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:141
+  uint8_t port = digitalPinToPort(pin);
+ 2b8:	fc 01       	movw	r30, r24
+ 2ba:	e0 5c       	subi	r30, 0xC0	; 192
+ 2bc:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2be:	e4 91       	lpm	r30, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:144
+  volatile uint8_t *out;
+
+  if (port == NOT_A_PIN) return;
+ 2c0:	ee 23       	and	r30, r30
+ 2c2:	b9 f0       	breq	.+46     	; 0x2f2 <digitalWrite+0x4c>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:148
+
+  // If the pin that support PWM output, we need to turn it off
+  // before doing a digital write.
+  if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+ 2c4:	33 23       	and	r19, r19
+ 2c6:	29 f0       	breq	.+10     	; 0x2d2 <digitalWrite+0x2c>
+turnOffPWM():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:67
+}
+
+static void turnOffPWM(uint8_t timer)
+{
+  #if defined(TCCR0A) && defined(COM0A1)
+    if( timer == TIMER0A){
+ 2c8:	31 30       	cpi	r19, 0x01	; 1
+ 2ca:	a1 f4       	brne	.+40     	; 0x2f4 <digitalWrite+0x4e>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:68
+      cbi(TCCR0A, COM0A1);
+ 2cc:	80 b7       	in	r24, 0x30	; 48
+ 2ce:	8f 77       	andi	r24, 0x7F	; 127
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:74
+      //cbi(TCCR0A, COM0A0);
+    } else
+  #endif
+  #if defined(TCCR0A) && defined(COM0B1)
+    if( timer == TIMER0B){
+      cbi(TCCR0A, COM0B1);
+ 2d0:	80 bf       	out	0x30, r24	; 48
+digitalWrite():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:150
+
+  // If the pin that support PWM output, we need to turn it off
+  // before doing a digital write.
+  if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+
+  out = portOutputRegister(port);
+ 2d2:	f0 e0       	ldi	r31, 0x00	; 0
+ 2d4:	ee 0f       	add	r30, r30
+ 2d6:	ff 1f       	adc	r31, r31
+ 2d8:	e8 5d       	subi	r30, 0xD8	; 216
+ 2da:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2dc:	a5 91       	lpm	r26, Z+
+ 2de:	b4 91       	lpm	r27, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:153
+
+  if (val == LOW) {
+    uint8_t oldSREG = SREG;
+ 2e0:	8f b7       	in	r24, 0x3f	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:152
+  // before doing a digital write.
+  if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+
+  out = portOutputRegister(port);
+
+  if (val == LOW) {
+ 2e2:	61 11       	cpse	r22, r1
+ 2e4:	17 c0       	rjmp	.+46     	; 0x314 <digitalWrite+0x6e>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:154
+    uint8_t oldSREG = SREG;
+    cli();
+ 2e6:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:155
+    *out &= ~bit;
+ 2e8:	ec 91       	ld	r30, X
+ 2ea:	20 95       	com	r18
+ 2ec:	2e 23       	and	r18, r30
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:160
+    SREG = oldSREG;
+  } else {
+    uint8_t oldSREG = SREG;
+    cli();
+    *out |= bit;
+ 2ee:	2c 93       	st	X, r18
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:161
+    SREG = oldSREG;
+ 2f0:	8f bf       	out	0x3f, r24	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:163
+  }
+}
+ 2f2:	08 95       	ret
+turnOffPWM():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:73
+      cbi(TCCR0A, COM0A1);
+      //cbi(TCCR0A, COM0A0);
+    } else
+  #endif
+  #if defined(TCCR0A) && defined(COM0B1)
+    if( timer == TIMER0B){
+ 2f4:	32 30       	cpi	r19, 0x02	; 2
+ 2f6:	19 f4       	brne	.+6      	; 0x2fe <digitalWrite+0x58>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:74
+      cbi(TCCR0A, COM0B1);
+ 2f8:	80 b7       	in	r24, 0x30	; 48
+ 2fa:	8f 7d       	andi	r24, 0xDF	; 223
+ 2fc:	e9 cf       	rjmp	.-46     	; 0x2d0 <digitalWrite+0x2a>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:118
+        GTCCR &= ~(1<<COM1B1);
+        //cbi(GTCCR, COM1B1);
+      } else
+    #endif
+    #if defined(TCCR1A) && defined(COM1A1) // civilized parts
+      if( timer == TIMER1A){
+ 2fe:	33 30       	cpi	r19, 0x03	; 3
+ 300:	21 f4       	brne	.+8      	; 0x30a <digitalWrite+0x64>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:119
+        TCCR1A &= ~(1<<COM1A1);
+ 302:	8f b5       	in	r24, 0x2f	; 47
+ 304:	8f 77       	andi	r24, 0x7F	; 127
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:126
+      } else
+    #endif
+
+    #if defined(TCCR1A) && defined(COM1B1) // civilized parts
+      if( timer == TIMER1B){
+        TCCR1A &= ~(1<<COM1B1);
+ 306:	8f bd       	out	0x2f, r24	; 47
+ 308:	e4 cf       	rjmp	.-56     	; 0x2d2 <digitalWrite+0x2c>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:125
+        //cbi(TCCR1A, COM1A0);
+      } else
+    #endif
+
+    #if defined(TCCR1A) && defined(COM1B1) // civilized parts
+      if( timer == TIMER1B){
+ 30a:	34 30       	cpi	r19, 0x04	; 4
+ 30c:	11 f7       	brne	.-60     	; 0x2d2 <digitalWrite+0x2c>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:126
+        TCCR1A &= ~(1<<COM1B1);
+ 30e:	8f b5       	in	r24, 0x2f	; 47
+ 310:	8f 7d       	andi	r24, 0xDF	; 223
+ 312:	f9 cf       	rjmp	.-14     	; 0x306 <digitalWrite+0x60>
+digitalWrite():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:159
+    cli();
+    *out &= ~bit;
+    SREG = oldSREG;
+  } else {
+    uint8_t oldSREG = SREG;
+    cli();
+ 314:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:160
+    *out |= bit;
+ 316:	ec 91       	ld	r30, X
+ 318:	2e 2b       	or	r18, r30
+ 31a:	e9 cf       	rjmp	.-46     	; 0x2ee <digitalWrite+0x48>
+
+0000031c <chirp(unsigned int)>:
+_ZL5chirpj():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:79
+static void bootPi() {
+  if (digitalRead(PIN_VOUT) == HIGH) return;  // already on; a tap would shut it down
+  digitalWrite(PIN_SW, HIGH); delay(300); digitalWrite(PIN_SW, LOW);
+}
+
+static void chirp(uint16_t ms) { digitalWrite(PIN_SIREN, HIGH); delay(ms); digitalWrite(PIN_SIREN, LOW); }
+ 31c:	cf 93       	push	r28
+ 31e:	df 93       	push	r29
+ 320:	ec 01       	movw	r28, r24
+ 322:	61 e0       	ldi	r22, 0x01	; 1
+ 324:	87 e0       	ldi	r24, 0x07	; 7
+ 326:	bf df       	rcall	.-130    	; 0x2a6 <digitalWrite>
+ 328:	be 01       	movw	r22, r28
+ 32a:	90 e0       	ldi	r25, 0x00	; 0
+ 32c:	80 e0       	ldi	r24, 0x00	; 0
+ 32e:	cb de       	rcall	.-618    	; 0xc6 <delay>
+ 330:	60 e0       	ldi	r22, 0x00	; 0
+ 332:	87 e0       	ldi	r24, 0x07	; 7
+ 334:	df 91       	pop	r29
+ 336:	cf 91       	pop	r28
+ 338:	b6 cf       	rjmp	.-148    	; 0x2a6 <digitalWrite>
+
+0000033a <showLoop(Loop)>:
+_ZL8showLoop4Loop():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:72
+  if (contactOpen(PIN_TILT)) return TILT;
+  if (contactOpen(PIN_LID)) return LID;
+  return NONE;
+}
+
+static void showLoop(Loop l) { digitalWrite(PIN_LOOP_A, l & 1); digitalWrite(PIN_LOOP_B, (l >> 1) & 1); }
+ 33a:	cf 93       	push	r28
+ 33c:	c8 2f       	mov	r28, r24
+ 33e:	68 2f       	mov	r22, r24
+ 340:	61 70       	andi	r22, 0x01	; 1
+ 342:	84 e0       	ldi	r24, 0x04	; 4
+ 344:	b0 df       	rcall	.-160    	; 0x2a6 <digitalWrite>
+ 346:	c1 fb       	bst	r28, 1
+ 348:	66 27       	eor	r22, r22
+ 34a:	60 f9       	bld	r22, 0
+ 34c:	85 e0       	ldi	r24, 0x05	; 5
+ 34e:	cf 91       	pop	r28
+ 350:	aa cf       	rjmp	.-172    	; 0x2a6 <digitalWrite>
+
+00000352 <enter(State)>:
+_ZL5enter5State():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:81
+  digitalWrite(PIN_SW, HIGH); delay(300); digitalWrite(PIN_SW, LOW);
+}
+
+static void chirp(uint16_t ms) { digitalWrite(PIN_SIREN, HIGH); delay(ms); digitalWrite(PIN_SIREN, LOW); }
+
+static void enter(State s) {
+ 352:	cf 93       	push	r28
+ 354:	c8 2f       	mov	r28, r24
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:82
+  state = s; stateSince = millis(); lastChirp = 0;
+ 356:	80 93 71 00 	sts	0x0071, r24	; 0x800071 <state>
+ 35a:	de de       	rcall	.-580    	; 0x118 <millis>
+ 35c:	60 93 6d 00 	sts	0x006D, r22	; 0x80006d <stateSince>
+ 360:	70 93 6e 00 	sts	0x006E, r23	; 0x80006e <stateSince+0x1>
+ 364:	80 93 6f 00 	sts	0x006F, r24	; 0x80006f <stateSince+0x2>
+ 368:	90 93 70 00 	sts	0x0070, r25	; 0x800070 <stateSince+0x3>
+ 36c:	10 92 69 00 	sts	0x0069, r1	; 0x800069 <lastChirp>
+ 370:	10 92 6a 00 	sts	0x006A, r1	; 0x80006a <lastChirp+0x1>
+ 374:	10 92 6b 00 	sts	0x006B, r1	; 0x80006b <lastChirp+0x2>
+ 378:	10 92 6c 00 	sts	0x006C, r1	; 0x80006c <lastChirp+0x3>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:83
+  digitalWrite(PIN_ALARM, s == ENTRY || s == SIREN || s == CHIRP);
+ 37c:	8f ef       	ldi	r24, 0xFF	; 255
+ 37e:	8c 0f       	add	r24, r28
+ 380:	61 e0       	ldi	r22, 0x01	; 1
+ 382:	83 30       	cpi	r24, 0x03	; 3
+ 384:	08 f0       	brcs	.+2      	; 0x388 <enter(State)+0x36>
+ 386:	60 e0       	ldi	r22, 0x00	; 0
+ 388:	86 e0       	ldi	r24, 0x06	; 6
+ 38a:	8d df       	rcall	.-230    	; 0x2a6 <digitalWrite>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:84
+  digitalWrite(PIN_SIREN, s == SIREN);
+ 38c:	61 e0       	ldi	r22, 0x01	; 1
+ 38e:	c2 30       	cpi	r28, 0x02	; 2
+ 390:	09 f0       	breq	.+2      	; 0x394 <enter(State)+0x42>
+ 392:	60 e0       	ldi	r22, 0x00	; 0
+ 394:	87 e0       	ldi	r24, 0x07	; 7
+ 396:	87 df       	rcall	.-242    	; 0x2a6 <digitalWrite>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:85
+  if (s == ARMED) { lastLoop = NONE; showLoop(NONE); digitalWrite(PIN_LED, LOW); }
+ 398:	c1 11       	cpse	r28, r1
+ 39a:	06 c0       	rjmp	.+12     	; 0x3a8 <enter(State)+0x56>
+ 39c:	80 e0       	ldi	r24, 0x00	; 0
+ 39e:	cd df       	rcall	.-102    	; 0x33a <showLoop(Loop)>
+ 3a0:	60 e0       	ldi	r22, 0x00	; 0
+ 3a2:	89 e0       	ldi	r24, 0x09	; 9
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:86
+}
+ 3a4:	cf 91       	pop	r28
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:85
+
+static void enter(State s) {
+  state = s; stateSince = millis(); lastChirp = 0;
+  digitalWrite(PIN_ALARM, s == ENTRY || s == SIREN || s == CHIRP);
+  digitalWrite(PIN_SIREN, s == SIREN);
+  if (s == ARMED) { lastLoop = NONE; showLoop(NONE); digitalWrite(PIN_LED, LOW); }
+ 3a6:	7f cf       	rjmp	.-258    	; 0x2a6 <digitalWrite>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:86
+}
+ 3a8:	cf 91       	pop	r28
+ 3aa:	08 95       	ret
+
+000003ac <applyDisarm(unsigned char)>:
+_ZL11applyDisarmh():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:102
+  lastDisarmEdge = millis();
+  return kind;
+}
+
+static void applyDisarm(uint8_t kind) {
+  if (kind == 0) return;
+ 3ac:	88 23       	and	r24, r24
+ 3ae:	e9 f0       	breq	.+58     	; 0x3ea <applyDisarm(unsigned char)+0x3e>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:103
+  if (kind == 3) { if (openLoop() == NONE) enter(ARMED); else enter(WAIT_CLOSE); return; }
+ 3b0:	83 30       	cpi	r24, 0x03	; 3
+ 3b2:	31 f4       	brne	.+12     	; 0x3c0 <applyDisarm(unsigned char)+0x14>
+ 3b4:	4d df       	rcall	.-358    	; 0x250 <openLoop()>
+ 3b6:	81 11       	cpse	r24, r1
+ 3b8:	01 c0       	rjmp	.+2      	; 0x3bc <applyDisarm(unsigned char)+0x10>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:105
+  bypassLeftS = kind == 2 ? BYPASS_LONG_S : BYPASS_SHORT_S;
+  enter(BYPASS);
+ 3ba:	cb cf       	rjmp	.-106    	; 0x352 <enter(State)>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:103
+  return kind;
+}
+
+static void applyDisarm(uint8_t kind) {
+  if (kind == 0) return;
+  if (kind == 3) { if (openLoop() == NONE) enter(ARMED); else enter(WAIT_CLOSE); return; }
+ 3bc:	85 e0       	ldi	r24, 0x05	; 5
+ 3be:	fd cf       	rjmp	.-6      	; 0x3ba <applyDisarm(unsigned char)+0xe>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:104
+  bypassLeftS = kind == 2 ? BYPASS_LONG_S : BYPASS_SHORT_S;
+ 3c0:	82 30       	cpi	r24, 0x02	; 2
+ 3c2:	71 f0       	breq	.+28     	; 0x3e0 <applyDisarm(unsigned char)+0x34>
+ 3c4:	80 e4       	ldi	r24, 0x40	; 64
+ 3c6:	98 e3       	ldi	r25, 0x38	; 56
+ 3c8:	a0 e0       	ldi	r26, 0x00	; 0
+ 3ca:	b0 e0       	ldi	r27, 0x00	; 0
+ 3cc:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <bypassLeftS>
+ 3d0:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <bypassLeftS+0x1>
+ 3d4:	a0 93 67 00 	sts	0x0067, r26	; 0x800067 <bypassLeftS+0x2>
+ 3d8:	b0 93 68 00 	sts	0x0068, r27	; 0x800068 <bypassLeftS+0x3>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:105
+  enter(BYPASS);
+ 3dc:	84 e0       	ldi	r24, 0x04	; 4
+ 3de:	ed cf       	rjmp	.-38     	; 0x3ba <applyDisarm(unsigned char)+0xe>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:104
+}
+
+static void applyDisarm(uint8_t kind) {
+  if (kind == 0) return;
+  if (kind == 3) { if (openLoop() == NONE) enter(ARMED); else enter(WAIT_CLOSE); return; }
+  bypassLeftS = kind == 2 ? BYPASS_LONG_S : BYPASS_SHORT_S;
+ 3e0:	80 e8       	ldi	r24, 0x80	; 128
+ 3e2:	91 e5       	ldi	r25, 0x51	; 81
+ 3e4:	a1 e0       	ldi	r26, 0x01	; 1
+ 3e6:	b0 e0       	ldi	r27, 0x00	; 0
+ 3e8:	f1 cf       	rjmp	.-30     	; 0x3cc <applyDisarm(unsigned char)+0x20>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:106
+  enter(BYPASS);
+}
+ 3ea:	08 95       	ret
+
+000003ec <pinMode>:
+pinMode():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:33
+#define ARDUINO_MAIN
+#include "wiring_private.h"
+#include "pins_arduino.h"
+
+void pinMode(uint8_t pin, uint8_t mode)
+{
+ 3ec:	cf 93       	push	r28
+ 3ee:	df 93       	push	r29
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:35
+  if (pin&128) {pin=analogInputToDigitalPin((pin&127));}
+  uint8_t bit = digitalPinToBitMask(pin);
+ 3f0:	90 e0       	ldi	r25, 0x00	; 0
+ 3f2:	fc 01       	movw	r30, r24
+ 3f4:	e4 5b       	subi	r30, 0xB4	; 180
+ 3f6:	ff 4f       	sbci	r31, 0xFF	; 255
+ 3f8:	24 91       	lpm	r18, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:36
+  uint8_t port = digitalPinToPort(pin);
+ 3fa:	80 5c       	subi	r24, 0xC0	; 192
+ 3fc:	9f 4f       	sbci	r25, 0xFF	; 255
+ 3fe:	fc 01       	movw	r30, r24
+ 400:	84 91       	lpm	r24, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:39
+  volatile uint8_t *reg, *out;
+
+  if (port == NOT_A_PIN) return;
+ 402:	88 23       	and	r24, r24
+ 404:	d1 f0       	breq	.+52     	; 0x43a <__LOCK_REGION_LENGTH__+0x3a>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:41
+
+  reg = portModeRegister(port);
+ 406:	90 e0       	ldi	r25, 0x00	; 0
+ 408:	88 0f       	add	r24, r24
+ 40a:	99 1f       	adc	r25, r25
+ 40c:	fc 01       	movw	r30, r24
+ 40e:	ee 5d       	subi	r30, 0xDE	; 222
+ 410:	ff 4f       	sbci	r31, 0xFF	; 255
+ 412:	a5 91       	lpm	r26, Z+
+ 414:	b4 91       	lpm	r27, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:42
+  out = portOutputRegister(port);
+ 416:	fc 01       	movw	r30, r24
+ 418:	e8 5d       	subi	r30, 0xD8	; 216
+ 41a:	ff 4f       	sbci	r31, 0xFF	; 255
+ 41c:	c5 91       	lpm	r28, Z+
+ 41e:	d4 91       	lpm	r29, Z
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:44
+
+  if (mode == INPUT) {
+ 420:	61 11       	cpse	r22, r1
+ 422:	0e c0       	rjmp	.+28     	; 0x440 <__LOCK_REGION_LENGTH__+0x40>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:45
+    uint8_t oldSREG = SREG;
+ 424:	9f b7       	in	r25, 0x3f	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:46
+                cli();
+ 426:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:47
+    *reg &= ~bit;
+ 428:	8c 91       	ld	r24, X
+ 42a:	e2 2f       	mov	r30, r18
+ 42c:	e0 95       	com	r30
+ 42e:	8e 23       	and	r24, r30
+ 430:	8c 93       	st	X, r24
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:48
+    *out &= ~bit;
+ 432:	28 81       	ld	r18, Y
+ 434:	e2 23       	and	r30, r18
+ 436:	e8 83       	st	Y, r30
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:49
+    SREG = oldSREG;
+ 438:	9f bf       	out	0x3f, r25	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:62
+    uint8_t oldSREG = SREG;
+                cli();
+    *reg |= bit;
+    SREG = oldSREG;
+  }
+}
+ 43a:	df 91       	pop	r29
+ 43c:	cf 91       	pop	r28
+ 43e:	08 95       	ret
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:57
+                cli();
+    *reg &= ~bit;
+    *out |= bit;
+    SREG = oldSREG;
+  } else {
+    uint8_t oldSREG = SREG;
+ 440:	8f b7       	in	r24, 0x3f	; 63
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:58
+                cli();
+ 442:	f8 94       	cli
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:59
+    *reg |= bit;
+ 444:	ec 91       	ld	r30, X
+ 446:	e2 2b       	or	r30, r18
+ 448:	ec 93       	st	X, r30
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring_digital.c:60
+    SREG = oldSREG;
+ 44a:	8f bf       	out	0x3f, r24	; 63
+ 44c:	f6 cf       	rjmp	.-20     	; 0x43a <__LOCK_REGION_LENGTH__+0x3a>
+
+0000044e <__vector_11>:
+__vector_11():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:308
+      #error "cannot find Millis() timer overflow vector"
+    #endif
+  #else
+    #error "Millis() timer not defined!"
+  #endif
+  {
+ 44e:	1f 92       	push	r1
+ 450:	0f 92       	push	r0
+ 452:	0f b6       	in	r0, 0x3f	; 63
+ 454:	0f 92       	push	r0
+ 456:	11 24       	eor	r1, r1
+ 458:	2f 93       	push	r18
+ 45a:	3f 93       	push	r19
+ 45c:	8f 93       	push	r24
+ 45e:	9f 93       	push	r25
+ 460:	af 93       	push	r26
+ 462:	bf 93       	push	r27
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:311
+    // copy these to local variables so they can be stored in registers
+    // (volatile variables must be read from memory on every access)
+    unsigned long m = millis_timer_millis;
+ 464:	80 91 73 00 	lds	r24, 0x0073	; 0x800073 <millis_timer_millis>
+ 468:	90 91 74 00 	lds	r25, 0x0074	; 0x800074 <millis_timer_millis+0x1>
+ 46c:	a0 91 75 00 	lds	r26, 0x0075	; 0x800075 <millis_timer_millis+0x2>
+ 470:	b0 91 76 00 	lds	r27, 0x0076	; 0x800076 <millis_timer_millis+0x3>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:312
+    unsigned char f = millis_timer_fract;
+ 474:	30 91 72 00 	lds	r19, 0x0072	; 0x800072 <millis_timer_fract>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:319
+    static unsigned char correct_exact = 0;     // rollover intended
+    if (++correct_exact < CORRECT_EXACT_MANY) {
+      ++f;
+    }
+#endif
+    f += FRACT_INC;
+ 478:	26 e0       	ldi	r18, 0x06	; 6
+ 47a:	23 0f       	add	r18, r19
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:321
+
+    if (f >= FRACT_MAX)
+ 47c:	2d 37       	cpi	r18, 0x7D	; 125
+ 47e:	68 f1       	brcs	.+90     	; 0x4da <__vector_11+0x8c>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:323
+    {
+      f -= FRACT_MAX;
+ 480:	29 e8       	ldi	r18, 0x89	; 137
+ 482:	23 0f       	add	r18, r19
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:324
+      m += MILLIS_INC + 1;
+ 484:	03 96       	adiw	r24, 0x03	; 3
+ 486:	a1 1d       	adc	r26, r1
+ 488:	b1 1d       	adc	r27, r1
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:331
+    else
+    {
+      m += MILLIS_INC;
+    }
+
+    millis_timer_fract = f;
+ 48a:	20 93 72 00 	sts	0x0072, r18	; 0x800072 <millis_timer_fract>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:332
+    millis_timer_millis = m;
+ 48e:	80 93 73 00 	sts	0x0073, r24	; 0x800073 <millis_timer_millis>
+ 492:	90 93 74 00 	sts	0x0074, r25	; 0x800074 <millis_timer_millis+0x1>
+ 496:	a0 93 75 00 	sts	0x0075, r26	; 0x800075 <millis_timer_millis+0x2>
+ 49a:	b0 93 76 00 	sts	0x0076, r27	; 0x800076 <millis_timer_millis+0x3>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:334
+#ifndef CORRECT_EXACT_MICROS
+    millis_timer_overflow_count++;
+ 49e:	80 91 77 00 	lds	r24, 0x0077	; 0x800077 <millis_timer_overflow_count>
+ 4a2:	90 91 78 00 	lds	r25, 0x0078	; 0x800078 <millis_timer_overflow_count+0x1>
+ 4a6:	a0 91 79 00 	lds	r26, 0x0079	; 0x800079 <millis_timer_overflow_count+0x2>
+ 4aa:	b0 91 7a 00 	lds	r27, 0x007A	; 0x80007a <millis_timer_overflow_count+0x3>
+ 4ae:	01 96       	adiw	r24, 0x01	; 1
+ 4b0:	a1 1d       	adc	r26, r1
+ 4b2:	b1 1d       	adc	r27, r1
+ 4b4:	80 93 77 00 	sts	0x0077, r24	; 0x800077 <millis_timer_overflow_count>
+ 4b8:	90 93 78 00 	sts	0x0078, r25	; 0x800078 <millis_timer_overflow_count+0x1>
+ 4bc:	a0 93 79 00 	sts	0x0079, r26	; 0x800079 <millis_timer_overflow_count+0x2>
+ 4c0:	b0 93 7a 00 	sts	0x007A, r27	; 0x80007a <millis_timer_overflow_count+0x3>
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:336
+#endif
+  }
+ 4c4:	bf 91       	pop	r27
+ 4c6:	af 91       	pop	r26
+ 4c8:	9f 91       	pop	r25
+ 4ca:	8f 91       	pop	r24
+ 4cc:	3f 91       	pop	r19
+ 4ce:	2f 91       	pop	r18
+ 4d0:	0f 90       	pop	r0
+ 4d2:	0f be       	out	0x3f, r0	; 63
+ 4d4:	0f 90       	pop	r0
+ 4d6:	1f 90       	pop	r1
+ 4d8:	18 95       	reti
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:328
+      f -= FRACT_MAX;
+      m += MILLIS_INC + 1;
+    }
+    else
+    {
+      m += MILLIS_INC;
+ 4da:	02 96       	adiw	r24, 0x02	; 2
+ 4dc:	a1 1d       	adc	r26, r1
+ 4de:	b1 1d       	adc	r27, r1
+ 4e0:	d4 cf       	rjmp	.-88     	; 0x48a <__vector_11+0x3c>
+
+000004e2 <__vector_2>:
+__vector_2():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:55
+uint32_t stateSince = 0;     // millis() at entry into the state
+uint32_t bypassLeftS = 0;    // counted down in 8 s watchdog ticks
+uint32_t lastChirp = 0;
+uint32_t lastDisarmEdge = 0; // for the double pulse
+
+ISR(PCINT0_vect) { woke = true; }
+ 4e2:	1f 92       	push	r1
+ 4e4:	0f 92       	push	r0
+ 4e6:	0f b6       	in	r0, 0x3f	; 63
+ 4e8:	0f 92       	push	r0
+ 4ea:	11 24       	eor	r1, r1
+ 4ec:	8f 93       	push	r24
+ 4ee:	81 e0       	ldi	r24, 0x01	; 1
+ 4f0:	80 93 64 00 	sts	0x0064, r24	; 0x800064 <woke>
+ 4f4:	8f 91       	pop	r24
+ 4f6:	0f 90       	pop	r0
+ 4f8:	0f be       	out	0x3f, r0	; 63
+ 4fa:	0f 90       	pop	r0
+ 4fc:	1f 90       	pop	r1
+ 4fe:	18 95       	reti
+
+00000500 <__vector_4>:
+__vector_4():
+ 500:	1f 92       	push	r1
+ 502:	0f 92       	push	r0
+ 504:	0f b6       	in	r0, 0x3f	; 63
+ 506:	0f 92       	push	r0
+ 508:	11 24       	eor	r1, r1
+ 50a:	2f 93       	push	r18
+ 50c:	3f 93       	push	r19
+ 50e:	4f 93       	push	r20
+ 510:	5f 93       	push	r21
+ 512:	6f 93       	push	r22
+ 514:	7f 93       	push	r23
+ 516:	8f 93       	push	r24
+ 518:	9f 93       	push	r25
+ 51a:	af 93       	push	r26
+ 51c:	bf 93       	push	r27
+ 51e:	ef 93       	push	r30
+ 520:	ff 93       	push	r31
+ 522:	df df       	rcall	.-66     	; 0x4e2 <__vector_2>
+ 524:	ff 91       	pop	r31
+ 526:	ef 91       	pop	r30
+ 528:	bf 91       	pop	r27
+ 52a:	af 91       	pop	r26
+ 52c:	9f 91       	pop	r25
+ 52e:	8f 91       	pop	r24
+ 530:	7f 91       	pop	r23
+ 532:	6f 91       	pop	r22
+ 534:	5f 91       	pop	r21
+ 536:	4f 91       	pop	r20
+ 538:	3f 91       	pop	r19
+ 53a:	2f 91       	pop	r18
+ 53c:	0f 90       	pop	r0
+ 53e:	0f be       	out	0x3f, r0	; 63
+ 540:	0f 90       	pop	r0
+ 542:	1f 90       	pop	r1
+ 544:	18 95       	reti
+
+00000546 <main>:
+main():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:1138
+*/
+
+  // Use the Millis Timer for fast PWM (unless it doesn't have an output).
+  #if (TIMER_TO_USE_FOR_MILLIS == 0)
+    #if defined(WGM01) // if Timer0 has PWM
+      TCCR0A = (1<<WGM01) | (1<<WGM00);
+ 546:	83 e0       	ldi	r24, 0x03	; 3
+ 548:	80 bf       	out	0x30, r24	; 48
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:1141
+    #endif
+    #if defined(TCCR0B) //The x61 has a wacky Timer0!
+      TCCR0B = (MillisTimer_Prescale_Index << CS00);
+ 54a:	92 e0       	ldi	r25, 0x02	; 2
+ 54c:	93 bf       	out	0x33, r25	; 51
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:1162
+    TCCR1A = 1<<WGM10;
+    TCCR1B = (1<<WGM12) | (MillisTimer_Prescale_Index << CS10);
+  #endif
+
+  // this needs to be called before setup() or some functions won't work there
+  sei();
+ 54e:	78 94       	sei
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:1169
+  #ifndef DISABLEMILLIS
+    // Enable the overflow interrupt (this is the basic system tic-toc for millis)
+    #if defined(TIMSK) && defined(TOIE0) && (TIMER_TO_USE_FOR_MILLIS == 0)
+      sbi(TIMSK, TOIE0);
+    #elif defined(TIMSK0) && defined(TOIE0) && (TIMER_TO_USE_FOR_MILLIS == 0)
+      sbi(TIMSK0, TOIE0);
+ 550:	89 b7       	in	r24, 0x39	; 57
+ 552:	81 60       	ori	r24, 0x01	; 1
+ 554:	89 bf       	out	0x39, r24	; 57
+initToneTimerInternal():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:972
+    #elif (TIMER_TO_USE_FOR_TONE == 1 ) && defined(__AVR_ATtinyX7__)
+      TCCR1A = (1<<COM1A1)|(1<<COM1B1)|(1<<WGM10);
+      TCCR1B = (ToneTimer_Prescale_Index << CS10);
+    #elif (TIMER_TO_USE_FOR_TONE == 1) // x4, x8, x313,
+      // Use the Tone Timer for phase correct PWM
+      TCCR1A = (1<<WGM10);
+ 556:	81 e0       	ldi	r24, 0x01	; 1
+ 558:	8f bd       	out	0x2f, r24	; 47
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:973
+      TCCR1B = (0<<WGM12) | (0<<WGM13) | (ToneTimer_Prescale_Index << CS10); //set the clock
+ 55a:	9e bd       	out	0x2e, r25	; 46
+main():
+/home/sven/.arduino15/packages/ATTinyCore/hardware/avr/1.5.2/cores/tiny/wiring.c:1214
+  #if defined( INITIALIZE_ANALOG_TO_DIGITAL_CONVERTER ) && INITIALIZE_ANALOG_TO_DIGITAL_CONVERTER
+    #if defined(ADCSRA)
+      // set a2d prescale factor
+      // ADCSRA = (ADCSRA & ~((1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0))) | (ADC_ARDUINO_PRESCALER << ADPS0) | (1<<ADEN);
+      // dude, this is being called on startup. We know that ADCSRA is 0! Why add a RMW cycle?!
+      ADCSRA = (ADC_ARDUINO_PRESCALER << ADPS0) | (1<<ADEN);
+ 55c:	83 e8       	ldi	r24, 0x83	; 131
+ 55e:	86 b9       	out	0x06, r24	; 6
+setup():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:118
+  woke = false;
+  cli(); sleep_enable(); sei(); sleep_cpu(); sleep_disable();
+}
+
+void setup() {
+  pinMode(PIN_LID, INPUT); pinMode(PIN_PANEL, INPUT); pinMode(PIN_TILT, INPUT); // external 1 M pull-ups
+ 560:	60 e0       	ldi	r22, 0x00	; 0
+ 562:	80 e0       	ldi	r24, 0x00	; 0
+ 564:	43 df       	rcall	.-378    	; 0x3ec <pinMode>
+ 566:	60 e0       	ldi	r22, 0x00	; 0
+ 568:	81 e0       	ldi	r24, 0x01	; 1
+ 56a:	40 df       	rcall	.-384    	; 0x3ec <pinMode>
+ 56c:	60 e0       	ldi	r22, 0x00	; 0
+ 56e:	82 e0       	ldi	r24, 0x02	; 2
+ 570:	3d df       	rcall	.-390    	; 0x3ec <pinMode>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:119
+  pinMode(PIN_DISARM, INPUT); pinMode(PIN_VOUT, INPUT);
+ 572:	60 e0       	ldi	r22, 0x00	; 0
+ 574:	83 e0       	ldi	r24, 0x03	; 3
+ 576:	3a df       	rcall	.-396    	; 0x3ec <pinMode>
+ 578:	60 e0       	ldi	r22, 0x00	; 0
+ 57a:	88 e0       	ldi	r24, 0x08	; 8
+ 57c:	37 df       	rcall	.-402    	; 0x3ec <pinMode>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:120
+  pinMode(PIN_LOOP_A, OUTPUT); pinMode(PIN_LOOP_B, OUTPUT); pinMode(PIN_ALARM, OUTPUT);
+ 57e:	61 e0       	ldi	r22, 0x01	; 1
+ 580:	84 e0       	ldi	r24, 0x04	; 4
+ 582:	34 df       	rcall	.-408    	; 0x3ec <pinMode>
+ 584:	61 e0       	ldi	r22, 0x01	; 1
+ 586:	85 e0       	ldi	r24, 0x05	; 5
+ 588:	31 df       	rcall	.-414    	; 0x3ec <pinMode>
+ 58a:	61 e0       	ldi	r22, 0x01	; 1
+ 58c:	86 e0       	ldi	r24, 0x06	; 6
+ 58e:	2e df       	rcall	.-420    	; 0x3ec <pinMode>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:121
+  pinMode(PIN_SIREN, OUTPUT); pinMode(PIN_SW, OUTPUT); pinMode(PIN_LED, OUTPUT);
+ 590:	61 e0       	ldi	r22, 0x01	; 1
+ 592:	87 e0       	ldi	r24, 0x07	; 7
+ 594:	2b df       	rcall	.-426    	; 0x3ec <pinMode>
+ 596:	61 e0       	ldi	r22, 0x01	; 1
+ 598:	8a e0       	ldi	r24, 0x0A	; 10
+ 59a:	28 df       	rcall	.-432    	; 0x3ec <pinMode>
+ 59c:	61 e0       	ldi	r22, 0x01	; 1
+ 59e:	89 e0       	ldi	r24, 0x09	; 9
+ 5a0:	25 df       	rcall	.-438    	; 0x3ec <pinMode>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:122
+  digitalWrite(PIN_SIREN, LOW); digitalWrite(PIN_SW, LOW);
+ 5a2:	60 e0       	ldi	r22, 0x00	; 0
+ 5a4:	87 e0       	ldi	r24, 0x07	; 7
+ 5a6:	7f de       	rcall	.-770    	; 0x2a6 <digitalWrite>
+ 5a8:	60 e0       	ldi	r22, 0x00	; 0
+ 5aa:	8a e0       	ldi	r24, 0x0A	; 10
+ 5ac:	7c de       	rcall	.-776    	; 0x2a6 <digitalWrite>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:123
+  ADCSRA &= ~_BV(ADEN);                       // ADC off: the single biggest sleep current
+ 5ae:	37 98       	cbi	0x06, 7	; 6
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:124
+  GIMSK |= _BV(PCIE0);                        // pin change on port A
+ 5b0:	8b b7       	in	r24, 0x3b	; 59
+ 5b2:	80 61       	ori	r24, 0x10	; 16
+ 5b4:	8b bf       	out	0x3b, r24	; 59
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:125
+  PCMSK0 = _BV(PCINT0) | _BV(PCINT1) | _BV(PCINT2) | _BV(PCINT3);
+ 5b6:	8f e0       	ldi	r24, 0x0F	; 15
+ 5b8:	82 bb       	out	0x12, r24	; 18
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:127
+  // power-up with a contact open (box being assembled) waits for it to close, like a house alarm with a door ajar
+  chirp(30);
+ 5ba:	8e e1       	ldi	r24, 0x1E	; 30
+ 5bc:	90 e0       	ldi	r25, 0x00	; 0
+ 5be:	ae de       	rcall	.-676    	; 0x31c <chirp(unsigned int)>
+loop():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:169
+    }
+    case BYPASS: {
+      uint8_t d = readDisarm();
+      if (d) { applyDisarm(d); break; }
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+      if (bypassLeftS <= 8) { enter(openLoop() == NONE ? ARMED : WAIT_CLOSE); break; }
+ 5c0:	47 de       	rcall	.-882    	; 0x250 <openLoop()>
+ 5c2:	88 23       	and	r24, r24
+ 5c4:	11 f0       	breq	.+4      	; 0x5ca <main+0x84>
+main():
+ 5c6:	85 e0       	ldi	r24, 0x05	; 5
+ 5c8:	01 c0       	rjmp	.+2      	; 0x5cc <main+0x86>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:128
+  ADCSRA &= ~_BV(ADEN);                       // ADC off: the single biggest sleep current
+  GIMSK |= _BV(PCIE0);                        // pin change on port A
+  PCMSK0 = _BV(PCINT0) | _BV(PCINT1) | _BV(PCINT2) | _BV(PCINT3);
+  // power-up with a contact open (box being assembled) waits for it to close, like a house alarm with a door ajar
+  chirp(30);
+  enter(openLoop() == NONE ? ARMED : WAIT_CLOSE);
+ 5ca:	80 e0       	ldi	r24, 0x00	; 0
+setup():
+ 5cc:	c2 de       	rcall	.-636    	; 0x352 <enter(State)>
+loop():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:132
+}
+
+void loop() {
+  uint32_t now = millis();
+ 5ce:	a4 dd       	rcall	.-1208   	; 0x118 <millis>
+ 5d0:	6b 01       	movw	r12, r22
+ 5d2:	7c 01       	movw	r14, r24
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:133
+  switch (state) {
+ 5d4:	80 91 71 00 	lds	r24, 0x0071	; 0x800071 <state>
+ 5d8:	82 30       	cpi	r24, 0x02	; 2
+ 5da:	09 f4       	brne	.+2      	; 0x5de <main+0x98>
+ 5dc:	a2 c0       	rjmp	.+324    	; 0x722 <main+0x1dc>
+ 5de:	98 f4       	brcc	.+38     	; 0x606 <main+0xc0>
+ 5e0:	88 23       	and	r24, r24
+ 5e2:	09 f4       	brne	.+2      	; 0x5e6 <main+0xa0>
+ 5e4:	41 c0       	rjmp	.+130    	; 0x668 <main+0x122>
+ 5e6:	81 30       	cpi	r24, 0x01	; 1
+ 5e8:	91 f7       	brne	.-28     	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:142
+      applyDisarm(readDisarm());
+      if (state == ARMED) sleepNow(false);
+      break;
+    }
+    case ENTRY: {
+      applyDisarm(readDisarm());
+ 5ea:	da dd       	rcall	.-1100   	; 0x1a0 <readDisarm()>
+ 5ec:	df de       	rcall	.-578    	; 0x3ac <applyDisarm(unsigned char)>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:143
+      if (state != ENTRY) break;
+ 5ee:	80 91 71 00 	lds	r24, 0x0071	; 0x800071 <state>
+ 5f2:	81 30       	cpi	r24, 0x01	; 1
+ 5f4:	61 f7       	brne	.-40     	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:144
+      Loop l = openLoop();
+ 5f6:	2c de       	rcall	.-936    	; 0x250 <openLoop()>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:145
+      if (l == PANEL || l == TILT) { lastLoop = l; showLoop(l); enter(SIREN); break; }
+ 5f8:	9e ef       	ldi	r25, 0xFE	; 254
+ 5fa:	98 0f       	add	r25, r24
+ 5fc:	92 30       	cpi	r25, 0x02	; 2
+ 5fe:	08 f0       	brcs	.+2      	; 0x602 <main+0xbc>
+ 600:	55 c0       	rjmp	.+170    	; 0x6ac <main+0x166>
+ 602:	9b de       	rcall	.-714    	; 0x33a <showLoop(Loop)>
+ 604:	49 c0       	rjmp	.+146    	; 0x698 <main+0x152>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:133
+  enter(openLoop() == NONE ? ARMED : WAIT_CLOSE);
+}
+
+void loop() {
+  uint32_t now = millis();
+  switch (state) {
+ 606:	84 30       	cpi	r24, 0x04	; 4
+ 608:	09 f4       	brne	.+2      	; 0x60c <main+0xc6>
+ 60a:	c7 c0       	rjmp	.+398    	; 0x79a <main+0x254>
+ 60c:	08 f4       	brcc	.+2      	; 0x610 <main+0xca>
+ 60e:	a6 c0       	rjmp	.+332    	; 0x75c <main+0x216>
+ 610:	85 30       	cpi	r24, 0x05	; 5
+ 612:	e9 f6       	brne	.-70     	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:175
+      bypassLeftS -= 8;
+      sleepNow(true);
+      break;
+    }
+    case WAIT_CLOSE: {
+      uint8_t d = readDisarm();
+ 614:	c5 dd       	rcall	.-1142   	; 0x1a0 <readDisarm()>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:176
+      if (d) { applyDisarm(d); break; }
+ 616:	81 11       	cpse	r24, r1
+ 618:	c3 c0       	rjmp	.+390    	; 0x7a0 <main+0x25a>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:177
+      if (openLoop() == NONE) { delay(5000); if (openLoop() == NONE) { enter(ARMED); break; } }
+ 61a:	1a de       	rcall	.-972    	; 0x250 <openLoop()>
+ 61c:	81 11       	cpse	r24, r1
+ 61e:	08 c0       	rjmp	.+16     	; 0x630 <main+0xea>
+ 620:	68 e8       	ldi	r22, 0x88	; 136
+ 622:	73 e1       	ldi	r23, 0x13	; 19
+ 624:	80 e0       	ldi	r24, 0x00	; 0
+ 626:	90 e0       	ldi	r25, 0x00	; 0
+ 628:	4e dd       	rcall	.-1380   	; 0xc6 <delay>
+ 62a:	12 de       	rcall	.-988    	; 0x250 <openLoop()>
+ 62c:	88 23       	and	r24, r24
+ 62e:	71 f2       	breq	.-100    	; 0x5cc <main+0x86>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:178
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW); delay(150);
+ 630:	61 e0       	ldi	r22, 0x01	; 1
+ 632:	89 e0       	ldi	r24, 0x09	; 9
+ 634:	38 de       	rcall	.-912    	; 0x2a6 <digitalWrite>
+ 636:	6a e0       	ldi	r22, 0x0A	; 10
+ 638:	70 e0       	ldi	r23, 0x00	; 0
+ 63a:	80 e0       	ldi	r24, 0x00	; 0
+ 63c:	90 e0       	ldi	r25, 0x00	; 0
+ 63e:	43 dd       	rcall	.-1402   	; 0xc6 <delay>
+ 640:	60 e0       	ldi	r22, 0x00	; 0
+ 642:	89 e0       	ldi	r24, 0x09	; 9
+ 644:	30 de       	rcall	.-928    	; 0x2a6 <digitalWrite>
+ 646:	66 e9       	ldi	r22, 0x96	; 150
+ 648:	70 e0       	ldi	r23, 0x00	; 0
+ 64a:	80 e0       	ldi	r24, 0x00	; 0
+ 64c:	90 e0       	ldi	r25, 0x00	; 0
+ 64e:	3b dd       	rcall	.-1418   	; 0xc6 <delay>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:179
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+ 650:	61 e0       	ldi	r22, 0x01	; 1
+ 652:	89 e0       	ldi	r24, 0x09	; 9
+ 654:	28 de       	rcall	.-944    	; 0x2a6 <digitalWrite>
+ 656:	6a e0       	ldi	r22, 0x0A	; 10
+ 658:	70 e0       	ldi	r23, 0x00	; 0
+ 65a:	80 e0       	ldi	r24, 0x00	; 0
+ 65c:	90 e0       	ldi	r25, 0x00	; 0
+ 65e:	33 dd       	rcall	.-1434   	; 0xc6 <delay>
+ 660:	60 e0       	ldi	r22, 0x00	; 0
+ 662:	89 e0       	ldi	r24, 0x09	; 9
+ 664:	20 de       	rcall	.-960    	; 0x2a6 <digitalWrite>
+ 666:	c2 c0       	rjmp	.+388    	; 0x7ec <main+0x2a6>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:135
+
+void loop() {
+  uint32_t now = millis();
+  switch (state) {
+    case ARMED: {
+      Loop l = openLoop();
+ 668:	f3 dd       	rcall	.-1050   	; 0x250 <openLoop()>
+ 66a:	c8 2f       	mov	r28, r24
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:136
+      if (l != NONE) { lastLoop = l; showLoop(l); bootPi(); enter(l == LID ? ENTRY : SIREN); break; }
+ 66c:	88 23       	and	r24, r24
+ 66e:	b1 f0       	breq	.+44     	; 0x69c <main+0x156>
+ 670:	64 de       	rcall	.-824    	; 0x33a <showLoop(Loop)>
+bootPi():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:75
+}
+
+static void showLoop(Loop l) { digitalWrite(PIN_LOOP_A, l & 1); digitalWrite(PIN_LOOP_B, (l >> 1) & 1); }
+
+static void bootPi() {
+  if (digitalRead(PIN_VOUT) == HIGH) return;  // already on; a tap would shut it down
+ 672:	88 e0       	ldi	r24, 0x08	; 8
+ 674:	79 dd       	rcall	.-1294   	; 0x168 <digitalRead>
+ 676:	01 97       	sbiw	r24, 0x01	; 1
+ 678:	59 f0       	breq	.+22     	; 0x690 <main+0x14a>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:76
+  digitalWrite(PIN_SW, HIGH); delay(300); digitalWrite(PIN_SW, LOW);
+ 67a:	61 e0       	ldi	r22, 0x01	; 1
+ 67c:	8a e0       	ldi	r24, 0x0A	; 10
+ 67e:	13 de       	rcall	.-986    	; 0x2a6 <digitalWrite>
+ 680:	6c e2       	ldi	r22, 0x2C	; 44
+ 682:	71 e0       	ldi	r23, 0x01	; 1
+ 684:	80 e0       	ldi	r24, 0x00	; 0
+ 686:	90 e0       	ldi	r25, 0x00	; 0
+ 688:	1e dd       	rcall	.-1476   	; 0xc6 <delay>
+ 68a:	60 e0       	ldi	r22, 0x00	; 0
+ 68c:	8a e0       	ldi	r24, 0x0A	; 10
+ 68e:	0b de       	rcall	.-1002   	; 0x2a6 <digitalWrite>
+main():
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:136
+void loop() {
+  uint32_t now = millis();
+  switch (state) {
+    case ARMED: {
+      Loop l = openLoop();
+      if (l != NONE) { lastLoop = l; showLoop(l); bootPi(); enter(l == LID ? ENTRY : SIREN); break; }
+ 690:	81 e0       	ldi	r24, 0x01	; 1
+loop():
+ 692:	c1 30       	cpi	r28, 0x01	; 1
+ 694:	09 f4       	brne	.+2      	; 0x698 <main+0x152>
+ 696:	9a cf       	rjmp	.-204    	; 0x5cc <main+0x86>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:145
+    }
+    case ENTRY: {
+      applyDisarm(readDisarm());
+      if (state != ENTRY) break;
+      Loop l = openLoop();
+      if (l == PANEL || l == TILT) { lastLoop = l; showLoop(l); enter(SIREN); break; }
+ 698:	82 e0       	ldi	r24, 0x02	; 2
+ 69a:	98 cf       	rjmp	.-208    	; 0x5cc <main+0x86>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:137
+  uint32_t now = millis();
+  switch (state) {
+    case ARMED: {
+      Loop l = openLoop();
+      if (l != NONE) { lastLoop = l; showLoop(l); bootPi(); enter(l == LID ? ENTRY : SIREN); break; }
+      applyDisarm(readDisarm());
+ 69c:	81 dd       	rcall	.-1278   	; 0x1a0 <readDisarm()>
+ 69e:	86 de       	rcall	.-756    	; 0x3ac <applyDisarm(unsigned char)>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:138
+      if (state == ARMED) sleepNow(false);
+ 6a0:	80 91 71 00 	lds	r24, 0x0071	; 0x800071 <state>
+ 6a4:	81 11       	cpse	r24, r1
+ 6a6:	93 cf       	rjmp	.-218    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:180
+      uint8_t d = readDisarm();
+      if (d) { applyDisarm(d); break; }
+      if (openLoop() == NONE) { delay(5000); if (openLoop() == NONE) { enter(ARMED); break; } }
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW); delay(150);
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+      sleepNow(true);
+ 6a8:	43 dd       	rcall	.-1402   	; 0x130 <sleepNow(bool)>
+ 6aa:	91 cf       	rjmp	.-222    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:146
+    case ENTRY: {
+      applyDisarm(readDisarm());
+      if (state != ENTRY) break;
+      Loop l = openLoop();
+      if (l == PANEL || l == TILT) { lastLoop = l; showLoop(l); enter(SIREN); break; }
+      if (now - stateSince >= ENTRY_MS) { enter(SIREN); break; }
+ 6ac:	80 91 6d 00 	lds	r24, 0x006D	; 0x80006d <stateSince>
+ 6b0:	90 91 6e 00 	lds	r25, 0x006E	; 0x80006e <stateSince+0x1>
+ 6b4:	a0 91 6f 00 	lds	r26, 0x006F	; 0x80006f <stateSince+0x2>
+ 6b8:	b0 91 70 00 	lds	r27, 0x0070	; 0x800070 <stateSince+0x3>
+ 6bc:	a7 01       	movw	r20, r14
+ 6be:	96 01       	movw	r18, r12
+ 6c0:	28 1b       	sub	r18, r24
+ 6c2:	39 0b       	sbc	r19, r25
+ 6c4:	4a 0b       	sbc	r20, r26
+ 6c6:	5b 0b       	sbc	r21, r27
+ 6c8:	da 01       	movw	r26, r20
+ 6ca:	c9 01       	movw	r24, r18
+ 6cc:	80 36       	cpi	r24, 0x60	; 96
+ 6ce:	9a 4e       	sbci	r25, 0xEA	; 234
+ 6d0:	a1 05       	cpc	r26, r1
+ 6d2:	b1 05       	cpc	r27, r1
+ 6d4:	08 f7       	brcc	.-62     	; 0x698 <main+0x152>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:147
+      if (now - lastChirp >= 3000) { chirp(50); lastChirp = now; }
+ 6d6:	80 91 69 00 	lds	r24, 0x0069	; 0x800069 <lastChirp>
+ 6da:	90 91 6a 00 	lds	r25, 0x006A	; 0x80006a <lastChirp+0x1>
+ 6de:	a0 91 6b 00 	lds	r26, 0x006B	; 0x80006b <lastChirp+0x2>
+ 6e2:	b0 91 6c 00 	lds	r27, 0x006C	; 0x80006c <lastChirp+0x3>
+ 6e6:	a7 01       	movw	r20, r14
+ 6e8:	96 01       	movw	r18, r12
+ 6ea:	28 1b       	sub	r18, r24
+ 6ec:	39 0b       	sbc	r19, r25
+ 6ee:	4a 0b       	sbc	r20, r26
+ 6f0:	5b 0b       	sbc	r21, r27
+ 6f2:	da 01       	movw	r26, r20
+ 6f4:	c9 01       	movw	r24, r18
+ 6f6:	88 3b       	cpi	r24, 0xB8	; 184
+ 6f8:	9b 40       	sbci	r25, 0x0B	; 11
+ 6fa:	a1 05       	cpc	r26, r1
+ 6fc:	b1 05       	cpc	r27, r1
+ 6fe:	58 f0       	brcs	.+22     	; 0x716 <main+0x1d0>
+ 700:	82 e3       	ldi	r24, 0x32	; 50
+ 702:	90 e0       	ldi	r25, 0x00	; 0
+ 704:	0b de       	rcall	.-1002   	; 0x31c <chirp(unsigned int)>
+ 706:	c0 92 69 00 	sts	0x0069, r12	; 0x800069 <lastChirp>
+ 70a:	d0 92 6a 00 	sts	0x006A, r13	; 0x80006a <lastChirp+0x1>
+ 70e:	e0 92 6b 00 	sts	0x006B, r14	; 0x80006b <lastChirp+0x2>
+ 712:	f0 92 6c 00 	sts	0x006C, r15	; 0x80006c <lastChirp+0x3>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:148
+      delay(20);
+ 716:	64 e1       	ldi	r22, 0x14	; 20
+ 718:	70 e0       	ldi	r23, 0x00	; 0
+ 71a:	80 e0       	ldi	r24, 0x00	; 0
+ 71c:	90 e0       	ldi	r25, 0x00	; 0
+ 71e:	d3 dc       	rcall	.-1626   	; 0xc6 <delay>
+ 720:	56 cf       	rjmp	.-340    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:152
+      break;
+    }
+    case SIREN: {
+      applyDisarm(readDisarm());
+ 722:	3e dd       	rcall	.-1412   	; 0x1a0 <readDisarm()>
+ 724:	43 de       	rcall	.-890    	; 0x3ac <applyDisarm(unsigned char)>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:153
+      if (state != SIREN) break;
+ 726:	80 91 71 00 	lds	r24, 0x0071	; 0x800071 <state>
+ 72a:	82 30       	cpi	r24, 0x02	; 2
+ 72c:	09 f0       	breq	.+2      	; 0x730 <main+0x1ea>
+ 72e:	4f cf       	rjmp	.-354    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:154
+      if (now - stateSince >= SIREN_MS) { enter(CHIRP); break; }
+ 730:	80 91 6d 00 	lds	r24, 0x006D	; 0x80006d <stateSince>
+ 734:	90 91 6e 00 	lds	r25, 0x006E	; 0x80006e <stateSince+0x1>
+ 738:	a0 91 6f 00 	lds	r26, 0x006F	; 0x80006f <stateSince+0x2>
+ 73c:	b0 91 70 00 	lds	r27, 0x0070	; 0x800070 <stateSince+0x3>
+ 740:	c8 1a       	sub	r12, r24
+ 742:	d9 0a       	sbc	r13, r25
+ 744:	ea 0a       	sbc	r14, r26
+ 746:	fb 0a       	sbc	r15, r27
+ 748:	40 e8       	ldi	r20, 0x80	; 128
+ 74a:	c4 16       	cp	r12, r20
+ 74c:	4f e4       	ldi	r20, 0x4F	; 79
+ 74e:	d4 06       	cpc	r13, r20
+ 750:	42 e1       	ldi	r20, 0x12	; 18
+ 752:	e4 06       	cpc	r14, r20
+ 754:	f1 04       	cpc	r15, r1
+ 756:	f8 f2       	brcs	.-66     	; 0x716 <main+0x1d0>
+ 758:	83 e0       	ldi	r24, 0x03	; 3
+ 75a:	38 cf       	rjmp	.-400    	; 0x5cc <main+0x86>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:159
+      delay(20);
+      break;
+    }
+    case CHIRP: {
+      applyDisarm(readDisarm());
+ 75c:	21 dd       	rcall	.-1470   	; 0x1a0 <readDisarm()>
+ 75e:	26 de       	rcall	.-948    	; 0x3ac <applyDisarm(unsigned char)>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:160
+      if (state != CHIRP) break;
+ 760:	80 91 71 00 	lds	r24, 0x0071	; 0x800071 <state>
+ 764:	83 30       	cpi	r24, 0x03	; 3
+ 766:	09 f0       	breq	.+2      	; 0x76a <main+0x224>
+ 768:	32 cf       	rjmp	.-412    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:161
+      if (now - lastChirp >= 5000) { chirp(80); lastChirp = now; }
+ 76a:	80 91 69 00 	lds	r24, 0x0069	; 0x800069 <lastChirp>
+ 76e:	90 91 6a 00 	lds	r25, 0x006A	; 0x80006a <lastChirp+0x1>
+ 772:	a0 91 6b 00 	lds	r26, 0x006B	; 0x80006b <lastChirp+0x2>
+ 776:	b0 91 6c 00 	lds	r27, 0x006C	; 0x80006c <lastChirp+0x3>
+ 77a:	a7 01       	movw	r20, r14
+ 77c:	96 01       	movw	r18, r12
+ 77e:	28 1b       	sub	r18, r24
+ 780:	39 0b       	sbc	r19, r25
+ 782:	4a 0b       	sbc	r20, r26
+ 784:	5b 0b       	sbc	r21, r27
+ 786:	da 01       	movw	r26, r20
+ 788:	c9 01       	movw	r24, r18
+ 78a:	88 38       	cpi	r24, 0x88	; 136
+ 78c:	93 41       	sbci	r25, 0x13	; 19
+ 78e:	a1 05       	cpc	r26, r1
+ 790:	b1 05       	cpc	r27, r1
+ 792:	08 f2       	brcs	.-126    	; 0x716 <main+0x1d0>
+ 794:	80 e5       	ldi	r24, 0x50	; 80
+ 796:	90 e0       	ldi	r25, 0x00	; 0
+ 798:	b5 cf       	rjmp	.-150    	; 0x704 <main+0x1be>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:166
+      delay(20);
+      break;
+    }
+    case BYPASS: {
+      uint8_t d = readDisarm();
+ 79a:	02 dd       	rcall	.-1532   	; 0x1a0 <readDisarm()>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:167
+      if (d) { applyDisarm(d); break; }
+ 79c:	88 23       	and	r24, r24
+ 79e:	11 f0       	breq	.+4      	; 0x7a4 <main+0x25e>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:176
+      sleepNow(true);
+      break;
+    }
+    case WAIT_CLOSE: {
+      uint8_t d = readDisarm();
+      if (d) { applyDisarm(d); break; }
+ 7a0:	05 de       	rcall	.-1014   	; 0x3ac <applyDisarm(unsigned char)>
+ 7a2:	15 cf       	rjmp	.-470    	; 0x5ce <main+0x88>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:168
+      break;
+    }
+    case BYPASS: {
+      uint8_t d = readDisarm();
+      if (d) { applyDisarm(d); break; }
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+ 7a4:	61 e0       	ldi	r22, 0x01	; 1
+ 7a6:	89 e0       	ldi	r24, 0x09	; 9
+ 7a8:	7e dd       	rcall	.-1284   	; 0x2a6 <digitalWrite>
+ 7aa:	6a e0       	ldi	r22, 0x0A	; 10
+ 7ac:	70 e0       	ldi	r23, 0x00	; 0
+ 7ae:	80 e0       	ldi	r24, 0x00	; 0
+ 7b0:	90 e0       	ldi	r25, 0x00	; 0
+ 7b2:	89 dc       	rcall	.-1774   	; 0xc6 <delay>
+ 7b4:	60 e0       	ldi	r22, 0x00	; 0
+ 7b6:	89 e0       	ldi	r24, 0x09	; 9
+ 7b8:	76 dd       	rcall	.-1300   	; 0x2a6 <digitalWrite>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:169
+      if (bypassLeftS <= 8) { enter(openLoop() == NONE ? ARMED : WAIT_CLOSE); break; }
+ 7ba:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <bypassLeftS>
+ 7be:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <bypassLeftS+0x1>
+ 7c2:	a0 91 67 00 	lds	r26, 0x0067	; 0x800067 <bypassLeftS+0x2>
+ 7c6:	b0 91 68 00 	lds	r27, 0x0068	; 0x800068 <bypassLeftS+0x3>
+ 7ca:	89 30       	cpi	r24, 0x09	; 9
+ 7cc:	91 05       	cpc	r25, r1
+ 7ce:	a1 05       	cpc	r26, r1
+ 7d0:	b1 05       	cpc	r27, r1
+ 7d2:	08 f4       	brcc	.+2      	; 0x7d6 <main+0x290>
+ 7d4:	f5 ce       	rjmp	.-534    	; 0x5c0 <main+0x7a>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:170
+      bypassLeftS -= 8;
+ 7d6:	08 97       	sbiw	r24, 0x08	; 8
+ 7d8:	a1 09       	sbc	r26, r1
+ 7da:	b1 09       	sbc	r27, r1
+ 7dc:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <bypassLeftS>
+ 7e0:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <bypassLeftS+0x1>
+ 7e4:	a0 93 67 00 	sts	0x0067, r26	; 0x800067 <bypassLeftS+0x2>
+ 7e8:	b0 93 68 00 	sts	0x0068, r27	; 0x800068 <bypassLeftS+0x3>
+/home/sven/code/life/node/firmware/life-guard/life-guard.ino:180
+      uint8_t d = readDisarm();
+      if (d) { applyDisarm(d); break; }
+      if (openLoop() == NONE) { delay(5000); if (openLoop() == NONE) { enter(ARMED); break; } }
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW); delay(150);
+      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+      sleepNow(true);
+ 7ec:	81 e0       	ldi	r24, 0x01	; 1
+ 7ee:	5c cf       	rjmp	.-328    	; 0x6a8 <main+0x162>
+
+000007f0 <_exit>:
+exit():
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2278
+ 7f0:	f8 94       	cli
+
+000007f2 <__stop_program>:
+__stop_program():
+/home/jenkins/workspace/avr-gcc-staging/label/debian7-x86_64/gcc-build/avr/avr25/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2280
+ 7f2:	ff cf       	rjmp	.-2      	; 0x7f2 <__stop_program>

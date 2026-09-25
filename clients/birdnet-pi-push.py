@@ -14,6 +14,8 @@ Environment:
     LIFE_HEARTBEAT_CMD  optional: a command printing one JSON heartbeat (the Life node sets
                         `life-heartbeat --json`); it rides on the post, and a post goes out even with no detections
     LIFE_HEARTBEAT_EVENT optional: boot | hourly | shutdown | manual, passed to that command as --event
+    LIFE_HEARTBEAT_APPLY_CMD optional: gets the oracle's heartbeat answer on stdin (the Life node sets
+                        `life-guard apply`, which caches the maintenance window and disarms the guard inside it)
 """
 import json, os, shlex, sqlite3, subprocess, sys, urllib.request
 from datetime import datetime, timezone
@@ -77,3 +79,8 @@ for n, batch in enumerate(batches):
         print(f"pushed {out.get('detections')} detections up to {batch[-1][0]}")
     if "heartbeat" in body:
         print(f"heartbeat: {out.get('heartbeat')}")
+        if os.environ.get("LIFE_HEARTBEAT_APPLY_CMD"):
+            try:
+                subprocess.run(shlex.split(os.environ["LIFE_HEARTBEAT_APPLY_CMD"]), input=json.dumps(out.get("heartbeat") or {}), text=True, timeout=30, check=False)
+            except Exception as e:  # noqa: BLE001
+                print(f"heartbeat apply skipped: {e}", file=sys.stderr)

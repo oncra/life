@@ -15,7 +15,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # packages: Modbus (minimalmodbus is not in Debian, so pip), the modem stack, I2C tools for the Witty Pi,
 # ALSA for the microphone, growpart for the data partition, overlayroot for the read-only root
-apt-get install -y -qq python3-serial python3-pip python3-astral modemmanager network-manager i2c-tools alsa-utils cloud-guest-utils overlayroot unzip >/dev/null
+apt-get install -y -qq python3-serial python3-pip python3-astral modemmanager network-manager i2c-tools alsa-utils cloud-guest-utils overlayroot unzip raspi-utils avrdude >/dev/null
 pip install -q --break-system-packages minimalmodbus
 python3 -c "import minimalmodbus, serial, astral"
 
@@ -23,6 +23,8 @@ python3 -c "import minimalmodbus, serial, astral"
 install -m 0755 "$HERE/life-soil-agent.py" /usr/local/bin/life-soil-agent
 install -m 0755 "$HERE/../clients/birdnet-pi-push.py" /usr/local/bin/life-push
 install -m 0755 "$HERE/life-heartbeat.py" /usr/local/bin/life-heartbeat
+install -m 0755 "$HERE/life-guard.py" /usr/local/bin/life-guard
+install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life-guard/life-guard.hex" /usr/share/life-node/firmware/ && install -m 0755 "$HERE/firmware/life-guard/flash.sh" /usr/share/life-node/firmware/
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
 install -d /usr/share/life-node/schedules /usr/share/life-node/wittypi
@@ -49,10 +51,10 @@ systemctl disable regenerate_ssh_host_keys.service 2>/dev/null || true
 
 # units and timers. The soil and push units read the per-node env from /data; the cursor and the
 # BirdNET database are pinned to /data too, so a power cut never loses what was not yet posted.
-install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service /etc/systemd/system/
+install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service "$HERE"/life-guard.service /etc/systemd/system/
 install -m 0644 "$HERE"/image/life-firstboot.service "$HERE"/image/life-schedule.service "$HERE"/image/birdnet-go.service "$HERE"/image/wittypi.service /etc/systemd/system/
-sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json"\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service
-systemctl enable ssh life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service >/dev/null 2>&1
+sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD=/usr/local/bin/life-guard apply" LIFE_STATE=/data/life-node\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service /etc/systemd/system/life-guard.service
+systemctl enable ssh life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service >/dev/null 2>&1
 systemctl disable userconfig.service 2>/dev/null || true
 
 # the Witty Pi's own installer does this: I2C on, its modules loaded

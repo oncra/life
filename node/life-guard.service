@@ -1,0 +1,12 @@
+[Unit]
+Description=Life node: tamper guard, alarm boot fast path (report the loop and the cell, disarm only with a window)
+After=network-online.target
+Wants=network-online.target
+Before=life-sound.timer
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-guard check
+TimeoutStartSec=120
+[Install]
+WantedBy=multi-user.target

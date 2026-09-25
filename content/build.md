@@ -120,7 +120,9 @@ Gate: three unattended cycles completed, and a measured Wh/day in the log.
 
 **3.6 Dry test, then wet test.** Closed box, full cycle, record the 4G signal strength from inside with the lid on: that number decides whether the internal antenna idea survives or whether the pigtail and whip get bought after all. Then five minutes with a garden hose from every angle, open it, look for water. Only then re-measure the draw with the lid on, because a closed painted box in the sun is a thermal question and a warm Pi is a thirstier Pi.
 
-Gate: a closed box completes a cycle, the signal strength is written down, and the inside is dry.
+**3.7 The guard.** Build `node/firmware/life-guard` on the perfboard (pinout in its README), stack it on the Witty Pi's extension header, flash it from the Pi with `flash.sh`, set `GUARD=1` in the env. Reed in the lid with its magnet opposite; reed on the panel bracket, magnet on the frame; tilt switch upright on the plate. Then the four tests, in this order, with the siren wired last: (1) `life-guard status` reads `armed` with the lid closed and names the right loop with each contact opened in turn; (2) lid open with no window: chirps, the Pi boots, the bench place shows a TAMPER alert with loop `lid` inside a minute, siren at sixty seconds; (3) `PUT .../maintenance {"hours": 1}` on the oracle, lid open: chirps, then the LED goes green and it stops; (4) window set, lid closed, wait for the hourly heartbeat, open: no chirp at all. Record the seconds from lid to green in the log. That number is what the farmer will live with.
+
+Gate: a closed box completes a cycle, the signal strength is written down, the inside is dry, and the guard passes its four tests.
 
 ## Stage 4. The post
 
@@ -134,7 +136,7 @@ Gate: `lastSeenAt` moves within one interval on all three devices, and the next 
 
 ## Stage 5. Soak, fourteen days, hands off
 
-Watch four things and resist the urge to touch anything: the lowest battery voltage each night, the length of the unsent queue, detections per day against the first day, and whether the state partition is growing without bound. The heartbeat shows the last three from the desk. Once in the fourteen days, pull the panel lead for two days: the *silent* alert must arrive after 36 hours and clear on the first heartbeat after power returns. Fourteen days with no intervention is the gate. Anything that needed a visit becomes a line on the kit page's failure list, which is where this design keeps its honesty.
+Watch four things and resist the urge to touch anything: the lowest battery voltage each night, the length of the unsent queue, detections per day against the first day, and whether the state partition is growing without bound. The heartbeat shows the last three from the desk. Once in the fourteen days, pull the panel lead for two days: the *silent* alert must arrive after 36 hours and clear on the first heartbeat after power returns. The guard stays armed the whole fortnight; a chirp or a siren that nobody caused is a false alarm, goes on the failure list, and moves its threshold before the node goes to a farm. Fourteen days with no intervention is the gate. Anything that needed a visit becomes a line on the kit page's failure list, which is where this design keeps its honesty.
 
 ## What could send us back, and what we would do
 

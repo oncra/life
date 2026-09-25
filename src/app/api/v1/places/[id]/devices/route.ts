@@ -22,7 +22,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   const place = await findPlace(id);
   if (!place) return json({ error: "not found" }, 404);
-  const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, serial: true, devEui: true, lat: true, lon: true, heightM: true, depthCm: true, installedAt: true, lastSeenAt: true, notes: true } });
+  const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, serial: true, devEui: true, lat: true, lon: true, heightM: true, depthCm: true, installedAt: true, lastSeenAt: true, lastHeartbeatAt: true, maintenanceFrom: true, maintenanceUntil: true, notes: true } });
   return json({ place: place.slug, items: devices });
 }
 

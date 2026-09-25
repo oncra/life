@@ -16,7 +16,7 @@ Environment:
     MODEM_HOST          default 192.168.8.1; set empty to skip the modem
     LIFE_QUEUE          default /var/lib/life-node/queue.jsonl (unsent soil rows)
 """
-import json, os, sys, time, urllib.request, xml.etree.ElementTree as ET
+import json, os, subprocess, sys, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -99,8 +99,25 @@ def metrics():
     return m
 
 
+def guard():
+    """What the tamper guard reports, when the board is fitted (GUARD=1); see life-guard.py."""
+    if os.environ.get("GUARD", "0") != "1":
+        return None
+    try:
+        return json.loads(subprocess.run(["life-guard", "status"], capture_output=True, text=True, timeout=10, check=True).stdout)
+    except Exception as e:  # noqa: BLE001
+        print(f"guard: {e}", file=sys.stderr)
+        return None
+
+
 def build(event):
     hb = {"ts": datetime.now(timezone.utc).isoformat(), "event": event, "metrics": metrics()}
+    g = guard()
+    if g and g.get("enabled"):
+        hb["metrics"]["guardAlarm"] = bool(g.get("alarm"))
+        if g.get("alarm"):
+            hb["event"] = "alarm"
+            hb["tamper"] = {"loop": g.get("loop", "unknown") if g.get("loop") in ("lid", "panel", "tilt") else "unknown"}
     c = cell()
     if c:
         hb["cell"] = c
@@ -115,6 +132,9 @@ def main():
             event = args[i + 1]
     if event not in ("boot", "hourly", "shutdown", "manual"):
         sys.exit("--event must be boot, hourly, shutdown or manual")
+    if "--cell-only" in args:
+        print(json.dumps(cell() or {}))
+        return
     hb = build(event)
     if "--json" in args:
         print(json.dumps(hb))

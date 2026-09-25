@@ -37,7 +37,9 @@ export const CellIn = z.object({
 /** A node's liveness message: when, why, on which cell, and how it is doing. All optional but the shape. */
 export const HeartbeatIn = z.object({
   ts: z.string().datetime({ offset: true }).optional(),
-  event: z.enum(["boot", "hourly", "shutdown", "manual"]).optional(),
+  event: z.enum(["boot", "hourly", "shutdown", "manual", "alarm"]).optional(),
+  /** with event "alarm": which loop opened and what the guard is doing about it */
+  tamper: z.object({ loop: z.enum(["lid", "panel", "tilt", "unknown"]), state: z.enum(["entry", "siren", "chirp", "bypass", "armed"]).optional() }).optional(),
   cell: CellIn.optional(),
   metrics: z.record(z.string(), z.union([z.number(), z.string(), z.boolean(), z.null()])).optional(),
 });
