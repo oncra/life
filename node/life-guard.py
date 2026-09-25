@@ -60,6 +60,7 @@ def parse(ts):
 def cache_window(m):
     """m is the oracle's maintenance object or None."""
     if m and parse(m["until"]) > now():
+        CACHE.parent.mkdir(parents=True, exist_ok=True)
         CACHE.write_text(json.dumps(m))
     elif CACHE.exists():
         CACHE.unlink()
