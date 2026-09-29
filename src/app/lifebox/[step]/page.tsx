@@ -5,6 +5,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { PartsTable } from "@/components/PartsTable";
 import { BenchTable } from "@/components/BenchTable";
 import { Feedback } from "@/components/Feedback";
+import { CopyButtons } from "@/components/CopyButtons";
 
 export function generateStaticParams() { return listSteps().map((s) => ({ step: s.slug })); }
 
@@ -29,6 +30,7 @@ export default async function StepPage({ params }: { params: Promise<{ step: str
           {s.gate && <div className="rounded-lg border border-line bg-white p-3"><div className="text-xs uppercase tracking-wide text-muted">Gate</div><div className="mt-1">{s.gate}</div></div>}
         </div>
       )}
+      <CopyButtons />
       <article className="prose max-w-none mt-6" dangerouslySetInnerHTML={{ __html: s.html }} />
       {parts.length > 0 && (
         <section className="mt-8">

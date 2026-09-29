@@ -37,3 +37,13 @@ body { background: var(--background); color: var(--foreground); }
 .prose blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--muted); margin: 1rem 0; }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 .prose img { max-width: 100%; }
+
+/* Life Box build plan: boxed instructions for a coding agent, and captioned figures */
+.ai-box { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: #f6f5ee; border-radius: 8px; margin: 0.9rem 0; }
+.ai-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.ai-copy { border: 1px solid var(--line); background: #fff; color: var(--foreground); border-radius: 4px; padding: 0.1rem 0.55rem; font-size: 0.75rem; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.ai-copy:hover { border-color: var(--accent); }
+.ai-box pre { margin: 0; max-height: 15rem; overflow: auto; font-size: 0.8rem; border-radius: 0 0 8px 8px; }
+.prose figure { margin: 1.2rem 0; }
+.prose figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+.prose figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.4; }

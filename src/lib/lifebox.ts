@@ -31,8 +31,24 @@ const md = new Marked({
       const text = this.parser.parseInline(tokens);
       return `<h${depth} id="${slugify(text)}">${text}</h${depth}>\n`;
     },
+    // ```ai <title>  ->  a boxed instruction for a coding agent, with a copy button (wired by <CopyButtons/>).
+    code({ text, lang }) {
+      const m = /^ai(?:\s+(.*))?$/.exec(lang ?? "");
+      if (!m) return `<pre><code${lang ? ` class="language-${esc(lang)}"` : ""}>${esc(text)}</code></pre>\n`;
+      const title = m[1] ? `: ${esc(m[1])}` : "";
+      return `<div class="ai-box"><div class="ai-head"><span>For an AI agent${title}</span><button type="button" class="ai-copy">Copy</button></div><pre><code>${esc(text)}</code></pre></div>\n`;
+    },
+    // ![alt](src "caption")  ->  a figure with the caption under it
+    image({ href, title, text }) {
+      const cap = title ? `<figcaption>${esc(title)}</figcaption>` : "";
+      return `<figure><img src="${esc(href)}" alt="${esc(text)}" loading="lazy" />${cap}</figure>`;
+    },
   },
 });
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
 export type StepStatus = "done" | "now" | "next" | "later";
 

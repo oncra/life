@@ -1,21 +1,28 @@
 ---
-title: "Stage 5. Soak"
-short: "Fourteen days, hands off. Anything that needed a visit becomes a line on the failure list."
+title: "Stage 5. Two weeks of not touching it"
+short: "Watch four numbers from the desk. Anything that needed a visit becomes a line on the failure list."
 order: 6
 stage: "5"
-produces: "confidence"
+produces: "confidence, and an honest failure list"
 gate: "fourteen days with no intervention"
 status: later
 parts: []
 ---
 
-# Stage 5. Soak, fourteen days, hands off
+# Stage 5. Two weeks of not touching it
 
-Watch four things from the desk and touch nothing: the lowest battery voltage each night, the length of the unsent queue, detections per day against day one, and whether `/data` grows without bound. The heartbeat carries the last three.
+![The node small in a misty agroforestry alley at dawn](../../public/img/build/s5-soak.webp "Rendered impression, not a photograph. The node earns trust by being boring for two weeks.")
 
-Once in the fortnight, pull the panel lead for two days: the *silent* alert must arrive after 36 hours and clear on the first heartbeat after power returns.
+**What it is.** Watch four things from the desk and resist touching anything: the lowest battery voltage each night, how many readings are waiting unsent, detections per day compared with day one, and whether the storage on the card keeps growing. Once in the fortnight, pull the panel lead for two days: the *silent* alarm must arrive after 36 hours and clear on the first heartbeat after power returns. The guard stays armed the whole time; a chirp nobody caused is a false alarm, goes on the list, and gets its threshold changed before the node goes to a farm.
 
-The guard stays armed the whole time. A chirp or a siren nobody caused is a false alarm: it goes on the failure list and its threshold moves before the node goes to a farm.
+```ai A daily check during the soak, and the report at the end
+S=<place slug>; API=https://life.oncra.org/api/v1; H="authorization: Bearer $LIFE_ADMIN_KEY"
+curl -s -H "$H" $API/places/$S/devices | python3 -c "import sys,json;[print(d['kind'],d.get('depthCm'),d['lastSeenAt'],d['lastHeartbeatAt']) for d in json.load(sys.stdin)['items']]"
+curl -s -H "$H" "$API/places/$S/alerts?all=1" | python3 -c "import sys,json;[print(a['createdAt'][:16],a['kind'],'open' if not a['resolvedAt'] else 'closed') for a in json.load(sys.stdin)['items']]"
+ssh $NODE 'df -h /data | tail -1; wc -l /data/life-node/queue.jsonl 2>/dev/null; journalctl -u birdnet-go --since today | grep -c detection'   # only while the node is awake
+# Keep a small table (day, battery V from the Victron app, queue rows, detections, /data used) in kit/bench-log.csv notes or a new kit/soak-log.csv, by PR.
+# On day 14: write the failure list (anything that needed hands) into the kit page's "Where this design is most likely to fail" section, by PR, and mark this page status: done.
+```
 
 ## Gate
 
