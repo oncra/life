@@ -5,7 +5,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 
 const dir = "content";
-const files = readdirSync(dir).filter((f) => f.endsWith(".md"));
+const files = [...readdirSync(dir).filter((f) => f.endsWith(".md")), ...readdirSync(join(dir, "lifebox")).filter((f) => f.endsWith(".md")).map((f) => join("lifebox", f))];
 const problems = [];
 
 for (const f of files) {

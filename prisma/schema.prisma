@@ -259,3 +259,37 @@ model Job {
 
   @@index([status, createdAt])
 }
+
+enum FeedbackKind {
+  NOTE
+  AI_CHANGE
+}
+
+enum FeedbackStatus {
+  NEW
+  QUEUED
+  RUNNING
+  DONE
+  BLOCKED
+  DISMISSED
+}
+
+/// Feedback on the Life Box build plan (lifebox.oncra.org). A NOTE is shown on the page it was
+/// written on; an AI_CHANGE is queued for the plan's change runner, which applies it to the
+/// plan pages and reports back in `note`.
+model PlanFeedback {
+  id         String         @id @default(cuid())
+  page       String
+  kind       FeedbackKind
+  status     FeedbackStatus @default(NEW)
+  body       String
+  author     String?
+  note       String?
+  changeUrl  String?
+  createdAt  DateTime       @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  @@index([page, createdAt])
+  @@index([status, createdAt])
+}
