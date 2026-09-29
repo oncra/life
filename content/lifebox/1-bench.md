@@ -15,7 +15,7 @@ No enclosure, no battery, no charge controller. The Pi runs from the official 15
 
 **1.1 Inventory against the order list.** Tick the parts table below against the parcels. Meter the SEN0600 leads before applying power: DFRobot publishes no colour code.
 
-**1.2 Measure the Pi alone.** The most important half hour of the build. Every energy number on the kit page rests on "about 5 W while awake" and nobody has measured it. Write three numbers into the bench log: idle at the prompt, boot peak in the first 20 s, steady state with BirdNET-Go running after ten minutes, and the supply voltage under load. Above about 6.5 W awake the summer margin is gone and the schedule or the panel changes.
+**1.2 Measure the Pi alone.** The most important half hour of the build. Every energy number on the kit page rests on "about 5 W while awake" and nobody has measured it. Write three numbers into the bench log: idle at the prompt, boot peak in the first 20 s, steady state with BirdNET-Go running after ten minutes, and the supply voltage under load. Above about 6.5 W awake the summer margin is gone and the schedule or the panel changes. Put the USB-C meter between the power supply and the Pi, not between the Pi and a peripheral, because the Pi 4 takes its power over USB-C.
 
 **1.3 Re-address the probes.** Both ship on Modbus address 1. With **one** probe on the bus:
 
