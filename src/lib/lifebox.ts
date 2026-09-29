@@ -94,6 +94,12 @@ export function getStep(slug: string): Step | null {
   return { ...readMeta(`${slug}.md`), html: md.parse(content) as string, raw: content };
 }
 
+/** The overview's intro (content/lifebox/index.md), rendered with the plan's own rules (ai boxes, figures, links). */
+export function planIntro(): string {
+  const { content } = matter(fs.readFileSync(path.join(root, "index.md"), "utf8"));
+  return md.parse(content) as string;
+}
+
 export function isPlanPage(slug: string): boolean {
   return slug === "index" || (/^[a-z0-9-]+$/.test(slug) && fs.existsSync(path.join(root, `${slug}.md`)));
 }
