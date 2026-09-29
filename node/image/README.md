@@ -1,6 +1,8 @@
 # The golden image
 
-One image, flashed per node. Nothing per-node is baked in: the tokens, hostname, bench WiFi and schedule choice arrive as `life-node.env` on the boot partition, and the first boot moves that file onto the data partition. Build it with `build.sh` (see the header for the exact command); the result is `life-node-v1-<date>.img`, about 12 GiB uncompressed.
+**Download:** the built image is published as a GitHub release of this repository, [`life-node-v1.img.xz`](https://github.com/oncra/life/releases/latest/download/life-node-v1.img.xz) with [`life-node-v1.img.xz.sha256`](https://github.com/oncra/life/releases/latest/download/life-node-v1.img.xz.sha256) beside it (about 0.8 GB compressed, 9 GiB written). Login on the bench: user `life`, password `lifebox`, over SSH at `<NODE_HOSTNAME>.local` (mDNS), unless `life-node.env` sets `NODE_PASSWORD` or `NODE_SSH_KEY`, which it should before a node leaves the desk. Nothing per-node is inside the image, so one download serves every node.
+
+One image, flashed per node. Nothing per-node is baked in: the tokens, hostname, bench WiFi and schedule choice arrive as `life-node.env` on the boot partition, and the first boot moves that file onto the data partition. Build it with `build.sh` (see the header for the exact command); the result is `life-node-v1-<date>.img`, 9 GiB uncompressed (the data partition inside it is 1 GiB and grows to the card at the first boot).
 
 ## Partitions
 
@@ -38,5 +40,5 @@ The UUGear software runs from `/data/wittypi` under `wittypi.service` instead of
 ## Known limits
 
 - `/etc/machine-id` is baked at build time, so nodes from one image share it. Harmless for what the node does; fix if a fleet ever needs per-node journald identity.
-- Password login over SSH is on, for the bench. Turn it off in `sshd-life.conf` before a fleet.
+- Password login over SSH is on, for the bench, with the published default `lifebox`. Set `NODE_PASSWORD` or `NODE_SSH_KEY` in `life-node.env` before a node leaves the desk; turn password login off in `sshd-life.conf` before a fleet.
 - The image has been built and inspected on a workstation. Its first boot on a Pi is stage 0.4's gate in the [build plan](https://life.oncra.org/docs/build).

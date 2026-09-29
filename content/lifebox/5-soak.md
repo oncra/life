@@ -16,6 +16,9 @@ parts: []
 **What it is.** Watch four things from the desk and resist touching anything: the lowest battery voltage each night, how many readings are waiting unsent, detections per day compared with day one, and whether the storage on the card keeps growing. Once in the fortnight, pull the panel lead for two days: the *silent* alarm must arrive after 36 hours and clear on the first heartbeat after power returns. The guard stays armed the whole time; a chirp nobody caused is a false alarm, goes on the list, and gets its threshold changed before the node goes to a farm.
 
 ```ai A daily check during the soak, and the report at the end
+# Life Box build plan, 5-soak (https://life.oncra.org/lifebox/5-soak): A daily check during the soak, and the report at the end. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
 S=<place slug>; API=https://life.oncra.org/api/v1; H="authorization: Bearer $LIFE_ADMIN_KEY"
 curl -s -H "$H" $API/places/$S/devices | python3 -c "import sys,json;[print(d['kind'],d.get('depthCm'),d['lastSeenAt'],d['lastHeartbeatAt']) for d in json.load(sys.stdin)['items']]"
 curl -s -H "$H" "$API/places/$S/alerts?all=1" | python3 -c "import sys,json;[print(a['createdAt'][:16],a['kind'],'open' if not a['resolvedAt'] else 'closed') for a in json.load(sys.stdin)['items']]"

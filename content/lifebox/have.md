@@ -28,7 +28,9 @@ Almost everything the bench needs. The Pi already wears its Witty Pi. Two of the
 | Bench place `bench-tolhuisweg` with three device tokens | oracle | registered 19 Sep; one synthetic soil row and one heartbeat received |
 
 ```ai Check what the repository says we have, and what the oracle has heard
-cd life
+# Life Box build plan, have (https://life.oncra.org/lifebox/have): Check what the repository says we have, and what the oracle has heard. Cold start? Read the first box on https://life.oncra.org/lifebox.
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
+[ -d life ] || git clone -q https://github.com/oncra/life; cd life
 python3 - <<'PY'
 import csv
 rows=[r for r in csv.DictReader(open('kit/order-list.csv')) if r['basket']!='alt']

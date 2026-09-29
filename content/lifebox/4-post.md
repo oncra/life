@@ -26,6 +26,9 @@ parts: [Post and mount, Solar panel, Guard hardware]
 **What it is.** The bench place was a throwaway. Now the real place gets registered with its true outline, three new tokens are written into the node, and you watch the first upload arrive. Note the probes' position to the metre and mark it, so that machinery misses them and a person can find them in five years. Arm the guard and hand the landowner the one rule: green light means safe to open.
 
 ```ai Register the real place, swap the tokens, and watch the first upload
+# Life Box build plan, 4-post (https://life.oncra.org/lifebox/4-post): Register the real place, swap the tokens, and watch the first upload. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
 API=https://life.oncra.org/api/v1; H="authorization: Bearer $LIFE_ADMIN_KEY"
 # 1. the outline as GeoJSON from the person (or draw it at https://life.oncra.org/places/new and read the slug back)
 curl -s -XPOST $API/places -H "$H" -H 'content-type: application/json' -d @place.json

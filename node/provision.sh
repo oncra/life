@@ -15,7 +15,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # packages: Modbus (minimalmodbus is not in Debian, so pip), the modem stack, I2C tools for the Witty Pi,
 # ALSA for the microphone, growpart for the data partition, overlayroot for the read-only root
-apt-get install -y -qq python3-serial python3-pip python3-astral modemmanager network-manager i2c-tools alsa-utils cloud-guest-utils overlayroot unzip raspi-utils avrdude >/dev/null
+apt-get install -y -qq python3-serial python3-pip python3-astral modemmanager network-manager i2c-tools alsa-utils cloud-guest-utils overlayroot unzip raspi-utils avrdude avahi-daemon >/dev/null
 pip install -q --break-system-packages minimalmodbus
 python3 -c "import minimalmodbus, serial, astral"
 
@@ -54,7 +54,7 @@ systemctl disable regenerate_ssh_host_keys.service 2>/dev/null || true
 install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service "$HERE"/life-guard.service /etc/systemd/system/
 install -m 0644 "$HERE"/image/life-firstboot.service "$HERE"/image/life-schedule.service "$HERE"/image/birdnet-go.service "$HERE"/image/wittypi.service /etc/systemd/system/
 sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD=/usr/local/bin/life-guard apply" LIFE_STATE=/data/life-node\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service /etc/systemd/system/life-guard.service
-systemctl enable ssh life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service >/dev/null 2>&1
+systemctl enable ssh avahi-daemon life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service >/dev/null 2>&1
 systemctl disable userconfig.service 2>/dev/null || true
 
 # the Witty Pi's own installer does this: I2C on, its modules loaded
