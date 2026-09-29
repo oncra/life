@@ -118,6 +118,7 @@ export interface Part {
 // The state of a part comes from the purchases ledger (kit/node-1-purchases.csv), matched by shop;
 // the guard basket (R2) is its own reichelt order. Nothing in the ledger means it is still to buy.
 function partState(basket: string, shop: string, checked: string, ledger: Purchase[]): Part["state"] {
+  if (/estimate/i.test(checked)) return "to buy";
   const word = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(" ")[0];
   const w = word(shop);
   let rows = ledger.filter((r) => word(r.shop) === w && !/cancelled/i.test(r.status));
