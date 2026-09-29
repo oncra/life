@@ -27,6 +27,13 @@ set -a; . $DATA/life-node/env; set +a
 H=${NODE_HOSTNAME:-life-node}
 hostname "$H"; echo "$H" > /etc/hostname; sed -i "s/^127\.0\.1\.1.*/127.0.1.1\t$H/" /etc/hosts; grep -q '^127.0.1.1' /etc/hosts || echo -e "127.0.1.1\t$H" >> /etc/hosts
 
+# 3b. the login. Root is a tmpfs overlay, so the password and the SSH key are re-applied at every boot from
+# the env file: NODE_PASSWORD replaces the image's default password ("lifebox"), NODE_SSH_KEY is one public key.
+if [ -n "${NODE_PASSWORD:-}" ]; then echo "life:${NODE_PASSWORD}" | chpasswd && log "password set from the env file"; fi
+if [ -n "${NODE_SSH_KEY:-}" ]; then
+  install -d -m 0700 -o life -g life /home/life/.ssh && printf '%s\n' "$NODE_SSH_KEY" > /home/life/.ssh/authorized_keys && chown life:life /home/life/.ssh/authorized_keys && chmod 0600 /home/life/.ssh/authorized_keys
+fi
+
 # 4. ssh host keys: generated once, kept on /data (sshd_config points there)
 for t in ed25519 rsa; do
   [ -f $DATA/ssh/ssh_host_${t}_key ] || ssh-keygen -q -N "" -t $t -f $DATA/ssh/ssh_host_${t}_key

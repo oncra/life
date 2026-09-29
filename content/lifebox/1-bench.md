@@ -18,7 +18,8 @@ Nothing goes in the box yet. The Pi runs from the white wall supply, through the
 **What it is.** Lay everything out and tick it against the parts table at the bottom of this page. The soil probes come with an undocumented cable: DFRobot publishes no colour code. Before any power goes near them, find out with a multimeter which wire is which (power, ground, A, B).
 
 ```ai Print a tick list of the parts this stage needs
-cd life && python3 - <<'PY'
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Print a tick list of the parts this stage needs. Cold start? Read the first box on https://life.oncra.org/lifebox.
+[ -d life ] || git clone -q https://github.com/oncra/life; cd life && python3 - <<'PY'
 import csv
 want={'Computer','Storage','Bench supply','Instrument','I2S header','Microphone','Mic wiring','RS485 adapter','Soil probe','probe power','Modem','SIM','terminations'}
 for r in csv.DictReader(open('kit/order-list.csv')):
@@ -36,6 +37,7 @@ PY
 **If the awake figure is above about 6.5 W,** stop and say so: the summer margin is gone and either the schedule or the panel changes before anything else is bought.
 
 ```ai Record the three power readings the person read off the meter
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Record the three power readings the person read off the meter. Cold start? Read the first box on https://life.oncra.org/lifebox.
 # Ask for: idle W, boot peak W, BirdNET-Go running W, volts under load. Then, in a fresh branch of the life repo:
 python3 - <<'PY'
 import csv,datetime
@@ -58,6 +60,8 @@ git checkout -b bench/power && git commit -am "Bench log: Pi 4 power measured" &
 **Sanity checks with your hands:** prongs in air should read near zero moisture, prongs in a glass of water near saturation, and a hand around the prongs should move the temperature within a minute.
 
 ```ai Scan the bus, move one probe to address 2, confirm both answer
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Scan the bus, move one probe to address 2, confirm both answer. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
 ssh $NODE 'life-soil-agent --scan'                       # with ONE probe connected: expect one answer at address 1, raw words and decoded values
 ssh $NODE 'life-soil-agent --set-address 2 --addr 1'     # writes register 0x07D0
 ssh $NODE 'life-soil-agent --scan'                       # expect the same probe at address 2
@@ -73,6 +77,9 @@ ssh $NODE 'life-soil-agent --scan'                       # expect addresses 1 an
 **What it is.** With both probes on the cable and the tokens in place, run the soil agent once by hand, then let its timer run it. On the bench place both soil devices should show a fresh "last seen".
 
 ```ai Run the soil agent once and watch both soil devices move on the oracle
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Run the soil agent once and watch both soil devices move on the oracle. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
 ssh $NODE 'sudo systemctl start life-soil.service; sleep 5; journalctl -u life-soil --no-pager -n 20'
 curl -s -H "authorization: Bearer $LIFE_ADMIN_KEY" https://life.oncra.org/api/v1/places/bench-tolhuisweg/devices \
  | python3 -c "import sys,json;[print(d['kind'],d.get('depthCm'),d['lastSeenAt']) for d in json.load(sys.stdin)['items']]"
@@ -86,6 +93,8 @@ curl -s -H "authorization: Bearer $LIFE_ADMIN_KEY" https://life.oncra.org/api/v1
 ![The INMP441 microphone board on four jumper wires to the Pi's stacking header, a phone beside it playing a blackbird video](../../public/img/build/s1-mic.webp "Rendered impression, not a photograph. Pins 18, 19 and 20 (I2S clock, word select, data), 3.3 V and ground; ten centimetres of wire.")
 
 ```ai Check the microphone level, then watch BirdNET-Go for the detection
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Check the microphone level, then watch BirdNET-Go for the detection. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
 ssh $NODE 'arecord -l; arecord -D default -f S32_LE -r 48000 -c 2 -d 5 /tmp/t.wav && sox /tmp/t.wav -n stat 2>&1 | grep -i "rms\|maximum"'
 # Silence plus a flat hiss = wiring or gain. A level that moves when the person claps = good.
 ssh $NODE 'journalctl -u birdnet-go -f'   # keep this open while the person plays a blackbird (Turdus merula) call from a phone
@@ -100,6 +109,9 @@ ssh $NODE 'journalctl -u birdnet-go -f'   # keep this open while the person play
 ![The white 4G stick in the Pi's USB port with its LED lit, a laptop showing the stick's signal page](../../public/img/build/s1-modem.webp "Rendered impression, not a photograph. The stick's own web page at 192.168.8.1 is where the APN is set, once.")
 
 ```ai Take the node onto 4G only, post once, and check the heartbeat and the byte count
+# Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Take the node onto 4G only, post once, and check the heartbeat and the byte count. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
 ssh $NODE 'nmcli radio wifi off; ip -br link; ip route'                 # the stick must be the only route (enx… or usb0)
 ssh $NODE 'curl -s http://192.168.8.1/api/monitoring/traffic-statistics | grep -o "<TotalDownload>[0-9]*\|<TotalUpload>[0-9]*"'   # bytes before
 ssh $NODE 'life-heartbeat --json'                                       # must print plmn and cellId

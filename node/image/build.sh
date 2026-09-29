@@ -5,20 +5,20 @@
 #   sudo LIFE_USER_PASSWORD=... [AUTHORIZED_KEYS=~/.ssh/id_ed25519.pub] \
 #     bash node/image/build.sh raspios-lite-arm64.img.xz birdnet-go-linux-arm64.tar.gz wittyPi.zip out.img
 #
-# Layout of the result (12 GiB image; flash with dd or Raspberry Pi Imager, "no customisation"):
+# Layout of the result (9 GiB image; flash with dd or Raspberry Pi Imager, "no customisation"):
 #   p1  boot, FAT      512 MiB   config.txt, cmdline.txt, and where life-node.env goes before the first boot
 #   p2  root, ext4     ~7.5 GiB  read-only tmpfs overlay at runtime (overlayroot=tmpfs:recurse=0); fixed size
-#   p3  data, ext4     rest      grows to the end of the card at the first boot; everything that must persist
+#   p3  data, ext4     1 GiB     grows to the end of the card at the first boot; everything that must persist
 set -euo pipefail
 [ "$(id -u)" = 0 ] || { echo "run as root"; exit 1; }
 BASE=${1:?base image .img.xz}; BNG_TGZ=${2:?birdnet-go tarball}; WITTY_ZIP=${3:?Witty Pi 4 zip}; OUT=${4:?output .img}
-: "${LIFE_USER_PASSWORD:?set LIFE_USER_PASSWORD for the 'life' user}"
+: "${LIFE_USER_PASSWORD:=lifebox}"   # the published image ships with this default; NODE_PASSWORD in life-node.env replaces it at every boot
 HERE=$(cd "$(dirname "$0")" && pwd); NODE=$(cd "$HERE/.." && pwd); REPO=$(cd "$NODE/.." && pwd)
 WORK=$(mktemp -d); trap 'set +e; umount -R "$WORK/root" 2>/dev/null; [ -n "${LOOP:-}" ] && losetup -d "$LOOP"; rm -rf "$WORK"' EXIT
 echo ">> extracting"; xz -dkc "$BASE" > "$OUT"
-truncate -s 12G "$OUT"
+truncate -s 9G "$OUT"
 # root to 8 GiB, data partition after it (sector numbers from the 2026-09-15 Pi OS layout: boot at 16384, root at 1064960)
-printf 'label: dos\nunit: sectors\nsector-size: 512\n\n1 : start=16384, size=1048576, type=c\n2 : start=1064960, size=15712256, type=83\n3 : start=16777216, size=8388608, type=83\n' | sfdisk -q "$OUT"
+printf 'label: dos\nunit: sectors\nsector-size: 512\n\n1 : start=16384, size=1048576, type=c\n2 : start=1064960, size=15712256, type=83\n3 : start=16777216, size=2097152, type=83\n' | sfdisk -q "$OUT"
 LOOP=$(losetup -fP --show "$OUT")
 e2fsck -fp "${LOOP}p2" >/dev/null; resize2fs "${LOOP}p2" >/dev/null 2>&1; mkfs.ext4 -q -L life-data "${LOOP}p3"
 mkdir -p "$WORK/root" && mount "${LOOP}p2" "$WORK/root" && mount "${LOOP}p1" "$WORK/root/boot/firmware"

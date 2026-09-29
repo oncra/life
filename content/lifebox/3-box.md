@@ -20,7 +20,8 @@ Only now does anything go into the enclosure, because everything in it has alrea
 **What it is.** The three drawings of the mount, the wiring and the energy balance still assume a panel of 1010 by 540 mm. Whatever panel was bought, the drawings are regenerated from their scripts with the real size before anyone drills. Never hand-edit a drawing.
 
 ```ai Regenerate the three drawings with the real panel size
-cd life && grep -n "1010\|540" kit/draw-low-mount.py kit/draw-wiring.py kit/draw-energy.py
+# Life Box build plan, 3-box (https://life.oncra.org/lifebox/3-box): Regenerate the three drawings with the real panel size. Cold start? Read the first box on https://life.oncra.org/lifebox.
+[ -d life ] || git clone -q https://github.com/oncra/life; cd life && grep -n "1010\|540" kit/draw-low-mount.py kit/draw-wiring.py kit/draw-energy.py
 # Change the panel width/height constants to the bought panel (ask the person; the 100 W Enjoy Solar is 1190 x 540 mm, 8.8 kg), then:
 python3 kit/draw-low-mount.py && python3 kit/draw-wiring.py && python3 kit/draw-energy.py
 git checkout -b box/drawings && git commit -am "Drawings: real panel size" && git push -u origin box/drawings && gh pr create --fill
@@ -53,6 +54,8 @@ git checkout -b box/drawings && git commit -am "Drawings: real panel size" && gi
 ![The closed green enclosure on a post being sprayed with a garden hose](../../public/img/build/s3-hose.webp "Rendered impression, not a photograph. Five minutes from every angle, then open and look.")
 
 ```ai Read the signal from inside the closed box and compare with the desk baseline
+# Life Box build plan, 3-box (https://life.oncra.org/lifebox/3-box): Read the signal from inside the closed box and compare with the desk baseline. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
 ssh $NODE 'curl -s http://192.168.8.1/api/device/signal | grep -o "<rsrp>[^<]*\|<rsrq>[^<]*\|<sinr>[^<]*"'
 # Do this once with the lid off (desk baseline, bench-log row 1.6) and once with the lid closed and painted (row 3.6).
 # More than about 10 dB worse inside = tell the person: the CRC9 pigtail, SMA extension and whip from the order list's alt rows get bought.
@@ -63,6 +66,9 @@ ssh $NODE 'curl -s http://192.168.8.1/api/device/signal | grep -o "<rsrp>[^<]*\|
 **What it is.** A small board with a tiny chip watches three switches: one in the lid, one on the panel bracket, one that feels tilt. If the lid opens without permission it chirps for a minute while the Pi wakes up and asks the oracle whether a maintenance window is open; if not, the siren goes off and the oracle raises a *tamper* alarm. A green light through the wall tells the landowner it is safe to open. Build the board, flash the chip from the Pi, fit the switches, and run the four tests in the box below, siren wired last.
 
 ```ai Flash the guard from the Pi and run the four tests in order
+# Life Box build plan, 3-box (https://life.oncra.org/lifebox/3-box): Flash the guard from the Pi and run the four tests in order. Cold start? Read the first box on https://life.oncra.org/lifebox.
+NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+: "${LIFE_ADMIN_KEY:?export LIFE_ADMIN_KEY first: the oracle steward key from the plan maintainer, or your own oracle ADMIN_API_KEY}"
 ssh $NODE 'cd /usr/local/lib/life-guard 2>/dev/null || cd ~/life/node/firmware/life-guard; sudo ./flash.sh'    # writes the hex over GPIO
 ssh $NODE 'sudo sed -i "s/^GUARD=.*/GUARD=1/" /data/life-node/life-node.env; life-guard status --json'          # test 1: armed, and each loop named as the person opens it
 # test 2: person opens the lid with no window: expect chirps, Pi boots, then within a minute:
