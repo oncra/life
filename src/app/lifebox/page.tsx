@@ -1,21 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
-import fs from "node:fs";
-import path from "node:path";
-import matter from "gray-matter";
-import { marked } from "marked";
-import { listSteps, planTotals, purchases } from "@/lib/lifebox";
+import { listSteps, planTotals, purchases, planIntro } from "@/lib/lifebox";
+import { CopyButtons } from "@/components/CopyButtons";
 import { StatusPill } from "@/components/StatusPill";
 import { Feedback } from "@/components/Feedback";
 
 export default function LifeboxHome() {
   const steps = listSteps();
   const t = planTotals();
-  const { content } = matter(fs.readFileSync(path.join(process.cwd(), "content", "lifebox", "index.md"), "utf8"));
-  const intro = marked.parse(content.replace(/\]\(\.\.\/([a-z0-9-]+)\.md\)/g, "](/docs/$1)"), { gfm: true }) as string;
+  const intro = planIntro();
   const led = purchases();
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      <CopyButtons />
       <div className="grid md:grid-cols-5 gap-8 items-start">
         <div className="md:col-span-3">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Life Box: the build plan</h1>
