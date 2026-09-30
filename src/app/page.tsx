@@ -126,7 +126,7 @@ export default async function Home() {
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           {[
             ["Steward (farmer, land manager)", "Register your place, get the satellite readings today, then add a recorder and a probe.", "/docs/guide-steward"],
-            ["Installer / node host", "Build and mount the standard node: one solar 4G box on a post, no farm network. Bill of materials, prices, order list.", "/docs/kit"],
+            ["Installer / node host", "Build a Life Box: one solar 4G box on a post, no farm network. Step-by-step plan with parts, photos and instructions for an AI agent.", "/lifebox"],
             ["Verifier", "Random and triggered visits. What to look at, what to record, how to file it.", "/docs/roles"],
             ["Funder, buyer, registry", "Read verdicts by API, pin a method version, let life set the carbon sampling burden.", "/docs/api"],
             ["Researcher / methodologist", "Propose changes to the seven readings. Everything is open and reproducible.", "/docs/spec"],
