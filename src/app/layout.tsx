@@ -20,6 +20,7 @@ const nav = [
   ["/docs", "Guides"],
   ["/docs/api", "API"],
 ];
+const build = ["/lifebox", "Build a Life Box"];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,7 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="font-semibold tracking-tight flex items-center gap-2 shrink-0 whitespace-nowrap">
               <span className="inline-block w-3 h-3 rounded-full bg-accent" /> Life oracle
             </Link>
-            <nav className="flex gap-4 text-sm text-muted overflow-x-auto">
+            <nav className="flex gap-4 text-sm text-muted overflow-x-auto items-center">
+              <Link href={build[0]} className="whitespace-nowrap rounded-full bg-accent text-white px-3 py-1 font-medium">{build[1]}</Link>
               {nav.map(([href, label]) => (
                 <Link key={href} href={href} className="hover:text-foreground whitespace-nowrap">{label}</Link>
               ))}
