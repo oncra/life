@@ -20,9 +20,9 @@ export default async function StepPage({ params }: { params: Promise<{ step: str
   const parts = partsFor(s.parts);
   const bench = s.stage !== undefined ? benchLog(s.stage) : [];
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="flex items-center gap-3 text-sm text-muted">
-        <Link href="/lifebox" className="hover:text-foreground">Build plan</Link><span>/</span><span>{s.title}</span><StatusPill status={s.status} />
+    <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+        <Link href="/lifebox" className="hover:text-foreground">← Build plan</Link><StatusPill status={s.status} />
       </div>
       {(s.produces || s.gate) && (
         <div className="mt-4 grid sm:grid-cols-2 gap-3 text-sm">
@@ -46,9 +46,9 @@ export default async function StepPage({ params }: { params: Promise<{ step: str
           <BenchTable rows={bench} />
         </section>
       )}
-      <nav className="mt-10 flex justify-between text-sm">
-        {prev ? <Link href={`/lifebox/${prev.slug}`} className="rounded-md border border-line bg-white px-3 py-2 hover:border-accent">← {prev.title}</Link> : <span />}
-        {next ? <Link href={`/lifebox/${next.slug}`} className="rounded-md bg-accent text-white px-3 py-2">{next.title} →</Link> : <Link href="/lifebox" className="rounded-md border border-line bg-white px-3 py-2">Back to the plan</Link>}
+      <nav className="mt-10 flex flex-col sm:flex-row gap-2 sm:justify-between text-sm">
+        {prev ? <Link href={`/lifebox/${prev.slug}`} className="rounded-md border border-line bg-white px-3 py-2 hover:border-accent text-center">← {prev.title}</Link> : <span />}
+        {next ? <Link href={`/lifebox/${next.slug}`} className="rounded-md bg-accent text-white px-3 py-2 text-center">{next.title} →</Link> : <Link href="/lifebox" className="rounded-md border border-line bg-white px-3 py-2">Back to the plan</Link>}
       </nav>
       <Feedback page={step} />
     </div>

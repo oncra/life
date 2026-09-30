@@ -53,8 +53,8 @@ export function Feedback({ page }: { page: string }) {
       <p className="text-sm text-muted mt-1">A note is shown here for everyone. An AI change is applied to the plan by an AI running on the maintainer&apos;s own account: it edits these pages (and the bench log), publishes, and writes back what it did or why it held off.</p>
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={2000} placeholder="What is wrong, missing, or should be measured here?" className="mt-3 w-full rounded-md border border-line p-2 text-sm" />
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <input value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={60} placeholder="Your name (optional)" className="rounded-md border border-line p-2 text-sm w-44" />
-        {askCode && <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={80} placeholder="Change code" className="rounded-md border border-line p-2 text-sm w-40" type="password" />}
+        <input value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={60} placeholder="Your name (optional)" className="rounded-md border border-line p-2 text-sm w-full sm:w-44" />
+        {askCode && <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={80} placeholder="Change code" className="rounded-md border border-line p-2 text-sm w-full sm:w-40" type="password" />}
         <button disabled={busy} onClick={() => submit("NOTE")} className="rounded-md border border-line px-3 py-2 text-sm hover:border-accent disabled:opacity-50">Leave a note</button>
         <button disabled={busy} onClick={() => submit("AI_CHANGE")} className="rounded-md bg-accent text-white px-3 py-2 text-sm font-medium disabled:opacity-50">AI change</button>
         {!askCode && <button type="button" onClick={() => setAskCode(true)} className="text-xs text-muted underline">have a change code?</button>}

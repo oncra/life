@@ -26,8 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         <header className="border-b border-line bg-background/90 backdrop-blur sticky top-0 z-[1000]">
-          <div className="mx-auto max-w-6xl px-4 h-14 flex items-center gap-6">
-            <Link href="/" className="font-semibold tracking-tight flex items-center gap-2">
+          <div className="mx-auto max-w-6xl px-4 h-12 md:h-14 flex items-center gap-4 md:gap-6 text-sm">
+            <Link href="/" className="font-semibold tracking-tight flex items-center gap-2 shrink-0 whitespace-nowrap">
               <span className="inline-block w-3 h-3 rounded-full bg-accent" /> Life oracle
             </Link>
             <nav className="flex gap-4 text-sm text-muted overflow-x-auto">

@@ -11,11 +11,11 @@ export default function LifeboxHome() {
   const intro = planIntro();
   const led = purchases();
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
       <CopyButtons />
       <div className="grid md:grid-cols-5 gap-8 items-start">
         <div className="md:col-span-3">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Life Box: the build plan</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Life Box: the build plan</h1>
           <div className="prose mt-4 text-[0.98rem]" dangerouslySetInnerHTML={{ __html: intro }} />
         </div>
         <div className="md:col-span-2">
@@ -47,7 +47,7 @@ export default function LifeboxHome() {
       <h2 className="mt-10 text-xl font-semibold">Orders for node 1</h2>
       <p className="text-sm text-muted mt-1">Read from <a className="underline" href="https://github.com/oncra/life/blob/main/kit/node-1-purchases.csv">kit/node-1-purchases.csv</a>.</p>
       <div className="mt-3 overflow-x-auto rounded-lg border border-line bg-white">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[560px] text-sm">
           <thead className="bg-[#f1efe6] text-left"><tr><th className="p-2">Date</th><th className="p-2">Shop</th><th className="p-2">What</th><th className="p-2 text-right">EUR</th><th className="p-2">Status</th></tr></thead>
           <tbody>
             {led.map((r, i) => (
