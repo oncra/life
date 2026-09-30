@@ -45,13 +45,14 @@ curl -s -H "authorization: Bearer $LIFE_ADMIN_KEY" https://life.oncra.org/api/v1
 
 ## 2.3 Pull the plug, three times
 
-**What it is.** The most likely failure in a field is power that goes away mid-sentence. Pull the battery lead while the node is awake and working, three times. Each time it must come back on its own, with nothing lost from the card and nothing lost from the queue. Ten minutes on a desk; this is the test that decides whether the read-only root design earns its keep.
+**What it is.** The most likely failure in a field is power that goes away mid-sentence. Pull the battery lead while the node is awake and working, three times. Each time it must come back on its own, with nothing lost from the card and nothing lost from the queue. Ten minutes on a desk; this is the test that decides whether the read-only root design earns its keep. "On its own" means without a press on the Witty Pi's K1 button: the image sets the board to switch the Pi on as soon as power arrives (default ON). Node 1's board came from the factory set to wait for the button.
 
 ```ai After each of the three brown-outs, check the node came back clean
 # Life Box build plan, 2-power (https://life.oncra.org/lifebox/2-power): After each of the three brown-outs, check the node came back clean. Cold start? Read the first box on https://life.oncra.org/lifebox.
 NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
 ssh $NODE 'uptime; sudo dmesg | grep -i -E "ext4-fs error|corrupt" | head; journalctl -b --no-pager -p err | head; ls -la /data/life-node/'
 ssh $NODE 'life-soil-agent --scan | head -3'   # probes still answer
+ssh $NODE 'journalctl -b --no-pager -o cat | grep life-wittypi'   # must say "in the supply path" and "default ON 1"
 # Pass = three clean returns. Record 3 of 3 in bench-log row 2.3, with any error lines in the notes.
 ```
 
