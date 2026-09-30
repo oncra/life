@@ -14,11 +14,11 @@ export default function LifeboxHome() {
     <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
       <CopyButtons />
       <div className="grid md:grid-cols-5 gap-8 items-start">
-        <div className="md:col-span-3">
+        <div className="md:col-span-3 min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Life Box: the build plan</h1>
           <div className="prose mt-4 text-[0.98rem]" dangerouslySetInnerHTML={{ __html: intro }} />
         </div>
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 min-w-0">
           <Image src="/img/life-node-impression.webp" alt="Impression of the Life Box: a small green box on a wooden post under a tilted solar panel, a skylark on the panel" width={1600} height={893} className="rounded-lg border border-line w-full" priority />
           <div className="grid grid-cols-3 gap-2 mt-3 text-center text-sm">
             <div className="rounded-lg border border-line bg-white p-3"><div className="text-xl font-semibold">{t.linesBought}/{t.lines}</div><div className="text-xs text-muted">part lines bought</div></div>
