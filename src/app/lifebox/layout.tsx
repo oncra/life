@@ -12,17 +12,17 @@ export default function LifeboxLayout({ children }: { children: React.ReactNode 
   return (
     <div className="lifebox">
       <div className="border-b border-line bg-white/70">
-        <div className="mx-auto max-w-5xl px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <div className="mx-auto max-w-5xl px-4 py-2 flex items-center gap-x-4 text-sm overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
           <Link href="/lifebox" className="font-semibold">Life Box</Link>
-          <span className="text-muted">build plan</span>
-          <nav className="flex flex-wrap gap-x-3 gap-y-1 text-muted">
+          <span className="text-muted hidden sm:inline">build plan</span>
+          <nav className="flex gap-x-3 text-muted">
             {steps.map((s) => (
               <Link key={s.slug} href={`/lifebox/${s.slug}`} className="hover:text-foreground whitespace-nowrap">
-                {s.stage !== undefined ? `Stage ${s.stage}` : s.title}
+                {s.stage !== undefined ? <><span className="sm:hidden">S{s.stage}</span><span className="hidden sm:inline">Stage {s.stage}</span></> : <><span className="sm:hidden">Have</span><span className="hidden sm:inline">{s.title}</span></>}
               </Link>
             ))}
           </nav>
-          <a href="https://life.oncra.org/docs/build" className="ml-auto text-muted hover:text-foreground whitespace-nowrap">Long form</a>
+          <a href="https://life.oncra.org/docs/build" className="ml-auto pl-4 text-muted hover:text-foreground whitespace-nowrap">Long form</a>
         </div>
       </div>
       {children}

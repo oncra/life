@@ -8,7 +8,7 @@ export function PartsTable({ parts }: { parts: Part[] }) {
   if (!parts.length) return null;
   return (
     <div className="overflow-x-auto rounded-lg border border-line bg-white">
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[640px] text-sm">
         <thead className="bg-[#f1efe6] text-left"><tr><th className="p-2">Part</th><th className="p-2">What</th><th className="p-2">Shop</th><th className="p-2 text-right">Qty</th><th className="p-2 text-right">EUR</th><th className="p-2">State</th></tr></thead>
         <tbody>
           {parts.map((p) => {

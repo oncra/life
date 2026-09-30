@@ -47,3 +47,13 @@ body { background: var(--background); color: var(--foreground); }
 .prose figure { margin: 1.2rem 0; }
 .prose figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); }
 .prose figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.4; }
+
+/* phones */
+@media (max-width: 640px) {
+  .prose h1 { font-size: 1.6rem; }
+  .prose h2 { font-size: 1.2rem; }
+  .prose pre { font-size: 0.78rem; padding: 0.75rem; }
+  .ai-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ai-box pre { font-size: 0.74rem; max-height: 13rem; }
+  .prose table { font-size: 0.85rem; }
+}
