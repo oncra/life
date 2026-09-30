@@ -15,6 +15,7 @@ export default async function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Open the map</Link>
+            <Link href="/lifebox" className="px-4 py-2 rounded-md bg-foreground text-white text-sm font-medium">Build a Life Box yourself →</Link>
             <Link href="/places/new" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Register a place</Link>
             <Link href="/docs/greenpaper" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Read the green paper</Link>
           </div>
@@ -105,16 +106,16 @@ export default async function Home() {
             sizes="(min-width: 768px) 50vw, 100vw"
           />
           <div className="p-6 md:p-8 flex flex-col justify-center">
-            <h2 className="text-2xl font-semibold">One box on one post</h2>
+            <h2 className="text-2xl font-semibold">The Life Box: one box on one post</h2>
             <p className="mt-3 text-sm text-muted leading-relaxed">
-              Two of the three streams come out of a single device. Inside the box a small computer listens and names the birds itself, so only detections leave the field; two probes wired into the same box read moisture and temperature at 10 and 30 cm; one 4G stick on a twelve-euro ten-year SIM carries both. A solar panel doubles as its roof. Nothing stands higher than 1,090 mm, which is how it disappears into a standing crop, and there is no farm network, no gateway and no subscription anywhere in it. About €687 in parts, with the bill of materials, the order list and the failure modes published.
+              Two of the three streams come out of a single device. Inside the box a small computer listens and names the birds itself, so only detections leave the field; two probes wired into the same box read moisture and temperature at 10 and 30 cm; one 4G stick on a twelve-euro ten-year SIM carries both. A solar panel doubles as its roof. Nothing stands higher than 1,090 mm, which is how it disappears into a standing crop, and there is no farm network, no gateway and no subscription anywhere in it. About €840 in parts, with the bill of materials, the order list, the failure modes and a step-by-step build plan published, so anyone can build one.
             </p>
             <p className="mt-3 text-xs text-muted leading-relaxed">
-              The picture is an impression of the design, not a photograph: the kit is ordered and nothing has been built yet.
+              The picture is an impression of the design, not a photograph. The parts for the first box are on the table and the build has started.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/docs/kit" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">See the kit</Link>
-              <Link href="/docs/build" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Follow the build</Link>
+              <Link href="/lifebox" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Build it yourself, step by step →</Link>
+              <Link href="/docs/kit" className="px-4 py-2 rounded-md border border-line text-sm font-medium">See the kit and parts</Link>
             </div>
           </div>
         </div>

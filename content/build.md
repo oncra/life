@@ -6,6 +6,8 @@ order: 4
 
 # Build plan: assembling node 1
 
+> **Building one?** The step-by-step plan, in plain language with instructions for an AI agent at every step, is at **[life.oncra.org/lifebox](https://life.oncra.org/lifebox)**.
+
 The [kit](kit.md) is designed and ordered. Nothing has been built and nothing has been measured. This page is the order of work, written so that someone who is not us can follow it, because that is the point of publishing it.
 
 Two definitions of done, in sequence: **a node on a bench with a meter on it**, then **a node on a post**. The first one is where the design is allowed to be wrong. The second one is where it is not.
