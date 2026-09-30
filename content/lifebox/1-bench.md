@@ -5,7 +5,7 @@ order: 2
 stage: "1"
 produces: "probes, microphone and modem all working loose on a desk, and the first real numbers in the log"
 gate: "both probes answer on their own addresses, one bird detection and two soil rows arrived over 4G, and the awake power draw is written down"
-status: next
+status: now
 parts: [Computer, Storage, Bench supply, Instrument, I2S header, Microphone, Mic wiring, RS485 adapter, Soil probe, probe power, Modem, SIM, terminations]
 ---
 

@@ -5,7 +5,7 @@ order: 1
 stage: "0"
 produces: "a place on the oracle with three tokens, a card that boots, the missing orders placed"
 gate: "the 30 cm probe's device shows a time, and a card boots on the Pi with both timers listed"
-status: now
+status: done
 parts: [SIM]
 ---
 
@@ -37,7 +37,7 @@ for d in '{"kind":"SOUND","model":"Life node v1, BirdNET-Go on Raspberry Pi 4, I
 
 **What it is.** Post one fake soil reading and one fake heartbeat by hand, then check that the oracle shows "last seen" on exactly the device you posted as. This separates "the server works" from "the node works", which otherwise get debugged as one problem at two in the morning.
 
-**Done for two of three.** The 10 cm device was posted to on 19 September, the microphone device received a heartbeat on 25 September. The 30 cm device has never been posted to. That is the one open item.
+**Done on 30 September.** The 10 cm device was posted to on 19 September, the microphone device received a heartbeat on 25 September, and the 30 cm device took its first synthetic row on 30 September; the other two did not move.
 
 ```ai Post one synthetic row as the 30 cm probe and check only that device moved
 # Life Box build plan, 0-before (https://life.oncra.org/lifebox/0-before): Post one synthetic row as the 30 cm probe and check only that device moved. Cold start? Read the first box on https://life.oncra.org/lifebox.
@@ -71,7 +71,7 @@ PY
 
 **What it is.** The node runs one prepared disk image, the "golden image", published with this repository so anyone can download it. Nothing personal is inside it. After writing it to the microSD card you copy one small text file with this node's three tokens onto the card, put the card in the Pi, and power it. The first boot sets itself up and reboots.
 
-**Not done.** The image has been built and inspected on a workstation only. Its first boot on a real Pi is this stage's last gate. Three things must be right in the image or they are wrong in every node built from it: audio clip saving off, all node state on the `/data` partition, per-node settings arriving on the boot partition.
+**Done on 30 September, after four fixes.** The first boot of `image-v1` on a real Pi hung with only the red light on: the build had given the card a new disk identifier while `cmdline.txt` still looked for the old one, so the kernel waited for a root partition that was not there. With that corrected on the card, the Pi came up, grew `/data` to 50 GB and took its settings, and a file on `/data` survived a reboot while a file on root did not. Three more faults showed on the running node: the services read the trailing `# comments` in `life-node.env` as part of the values, BirdNET-Go's config (with clip saving off) had been written where the data partition hides it, and WiFi stayed off because the stock root ships NetworkManager with the radio disabled. All four are fixed in `node/image/` for the next image; on a card flashed from `image-v1`, the box below carries the workarounds. Three things must be right in the image or they are wrong in every node built from it: audio clip saving off, all node state on the `/data` partition, per-node settings arriving on the boot partition.
 
 ![A laptop writing the golden image to a microSD card, the bare Raspberry Pi 4 beside it](../../public/img/build/s0-flash.webp "Rendered impression, not a photograph. Writing the golden image to the card; the Pi waits unpowered.")
 
@@ -90,9 +90,17 @@ B=/media/$USER/bootfs; [ -d /Volumes/bootfs ] && B=/Volumes/bootfs
 cp $B/life-node.env.example $B/life-node.env
 # edit $B/life-node.env with the person: NODE_HOSTNAME=life-node-1, NODE_PASSWORD=<their choice>, the three lo_dev_ tokens from step 0.1,
 #   SCHEDULE=bench, WIFI_SSID and WIFI_PSK of the desk network (or plug in an ethernet cable and leave them empty). Then: sync; eject the card.
+#   An SSH key has spaces, so it goes in single quotes: NODE_SSH_KEY='ssh-ed25519 AAAA... you@laptop'.
+# image-v1 only (fixed for the next image): before ejecting, check the disk id matches cmdline.txt, or the Pi hangs with only the red light on.
+#   Linux: sudo sfdisk --disk-id /dev/sdX   macOS: sudo dd if=/dev/rdiskN bs=512 count=1 | xxd -s 440 -l 4 -p (bytes reversed)
+#   compare with root=PARTUUID=<id>-02 in $B/cmdline.txt; if they differ, ask the person, then: Linux: sudo sfdisk --disk-id /dev/sdX 0x<id>
+#   (macOS: patch bytes 440-443 of sector 0 to the id, little-endian, with a read-check-write of that one sector).
 # The person puts the card in the Pi and powers it through the meter. The first boot takes about 3 minutes and reboots once.
-NODE=life@life-node-1.local    # password "lifebox" until NODE_PASSWORD is set. If .local does not resolve: arp -a | grep -i "dc:a6:32\|e4:5f:01\|d8:3a:dd\|b8:27:eb" gives the Pi's IP
+NODE=life@life-node-1.local    # password "lifebox" until NODE_PASSWORD is set. If .local does not resolve: arp -a | grep -i "dc:a6:32\|e4:5f:1\|d8:3a:dd\|b8:27:eb\|88:a2:9e\|2c:cf:67" gives the Pi's IP
 ssh $NODE 'systemctl list-timers --no-pager | grep -E "life-soil|life-sound"; grep " / " /proc/mounts; touch /data/life-node/probe; ls /data/life-node'
+# image-v1 only: the services read '# comments' in the env as values, and BirdNET-Go's config sits under the /data mount. Fix both once.
+# WiFi on image-v1 needs 'sudo nmcli radio wifi on' after every boot, so use ethernet on the bench until the next image.
+ssh $NODE 'sudo sed -i -E "/^[A-Z0-9_]+=/ s/[[:space:]]+#.*$//" /data/life-node/env; [ -f /data/birdnet-go/config.yaml ] || sudo cp -a /media/root-ro/data/birdnet-go/. /data/birdnet-go/; sudo /usr/local/sbin/life-firstboot; sudo grep -A2 "        export:" /data/birdnet-go/config.yaml'
 ssh $NODE 'sudo reboot'; sleep 90; ssh $NODE 'ls /data/life-node/probe && echo SURVIVED'
 # Pass = both timers listed, the "/" line of /proc/mounts says overlay, and SURVIVED printed. Tell the person; record "0.4 done" on the plan (AI change button).
 ```

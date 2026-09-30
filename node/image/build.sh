@@ -17,11 +17,18 @@ HERE=$(cd "$(dirname "$0")" && pwd); NODE=$(cd "$HERE/.." && pwd); REPO=$(cd "$N
 WORK=$(mktemp -d); trap 'set +e; umount -R "$WORK/root" 2>/dev/null; [ -n "${LOOP:-}" ] && losetup -d "$LOOP"; rm -rf "$WORK"' EXIT
 echo ">> extracting"; xz -dkc "$BASE" > "$OUT"
 truncate -s 9G "$OUT"
+# keep the base image's disk identifier: its cmdline.txt and fstab find root and boot by PARTUUID=<id>-0N,
+# and a new label without label-id gets a random one, so the kernel waits for a root that is not there
+DISKID=$(sfdisk --disk-id "$OUT")
 # root to 8 GiB, data partition after it (sector numbers from the 2026-09-15 Pi OS layout: boot at 16384, root at 1064960)
-printf 'label: dos\nunit: sectors\nsector-size: 512\n\n1 : start=16384, size=1048576, type=c\n2 : start=1064960, size=15712256, type=83\n3 : start=16777216, size=2097152, type=83\n' | sfdisk -q "$OUT"
+printf 'label: dos\nlabel-id: %s\nunit: sectors\nsector-size: 512\n\n1 : start=16384, size=1048576, type=c\n2 : start=1064960, size=15712256, type=83\n3 : start=16777216, size=2097152, type=83\n' "$DISKID" | sfdisk -q "$OUT"
+[ "$(sfdisk --disk-id "$OUT")" = "$DISKID" ] || { echo "disk id changed; the image would not boot"; exit 1; }
 LOOP=$(losetup -fP --show "$OUT")
 e2fsck -fp "${LOOP}p2" >/dev/null; resize2fs "${LOOP}p2" >/dev/null 2>&1; mkfs.ext4 -q -L life-data "${LOOP}p3"
 mkdir -p "$WORK/root" && mount "${LOOP}p2" "$WORK/root" && mount "${LOOP}p1" "$WORK/root/boot/firmware"
+# p3 at /data inside the chroot, so what the build writes there (BirdNET-Go config with clip saving off) lands on
+# the data partition and not on the root directory that p3 hides at runtime
+mkdir -p "$WORK/root/data" && mount "${LOOP}p3" "$WORK/root/data"
 R="$WORK/root"
 echo ">> staging"; mkdir -p "$R/tmp/stage/bng" "$R/tmp/stage/witty" "$R/tmp/stage/node"
 tar xzf "$BNG_TGZ" -C "$R/tmp/stage/bng"; python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$WITTY_ZIP" "$R/tmp/stage/witty"

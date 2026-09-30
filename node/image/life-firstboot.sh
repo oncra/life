@@ -21,6 +21,9 @@ if [ -f $BOOT/life-node.env ]; then
   install -m 0600 $BOOT/life-node.env $DATA/life-node/env && rm -f $BOOT/life-node.env && sync && log "took life-node.env from the boot partition"
 fi
 [ -f $DATA/life-node/env ] || { install -m 0600 /usr/share/life-node/life-node.env.example $DATA/life-node/env; log "no life-node.env yet: using the example, nothing will be posted"; }
+# systemd reads this file as an EnvironmentFile, which keeps a trailing "# comment" as part of the value
+# (LIFE_POST_BATCH="3   # post once..."), so strip those from unquoted values; quoted values are left alone
+sed -i -E '/^[A-Z0-9_]+=[^"'"'"']/ s/[[:space:]]+#.*$//' $DATA/life-node/env
 set -a; . $DATA/life-node/env; set +a
 
 # 3. hostname (root is tmpfs, so this is redone every boot; cheap)
@@ -32,6 +35,15 @@ hostname "$H"; echo "$H" > /etc/hostname; sed -i "s/^127\.0\.1\.1.*/127.0.1.1\t$
 if [ -n "${NODE_PASSWORD:-}" ]; then echo "life:${NODE_PASSWORD}" | chpasswd && log "password set from the env file"; fi
 if [ -n "${NODE_SSH_KEY:-}" ]; then
   install -d -m 0700 -o life -g life /home/life/.ssh && printf '%s\n' "$NODE_SSH_KEY" > /home/life/.ssh/authorized_keys && chown life:life /home/life/.ssh/authorized_keys && chmod 0600 /home/life/.ssh/authorized_keys
+fi
+
+# 3c. clock and radio. Root is tmpfs, so both are set every boot. The schedule runs on local clock time;
+# the stock Raspberry Pi OS root ships NetworkManager with WirelessEnabled=false, so wlan0 stays "unavailable" even
+# with a connection written; this runs before NetworkManager, so turning the radio on here holds for this boot.
+ln -sf /usr/share/zoneinfo/${NODE_TZ:-Europe/Amsterdam} /etc/localtime; echo "${NODE_TZ:-Europe/Amsterdam}" > /etc/timezone
+iw reg set "${WIFI_COUNTRY:-NL}" 2>/dev/null || true
+if [ -n "${WIFI_SSID:-}" ]; then
+  mkdir -p /var/lib/NetworkManager && printf '[main]\nNetworkingEnabled=true\nWirelessEnabled=true\nWWANEnabled=true\n' > /var/lib/NetworkManager/NetworkManager.state
 fi
 
 # 4. ssh host keys: generated once, kept on /data (sshd_config points there)
