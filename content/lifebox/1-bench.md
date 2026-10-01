@@ -55,6 +55,19 @@ git checkout -b bench/power && git commit -am "Bench log: Pi 4 power measured" &
 
 **What it is.** Both probes leave the factory answering to address 1 on the shared cable. Two devices with the same address talk over each other and neither is heard. So connect **one** probe alone, tell it to become address 2, and only then connect the second one. The agent can do this over SSH once the probe is wired to the USB-to-RS485 adapter (A to A, B to B, 5 V and ground from the USB screw terminal).
 
+**One adapter for both probes.** RS485 is a bus: every device on it hangs on the same two wires, and the Pi asks them in turn by address. So the second probe needs no second adapter. It goes into the same terminals as the first:
+
+| Wire of each probe | Goes to |
+| --- | --- |
+| A | the adapter's **A+** terminal, both A wires together |
+| B | the adapter's **B−** terminal, both B wires together |
+| ground | the adapter's **GND** and the ground of the USB screw terminal |
+| power | **5 V** on the USB screw terminal |
+
+Two wires in one terminal: a twin ferrule, or a lever connector with one short wire on to the adapter. A and B swapped breaks nothing, but nobody answers; swap them before suspecting anything else. With leads of 2 m at 9600 baud the bus needs no 120 Ω termination resistor.
+
+Mark the re-addressed probe with tape (address 2, the 30 cm probe) before the second one goes on, because the two look identical. Address 1 is the 10 cm probe, matching `SOIL_1` and `SOIL_2` in `life-node.env`.
+
 ![One soil probe wired to the USB-to-RS485 adapter on the Pi, its prongs standing in a glass of water](../../public/img/build/s1-probes.webp "Rendered impression, not a photograph. One probe at a time on the bus; the glass of water is the saturation test.")
 
 **Sanity checks with your hands:** prongs in air should read near zero moisture, prongs in a glass of water near saturation, and a hand around the prongs should move the temperature within a minute.
@@ -64,6 +77,7 @@ git checkout -b bench/power && git commit -am "Bench log: Pi 4 power measured" &
 NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
 ssh $NODE 'life-soil-agent --scan'                       # with ONE probe connected: expect one answer at address 1, raw words and decoded values
 ssh $NODE 'life-soil-agent --set-address 2 --addr 1'     # writes register 0x07D0
+# if the next scan still shows address 1: some probes take a new address only after a power cycle; unplug the USB screw terminal for a second
 ssh $NODE 'life-soil-agent --scan'                       # expect the same probe at address 2
 # now the person connects the second probe:
 ssh $NODE 'life-soil-agent --scan'                       # expect addresses 1 and 2
