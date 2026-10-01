@@ -84,6 +84,7 @@ model Place {
   apiKeys   ApiKey[]
   jobs      Job[]
   boxes     Box[]
+  access    PlaceAccess[]
 }
 
 model Device {
@@ -311,6 +312,7 @@ model User {
   lastLogin DateTime?
   sessions  Session[]
   boxes     Box[]
+  places    PlaceAccess[]
 }
 
 model LoginCode {
@@ -358,4 +360,19 @@ model Box {
   builtAt      DateTime?
   placedAt     DateTime?
   createdAt    DateTime     @default(now())
+}
+
+/// A person who may see a place exactly and follow it, without a Life Box on it (yet). Granted by an admin or the
+/// place's steward key: POST /api/v1/places/{id}/access.
+model PlaceAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  role      String   @default("owner")
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+  @@index([placeId])
 }

@@ -23,7 +23,7 @@ export function BoxApp({ email, initial }: { email: string | null; initial: Box[
   return <Boxes email={email} initial={initial} />;
 }
 
-function SignIn() {
+export function SignIn({ title = "The software for your Life Box", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own." }: { title?: string; intro?: string } = {}) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -40,8 +40,8 @@ function SignIn() {
   }
   return (
     <div>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">The software for your Life Box</h1>
-      <p className="mt-3 text-muted">We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own.</p>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+      <p className="mt-3 text-muted">{intro}</p>
       {!sent ? (
         <form onSubmit={send} className="mt-6 grid gap-3">
           <label className="font-medium" htmlFor="email">Your email</label>
