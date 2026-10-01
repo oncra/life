@@ -32,6 +32,8 @@ The Pi's 40 pins come through on top of the Witty Pi, along its edge. The microp
 
 From now on the power always goes into the **Witty Pi**, never into the Pi itself: the Witty Pi feeds the Pi, and that is how it can switch it on and off.
 
+![The Raspberry Pi turned over: the memory card sits in the slot on its underside, at the end opposite the USB sockets](../../public/img/build/2026-10-01-card-in-pi.webp "Node 1, turned over: the memory card in its slot on the underside of the Pi, label facing out.")
+
 Do not switch anything on yet.
 
 ## Wire the microphone

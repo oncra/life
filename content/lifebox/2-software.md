@@ -22,7 +22,7 @@ Building the box somewhere else later, or taking it to the field? Make new softw
 
 ## Put it on the memory card
 
-![A laptop writing the software to a microSD card, the bare Raspberry Pi 4 beside it](../../public/img/build/s0-flash.webp "Rendered impression. The card goes in the laptop, not in the Pi, for this step.")
+![The memory card in a card reader plugged into the laptop, the Raspberry Pi with the Witty Pi waiting beside it](../../public/img/build/2026-10-01-card-reader.webp "Node 1: the card goes in a card reader on the laptop for this step, not in the Pi.")
 
 1. Download the file from your box page. Do not unpack it.
 2. Install [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your laptop and open it.
