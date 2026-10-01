@@ -1,12 +1,13 @@
+import { canView } from "@/lib/privacy";
 import { prisma } from "@/lib/db";
 import { json } from "@/lib/auth";
 import { findPlace } from "@/lib/places";
 import { carbonSeries, issuable } from "@/lib/carbon";
 export const dynamic = "force-dynamic";
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const place = await findPlace(id);
-  if (!place) return json({ error: "not found" }, 404);
+  if (!place || !(await canView(place, req))) return json({ error: "not found" }, 404);
   const [sat, soil] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true } }),
     prisma.soilReading.findMany({ where: { device: { placeId: place.id } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
