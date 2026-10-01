@@ -359,6 +359,9 @@ model Box {
   imageBytes   BigInt?
   builtAt      DateTime?
   placedAt     DateTime?
+  /// false: the box was set up for a place that already existed; placing it records where it stands on that place
+  /// and never redraws the boundary
+  ownPlace     Boolean      @default(true)
   createdAt    DateTime     @default(now())
 }
 
