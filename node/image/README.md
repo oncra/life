@@ -23,6 +23,14 @@ A power cut at any moment leaves root untouched, because root is never written. 
 3. Boot. `life-firstboot` grows p3, takes the env file, writes host keys, seeds the Witty Pi scripts. `life-schedule` writes the season's schedule into the Witty Pi. BirdNET-Go starts on the I2S microphone. The soil timer fires every 20 minutes, the push timer hourly (detections plus the heartbeat with the modem's cell), and `life-flush` runs on the way down with a `shutdown` heartbeat, so a planned sleep and a crash look different from the oracle. With `GUARD=1`, `life-guard check` runs before any of that at every boot: on an alarm boot it reports the loop and the cell first and silences the guard only inside a maintenance window.
 4. SSH as `life` with the password given at build time or the key baked in. Check: `systemctl list-timers`, `journalctl -u life-soil`, `ls /data/life-node`.
 
+## One image per node, ready to flash
+
+`personalize.sh` puts a node's `life-node.env` on the boot partition of the golden image and recompresses it, so the builder only downloads, flashes and boots (no root needed: mtools writes the FAT partition inside the file; about 6 minutes on 4 cores). The result holds the node's device tokens and WiFi password, so it is handed over behind a login, never as a release asset.
+
+    bash node/image/personalize.sh life-node-v1.img.xz node.env life-node-1.img.xz
+
+A WiFi name with spaces goes in single quotes (`WIFI_SSID='Office WiFi'`); the script refuses an unquoted value with a space.
+
 ## Changing the root later
 
 Root is read-only, so `apt-get` and edits under `/etc` vanish at the next reboot. To change it: `sudo raspi-config nonint disable_overlayfs && sudo reboot`, make the change, `sudo raspi-config nonint enable_overlayfs && sudo reboot`. Or take out `overlayroot=tmpfs:recurse=0` from `cmdline.txt` on the boot partition from any laptop. Better still, change `provision.sh` and rebuild, so the next node gets it too.
