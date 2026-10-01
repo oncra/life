@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/session";
+import { boxesOf } from "@/lib/boxout";
 import { SignIn } from "@/components/BoxApp";
 import { SignOut } from "@/components/SignOut";
 
@@ -20,7 +21,7 @@ export default async function MePage() {
   }
   const [access, boxes] = await Promise.all([
     prisma.placeAccess.findMany({ where: { userId: user.id }, include: { place: true }, orderBy: { createdAt: "asc" } }),
-    prisma.box.findMany({ where: { userId: user.id }, include: { place: true }, orderBy: { createdAt: "asc" } }),
+    prisma.box.findMany({ where: boxesOf(user.id), include: { place: true }, orderBy: { createdAt: "asc" } }),
   ]);
   const seen = new Set<string>();
   const places = [...access.map((a) => a.place), ...boxes.filter((b) => b.placedAt).map((b) => b.place)].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));

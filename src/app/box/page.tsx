@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/session";
-import { boxLive, boxOut } from "@/lib/boxout";
+import { boxesOf, boxOwnersInclude, ownersOf, boxLive, boxOut } from "@/lib/boxout";
 import { BoxApp } from "@/components/BoxApp";
 import { goldenVersion } from "@/lib/boximage";
 import { ownPlaces } from "@/lib/places";
@@ -14,12 +14,12 @@ export const metadata: Metadata = {
 
 export default async function BoxPage() {
   const user = await currentUser();
-  const boxes = user ? await prisma.box.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, include: { place: { select: { slug: true, name: true } } } }) : [];
+  const boxes = user ? await prisma.box.findMany({ where: boxesOf(user.id), orderBy: { createdAt: "desc" }, include: boxOwnersInclude }) : [];
   const places = user ? await ownPlaces(user.id) : [];
   const golden = await goldenVersion();
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
-      <BoxApp email={user?.email ?? null} places={places} initial={JSON.parse(JSON.stringify(await Promise.all(boxes.map(async (b) => ({ ...boxOut(b, golden), live: await boxLive(b.placeId, b.hostname) })))))} />
+      <BoxApp email={user?.email ?? null} places={places} initial={JSON.parse(JSON.stringify(await Promise.all(boxes.map(async (b) => ({ ...boxOut(b, golden), owners: ownersOf(b), live: await boxLive(b.placeId, b.hostname) })))))} />
     </div>
   );
 }
