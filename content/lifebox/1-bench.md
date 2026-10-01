@@ -15,7 +15,7 @@ Nothing goes in the box yet. The Pi runs from the white wall supply, through the
 
 ## 1.1 Check the parcels against the list
 
-**What it is.** Lay everything out and tick it against the parts table at the bottom of this page. The soil probes come with an undocumented cable: DFRobot publishes no colour code. Before any power goes near them, find out with a multimeter which wire is which (power, ground, A, B).
+**What it is.** Lay everything out and tick it against the parts table at the bottom of this page. Check that each probe lead has four wires in brown, black, yellow and blue, the colours DFRobot publishes for the SEN0600 (see 1.3). A lead with other colours: stop and meter it before any power goes near it.
 
 ```ai Print a tick list of the parts this stage needs
 # Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Print a tick list of the parts this stage needs. Cold start? Read the first box on https://life.oncra.org/lifebox.
@@ -25,7 +25,7 @@ want={'Computer','Storage','Bench supply','Instrument','I2S header','Microphone'
 for r in csv.DictReader(open('kit/order-list.csv')):
     if r['basket']!='alt' and r['item'] in want: print(f"[ ] {r['qty']} x {r['product']}  ({r['shop']})")
 PY
-# Then ask the person for the probe wire colours they metered and write them into kit/bench-log.csv row 1.3 "probe lead colours" (notes column), by pull request.
+# Then ask the person whether both probe leads are brown, black, yellow and blue (DFRobot's code: VCC, GND, 485-A, 485-B); note any difference in kit/bench-log.csv row 1.3 "probe lead colours", by pull request.
 ```
 
 ## 1.2 Measure how much the Pi drinks
@@ -53,20 +53,43 @@ git checkout -b bench/power && git commit -am "Bench log: Pi 4 power measured" &
 
 ## 1.3 Give the two probes different names
 
-**What it is.** Both probes leave the factory answering to address 1 on the shared cable. Two devices with the same address talk over each other and neither is heard. So connect **one** probe alone, tell it to become address 2, and only then connect the second one. The agent can do this over SSH once the probe is wired to the USB-to-RS485 adapter (A to A, B to B, 5 V and ground from the USB screw terminal).
+**What it is.** Both probes leave the factory answering to address 1. They share one cable to the Pi (RS485 is a bus: the Pi asks each device in turn by its address), so two probes on the same address talk over each other and neither is heard. One of them has to become address 2 first, and that only works with that probe **alone** on the cable. So: first one probe, give it address 2, then the second one joins it on the same terminals. One USB-to-RS485 adapter serves both.
 
-**One adapter for both probes.** RS485 is a bus: every device on it hangs on the same two wires, and the Pi asks them in turn by address. So the second probe needs no second adapter. It goes into the same terminals as the first:
+**The wires.** DFRobot's colour code for the SEN0600 lead ([wiki](https://wiki.dfrobot.com/sen0600/)):
 
-| Wire of each probe | Goes to |
-| --- | --- |
-| A | the adapter's **A+** terminal, both A wires together |
-| B | the adapter's **B−** terminal, both B wires together |
-| ground | the adapter's **GND** and the ground of the USB screw terminal |
-| power | **5 V** on the USB screw terminal |
+| Probe wire | Is | Goes to |
+| --- | --- | --- |
+| brown | power, 5 to 30 V | USB screw terminal **VCC** (5 V) |
+| black | ground | USB screw terminal **GND** |
+| yellow | RS485 A | adapter **A+** |
+| blue | RS485 B | adapter **B−** |
 
-Two wires in one terminal: a twin ferrule, or a lever connector with one short wire on to the adapter. A and B swapped breaks nothing, but nobody answers; swap them before suspecting anything else. With leads of 2 m at 9600 baud the bus needs no 120 Ω termination resistor.
+The adapter's own **GND** terminal and the screw terminal's **D−**, **D+** and **ID** stay empty. Ground is already shared through the Pi, because both USB devices plug into it.
 
-Mark the re-addressed probe with tape (address 2, the 30 cm probe) before the second one goes on, because the two look identical. Address 1 is the 10 cm probe, matching `SOIL_1` and `SOIL_2` in `life-node.env`.
+![Wiring diagram. Step 1: one probe, brown to VCC and black to GND on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter. Step 2: the second probe's four wires join the first probe's on the same four terminals, same colour with same colour, two wires per terminal in one shared ferrule.](../../public/img/build/s1-probe-wiring.svg "Step 1 sets the address with one probe; step 2 adds the second probe on the same terminals.")
+
+**Step 1, one probe (the 30 cm one).**
+
+1. Pi off: pull the supply.
+2. Plug the RS485 adapter into one USB port of the Pi and the USB screw terminal into another.
+3. Take one probe; the other stays in its bag. Strip and ferrule its four wires, one ferrule per wire.
+4. Brown into **VCC** and black into **GND** of the USB screw terminal; yellow into **A+** and blue into **B−** of the adapter. One wire per terminal, screws tight, tug each wire.
+5. Pi on. Run the scan and the address write from the box below. The probe answers on 1, then on 2.
+6. If the scan still shows 1: pull the USB screw terminal out for a second and plug it back (some probes only take a new address after a power cycle), then scan again.
+7. Wrap tape round this probe's lead: **"30 cm, address 2"**. The two probes look identical, and from here on the tape is the only way to tell them apart.
+
+**Step 2, both probes.**
+
+1. Pi off again.
+2. Take the four wires of the taped probe out of their terminals and cut off their single ferrules.
+3. Lay the second probe's wires next to them, **same colour with same colour**: the two browns together, the two blacks, the two yellows, the two blues. Never two different colours in one ferrule.
+4. Each pair goes into **one ferrule together**, crimped: take the next size up from the single ferrules in the assortment, the smallest one both wires just slide into. Tug each wire after crimping; neither may pull out.
+5. The four doubled ferrules go back into exactly the same terminals as in step 1: browns to VCC, blacks to GND, yellows to A+, blues to B−.
+6. Pi on, scan: two answers, on 1 and 2. The untaped probe on address 1 goes in at 10 cm, the taped one on address 2 at 30 cm; that matches `SOIL_1` and `SOIL_2` in `life-node.env`.
+
+For the bench only, two wires twisted together under one screw also hold. In the box they get a shared ferrule, because a twisted pair works loose with temperature swings over a season.
+
+**When nothing answers.** Yellow and blue swapped: nothing breaks, but nobody answers. Swap them before suspecting anything else. One answer instead of two in step 2: the taped probe lost its address (power cycle and scan) or one wire of a pair is loose in its ferrule (tug it). No termination resistor is needed on 2 m leads at 9600 baud.
 
 ![One soil probe wired to the USB-to-RS485 adapter on the Pi, its prongs standing in a glass of water](../../public/img/build/s1-probes.webp "Rendered impression, not a photograph. One probe at a time on the bus; the glass of water is the saturation test.")
 
@@ -75,11 +98,12 @@ Mark the re-addressed probe with tape (address 2, the 30 cm probe) before the se
 ```ai Scan the bus, move one probe to address 2, confirm both answer
 # Life Box build plan, 1-bench (https://life.oncra.org/lifebox/1-bench): Scan the bus, move one probe to address 2, confirm both answer. Cold start? Read the first box on https://life.oncra.org/lifebox.
 NODE=${NODE:-life@life-node-1.local}     # the Pi: user life, password "lifebox" unless NODE_PASSWORD was set in life-node.env
+# step 1: ONE probe wired (brown VCC, black GND, yellow A+, blue B-)
 ssh $NODE 'life-soil-agent --scan'                       # with ONE probe connected: expect one answer at address 1, raw words and decoded values
 ssh $NODE 'life-soil-agent --set-address 2 --addr 1'     # writes register 0x07D0
 # if the next scan still shows address 1: some probes take a new address only after a power cycle; unplug the USB screw terminal for a second
 ssh $NODE 'life-soil-agent --scan'                       # expect the same probe at address 2
-# now the person connects the second probe:
+# now step 2: Pi off, the person joins the second probe's wires to the first, same colour in one ferrule, Pi on:
 ssh $NODE 'life-soil-agent --scan'                       # expect addresses 1 and 2
 # Judge the decoded values: in air moisture near 0 %, in water near 100 %, temperature near room temperature.
 # Stable raw words with nonsense values mean the sen0600 profile (node/life-soil-agent.py) is wrong, not the probe: fix the register map from the words, by PR.
