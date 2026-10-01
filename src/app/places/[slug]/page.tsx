@@ -5,6 +5,7 @@ import LifeMap from "@/components/LifeMap";
 import NdviChart from "@/components/NdviChart";
 import { growingSeasonMeans, verdict, type ReadingOut } from "@/lib/readings";
 import { carbonSeries, issuable } from "@/lib/carbon";
+import { canSeeExact, canView, publicPlace } from "@/lib/privacy";
 export const dynamic = "force-dynamic";
 
 const DIM_TEXT: Record<string, [string, string]> = {
@@ -20,8 +21,11 @@ const DIR: Record<string, [string, string]> = { RISING: ["rising", "text-green-8
 
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const place = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
-  if (!place) notFound();
+  const stored = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
+  if (!stored || !(await canView(stored))) notFound();
+  const exact = await canSeeExact(stored);
+  const place = publicPlace(stored, exact);
+  const hidden = stored.locationHidden;
   const [sat, readings, devices, jobs, visits, soilRows, alerts] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" } }),
     prisma.reading.findMany({ where: { placeId: place.id }, orderBy: { computedAt: "desc" } }),
@@ -49,7 +53,8 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         <div>
           <div className="text-xs text-muted"><Link href="/places" className="underline">Places</Link> / {place.slug}</div>
           <h1 className="text-2xl font-semibold mt-1">{place.name}</h1>
-          <div className="text-sm text-muted mt-1">{place.areaHa.toFixed(2)} ha · {place.landUse ?? "land use unknown"} · {place.country ?? ""} · centroid {place.centroidLat.toFixed(4)}, {place.centroidLon.toFixed(4)}</div>
+          <div className="text-sm text-muted mt-1">{place.areaHa.toFixed(2)} ha · {place.landUse ?? "land use unknown"} · {place.country ?? ""} {place.approximate ? <> · location shown to within {((place.approximateRadiusM ?? 1000) / 1000).toFixed(1)} km</> : <> · centroid {place.centroidLat.toFixed(4)}, {place.centroidLon.toFixed(4)}</>}</div>
+          {hidden && exact && <div className="text-xs mt-1 text-muted">You see the exact boundary because this is your place. Everyone else sees a circle of about {((stored.blurRadiusM ?? 1000) / 1000).toFixed(1)} km.</div>}
           {place.description && <p className="mt-2 text-sm max-w-2xl">{place.description}</p>}
         </div>
         <div className={`rounded-lg text-white px-4 py-3 ${vcol[v.verdict]}`}>
@@ -60,7 +65,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
       </div>
 
       <div className="mt-6 grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2"><LifeMap height="360px" focus={place.geometry as unknown as GeoJSON.Geometry} center={[place.centroidLat, place.centroidLon]} zoom={14} /></div>
+        <div className="lg:col-span-2"><LifeMap height="360px" focus={place.geometry as unknown as GeoJSON.Geometry} focusApproximate={place.approximate} center={[place.centroidLat, place.centroidLon]} zoom={place.approximate ? 13 : 14} /></div>
         <div className="rounded-lg border border-line bg-white p-4 text-sm">
           <h2 className="font-semibold">Streams</h2>
           <ul className="mt-2 space-y-1 text-muted">
@@ -134,7 +139,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
             </ul>
           )}
           <table className="mt-2 text-sm w-full"><thead><tr className="text-left text-muted"><th className="py-1">Kind</th><th>Model</th><th>Position</th><th>Installed</th><th>Last seen</th><th>Heartbeat</th></tr></thead>
-            <tbody>{devices.map((d) => <tr key={d.id} className="border-t border-line"><td className="py-1">{d.kind}</td><td>{d.model}</td><td>{d.lat && d.lon ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : ""}{d.heightM ? ` · ${d.heightM} m` : ""}{d.depthCm ? ` · ${d.depthCm} cm` : ""}</td><td>{d.installedAt?.toISOString().slice(0, 10) ?? ""}</td><td>{d.lastSeenAt?.toISOString().slice(0, 16).replace("T", " ") ?? "never"}</td><td>{d.lastHeartbeatAt ? d.lastHeartbeatAt.toISOString().slice(0, 16).replace("T", " ") : ""}{d.maintenanceUntil && d.maintenanceUntil > new Date() ? ` · maintenance until ${d.maintenanceUntil.toISOString().slice(0, 16).replace("T", " ")}` : ""}</td></tr>)}</tbody></table>
+            <tbody>{devices.map((d) => <tr key={d.id} className="border-t border-line"><td className="py-1">{d.kind}</td><td>{d.model}</td><td>{d.lat && d.lon && !place.approximate ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : ""}{d.heightM ? ` · ${d.heightM} m` : ""}{d.depthCm ? ` · ${d.depthCm} cm` : ""}</td><td>{d.installedAt?.toISOString().slice(0, 10) ?? ""}</td><td>{d.lastSeenAt?.toISOString().slice(0, 16).replace("T", " ") ?? "never"}</td><td>{d.lastHeartbeatAt ? d.lastHeartbeatAt.toISOString().slice(0, 16).replace("T", " ") : ""}{d.maintenanceUntil && d.maintenanceUntil > new Date() ? ` · maintenance until ${d.maintenanceUntil.toISOString().slice(0, 16).replace("T", " ")}` : ""}</td></tr>)}</tbody></table>
         </section>
       )}
     </div>

@@ -8,6 +8,7 @@ import { prisma } from "./db";
 import { hashKey, newKey } from "./auth";
 import { slugify, summarize } from "./geo";
 import { queueJob, uniqueSlug } from "./places";
+import { DEFAULT_BLUR_M, reblur } from "./privacy";
 import type { PlaceGeometry } from "./geo";
 
 // A personal Life Box image, made in about half a minute instead of recompressing 9 GiB per box.
@@ -98,7 +99,7 @@ export async function createBox(userId: string, name: string) {
   const geometry = square(DEFAULT_LAT, DEFAULT_LON);
   const s = summarize(geometry);
   const place = await prisma.place.create({
-    data: { name, slug: await uniqueSlug(slugify(`${name}-${hostname}`)), geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, public: false, placed: false, landUse: "not yet placed" },
+    data: { name, slug: await uniqueSlug(slugify(`${name}-${hostname}`)), geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, public: false, placed: false, landUse: "not yet placed", locationHidden: true, blurRadiusM: DEFAULT_BLUR_M },
   });
   const devices = [
     { kind: "SOUND" as const, model: "Life node v1, BirdNET-Go on Raspberry Pi 4, INMP441", heightM: 0.5 },
@@ -167,6 +168,7 @@ export async function placeBox(boxId: string, lat: number, lon: number) {
   const geometry = square(lat, lon);
   const s = summarize(geometry);
   await prisma.place.update({ where: { id: box.placeId }, data: { geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, placed: true, landUse: null } });
+  await reblur(box.placeId); // a box sits at someone's home: the public sees a circle, drawn around the new spot
   await prisma.device.updateMany({ where: { placeId: box.placeId }, data: { lat, lon, installedAt: new Date() } });
   await prisma.box.update({ where: { id: boxId }, data: { placedAt: new Date() } });
   await queueJob("context.enrich", box.placeId);

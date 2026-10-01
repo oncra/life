@@ -3,13 +3,15 @@ import { prisma } from "@/lib/db";
 import { authenticate, canManagePlace, json, unauthorized } from "@/lib/auth";
 import { findPlace } from "@/lib/places";
 import { verdict, type ReadingOut } from "@/lib/readings";
+import { canSeeExact, canView, publicDevice, publicPlace, setLocationHidden } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const place = await findPlace(id);
-  if (!place) return json({ error: "not found" }, 404);
+  if (!place || !(await canView(place, req))) return json({ error: "not found" }, 404);
+  const exact = await canSeeExact(place, req);
   const [devices, readings, sat, jobs, visits] = await Promise.all([
     prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, lat: true, lon: true, installedAt: true, lastSeenAt: true, depthCm: true, heightM: true } }),
     prisma.reading.findMany({ where: { placeId: place.id }, orderBy: { computedAt: "desc" } }),
@@ -20,10 +22,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const periods = [...new Set(readings.map((r) => r.period))].sort().reverse();
   const latest = readings.filter((r) => r.period === periods[0]);
   const list: ReadingOut[] = latest.map((r) => ({ dimension: r.dimension, direction: r.direction, confidence: r.confidence, maturity: r.maturity, evidence: (r.evidence as Record<string, unknown>) ?? {} }));
-  return json({ place, devices, readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
+  return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
 }
 
-const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional() });
+const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional() });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -33,7 +35,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (!canManagePlace(p, place.id)) return unauthorized();
   const parsed = Patch.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "invalid body", issues: parsed.error.issues }, 400);
-  const updated = await prisma.place.update({ where: { id: place.id }, data: parsed.data });
+  const { locationHidden, blurRadiusM, ...rest } = parsed.data;
+  let updated = await prisma.place.update({ where: { id: place.id }, data: rest });
+  if (locationHidden !== undefined || blurRadiusM !== undefined) updated = await setLocationHidden(updated, locationHidden ?? updated.locationHidden, blurRadiusM);
   return json({ place: updated });
 }
 

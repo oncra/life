@@ -1,3 +1,4 @@
+import { canView, canSeeExact, publicDevice } from "@/lib/privacy";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { authenticate, canManagePlace, hashKey, json, newKey, unauthorized } from "@/lib/auth";
@@ -18,12 +19,13 @@ const Body = z.object({
   notes: z.string().max(2000).optional(),
 });
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const place = await findPlace(id);
-  if (!place) return json({ error: "not found" }, 404);
+  if (!place || !(await canView(place, req))) return json({ error: "not found" }, 404);
   const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, serial: true, devEui: true, lat: true, lon: true, heightM: true, depthCm: true, installedAt: true, lastSeenAt: true, lastHeartbeatAt: true, maintenanceFrom: true, maintenanceUntil: true, notes: true } });
-  return json({ place: place.slug, items: devices });
+  const hide = place.locationHidden && !(await canSeeExact(place, req));
+  return json({ place: place.slug, items: devices.map((d) => publicDevice(d, hide)) });
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {

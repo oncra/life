@@ -4,6 +4,7 @@ import { authenticate, canCreatePlace, hashKey, json, newKey, unauthorized } fro
 import { normalizeGeometry, slugify, summarize } from "@/lib/geo";
 import { queueJob, uniqueSlug } from "@/lib/places";
 import { verdict, type ReadingOut } from "@/lib/readings";
+import { publicPlace, setLocationHidden } from "@/lib/privacy";
 import type { Dimension, Direction } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,9 @@ const Body = z.object({
   stewardName: z.string().max(120).optional(),
   stewardContact: z.string().max(200).optional(),
   public: z.boolean().optional(),
+  /** hide the exact boundary from the public; they see a circle of blurRadiusM (default 1000 m) */
+  locationHidden: z.boolean().optional(),
+  blurRadiusM: z.number().int().min(200).max(20_000).optional(),
 });
 
 async function latestVerdicts(placeIds: string[]) {
@@ -38,7 +42,8 @@ async function latestVerdicts(placeIds: string[]) {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const places = await prisma.place.findMany({ where: { public: true }, orderBy: { createdAt: "desc" }, include: { _count: { select: { devices: true, satellite: true } } } });
+  // The list is the public map: a place that hides its location is a circle here for everyone, also for its owner.
+  const places = (await prisma.place.findMany({ where: { public: true }, orderBy: { createdAt: "desc" }, include: { _count: { select: { devices: true, satellite: true } } } })).map((p) => publicPlace(p, false));
   const v = await latestVerdicts(places.map((p) => p.id));
   if (url.searchParams.get("format") === "geojson") {
     return json({
@@ -47,11 +52,11 @@ export async function GET(req: Request) {
         type: "Feature",
         id: p.id,
         geometry: p.geometry,
-        properties: { id: p.id, slug: p.slug, name: p.name, areaHa: p.areaHa, country: p.country, landUse: p.landUse, devices: p._count.devices, observations: p._count.satellite, verdict: v.get(p.id)?.verdict ?? "insufficient" },
+        properties: { id: p.id, slug: p.slug, name: p.name, approximate: p.approximate, approximateRadiusM: p.approximateRadiusM, areaHa: p.areaHa, country: p.country, landUse: p.landUse, devices: p._count.devices, observations: p._count.satellite, verdict: v.get(p.id)?.verdict ?? "insufficient" },
       })),
     });
   }
-  return json({ count: places.length, items: places.map((p) => ({ id: p.id, slug: p.slug, name: p.name, areaHa: p.areaHa, centroid: [p.centroidLon, p.centroidLat], country: p.country, landUse: p.landUse, devices: p._count.devices, observations: p._count.satellite, verdict: v.get(p.id) ?? { verdict: "insufficient", reason: "not yet computed" }, createdAt: p.createdAt })) });
+  return json({ count: places.length, items: places.map((p) => ({ id: p.id, slug: p.slug, name: p.name, areaHa: p.areaHa, centroid: [p.centroidLon, p.centroidLat], approximate: p.approximate, approximateRadiusM: p.approximateRadiusM, country: p.country, landUse: p.landUse, devices: p._count.devices, observations: p._count.satellite, verdict: v.get(p.id) ?? { verdict: "insufficient", reason: "not yet computed" }, createdAt: p.createdAt })) });
 }
 
 export async function POST(req: Request) {
@@ -64,9 +69,11 @@ export async function POST(req: Request) {
   const s = summarize(geom);
   if (s.areaHa > 100_000) return json({ error: "place larger than 100,000 ha; split it" }, 400);
   const slug = await uniqueSlug(slugify(parsed.data.name));
-  const place = await prisma.place.create({
-    data: { ...parsed.data, geometry: geom as object, slug, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon },
+  const { locationHidden, blurRadiusM, ...data } = parsed.data;
+  let place = await prisma.place.create({
+    data: { ...data, geometry: geom as object, slug, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon },
   });
+  if (locationHidden) place = await setLocationHidden(place, true, blurRadiusM);
   const stewardKey = newKey("lo_key");
   await prisma.apiKey.create({ data: { name: `steward:${place.slug}`, role: "STEWARD", keyHash: hashKey(stewardKey), placeId: place.id } });
   await queueJob("context.enrich", place.id);
