@@ -26,7 +26,7 @@ The Witty Pi is the box's alarm clock: it switches the Pi on for the hours it sh
 3. Put the small round battery (CR2032) in its holder on the Witty Pi, if one came with it. It keeps the clock running when the power is off.
 4. Put the memory card into the slot on the underside of the Pi.
 
-![The Witty Pi 4 seated on the Raspberry Pi, the row of 40 pins along its edge, the coin battery in its holder, the meter's cable in the Witty Pi's USB-C socket](../../public/img/build/2026-10-01-witty-pi-on-pi.webp "Node 1: the Witty Pi on the Pi. The 40 pins come through along the left edge; power goes into the Witty Pi's USB-C socket, bottom right.")
+![The Witty Pi 4 seated on the Raspberry Pi, the row of 40 pins along its edge, the coin battery in its holder, the meter's cable in the Witty Pi's USB-C socket](../../public/img/build/2026-10-01-witty-pi-on-pi.webp "Node 1: the Witty Pi on the Pi. The 40 pins come through along the bottom edge; power goes into the Witty Pi's USB-C socket, at the top.")
 
 The Pi's 40 pins come through on top of the Witty Pi, along its edge. The microphone connects to them in the next step.
 
