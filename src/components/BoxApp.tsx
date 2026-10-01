@@ -174,7 +174,7 @@ function BoxCard({ box, me, onChange }: { box: Box; me: string; onChange: () => 
               <div className="font-medium">1. Download the software</div>
               {box.stale ? (
                 <>
-                  <p className="text-sm mt-1">There is newer software since this box's was made. Make it again first; it takes a minute.</p>
+                  <p className="text-sm mt-1">There is newer software since this box&apos;s was made. Make it again first; it takes a minute.</p>
                   {!rebuild && <button className={`${button} inline-block mt-2`} onClick={() => setRebuild(true)}>Make the software again</button>}
                 </>
               ) : (
