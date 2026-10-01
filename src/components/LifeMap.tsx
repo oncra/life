@@ -21,7 +21,7 @@ export interface LifeMapProps {
 
 const VERDICT_COLOR: Record<string, string> = { thriving: "#2f6b3a", holding: "#8a9a2b", declining: "#b3452b", insufficient: "#7a7a72" };
 
-export default function LifeMap({ height = "70vh", center = [52.1, 5.2], zoom = 7, places, fetchPlaces, focus, onDraw, ndviDate }: LifeMapProps) {
+export default function LifeMap({ height = "70vh", center, zoom = 7, places, fetchPlaces, focus, onDraw, ndviDate }: LifeMapProps) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LType.Map | null>(null);
   const drawRef = useRef<{ pts: [number, number][]; layer: LType.Polygon | null; markers: LType.CircleMarker[] }>({ pts: [], layer: null, markers: [] });
@@ -32,7 +32,7 @@ export default function LifeMap({ height = "70vh", center = [52.1, 5.2], zoom = 
     (async () => {
       const L = (await import("leaflet")).default;
       if (cancelled || !el.current) return;
-      const map = L.map(el.current, { center, zoom, zoomControl: true });
+      const map = L.map(el.current, { center: center ?? [52.1, 5.2], zoom, zoomControl: true });
       mapRef.current = map;
 
       const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" });
@@ -63,7 +63,26 @@ export default function LifeMap({ height = "70vh", center = [52.1, 5.2], zoom = 
           layer.bindPopup(`<strong>${p.name ?? ""}</strong><br/>${Number(p.areaHa ?? 0).toFixed(1)} ha · ${p.observations ?? 0} satellite obs · ${p.devices ?? 0} devices<br/>Verdict: <b>${p.verdict ?? "insufficient"}</b><br/><a href="/places/${p.slug}">Open place</a>`);
         },
       }).addTo(map);
-      const addPlaces = (fc: GeoJSON.FeatureCollection) => { placesLayer.addData(fc); };
+      // A field of a few hectares is smaller than a pixel at country or world scale, so every place also gets a
+      // pin at its centre. Pins show until the outline itself is large enough to see.
+      const PIN_MAX_ZOOM = 12;
+      const pins = L.layerGroup();
+      const syncPins = () => { if (map.getZoom() <= PIN_MAX_ZOOM) pins.addTo(map); else pins.remove(); };
+      map.on("zoomend", syncPins);
+      const addPlaces = (fc: GeoJSON.FeatureCollection) => {
+        L.geoJSON(fc, {
+          onEachFeature: (f, layer) => {
+            const p = f.properties ?? {};
+            const at = (layer as LType.Polygon).getBounds().getCenter();
+            L.circleMarker(at, { radius: 7, color: "#ffffff", weight: 2, fillColor: VERDICT_COLOR[(p.verdict as string) ?? "insufficient"], fillOpacity: 1 })
+              .bindTooltip(String(p.name ?? ""))
+              .on("click", () => map.setView(at, Math.max(map.getZoom() + 4, 14)))
+              .addTo(pins);
+          },
+        });
+        placesLayer.addData(fc);
+        syncPins();
+      };
       if (places) addPlaces(places);
       if (fetchPlaces) {
         try { const r = await fetch("/api/v1/places?format=geojson"); if (r.ok) { const fc = await r.json(); addPlaces(fc); if (!focus && fc.features?.length && !center) map.fitBounds(placesLayer.getBounds().pad(0.2)); } } catch {}
