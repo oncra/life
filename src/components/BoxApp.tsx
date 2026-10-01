@@ -5,6 +5,12 @@ type Box = {
   id: string; name: string; hostname: string; nodePassword: string; wifiSsid: string | null;
   imageStatus: "BUILDING" | "READY" | "FAILED"; imageError: string | null; imageBytes: number | null;
   builtAt: string | null; placedAt: string | null; placeSlug: string;
+  live?: Live;
+};
+type Live = {
+  heardAt: string | null; heartbeatAt: string | null; on4g: boolean;
+  detection: { ts: string; species: string; confidence: number } | null;
+  soil: { depthCm: number | null; last: { ts: string; vwc: number | null; tempC: number | null } | null }[];
 };
 
 async function post(url: string, body: unknown) {
@@ -66,13 +72,13 @@ function Boxes({ email, initial }: { email: string; initial: Box[] }) {
   const [adding, setAdding] = useState(initial.length === 0);
   const building = boxes.some((b) => b.imageStatus === "BUILDING");
   useEffect(() => {
-    if (!building) return;
+    if (!boxes.length) return;
     const t = setInterval(async () => {
       const r = await fetch("/api/box/boxes");
       if (r.ok) setBoxes((await r.json()).items);
-    }, 3000);
+    }, building ? 3000 : 60000);
     return () => clearInterval(t);
-  }, [building]);
+  }, [building, boxes.length]);
   async function refresh() { const r = await fetch("/api/box/boxes"); if (r.ok) setBoxes((await r.json()).items); }
   return (
     <div>
@@ -164,6 +170,7 @@ function BoxCard({ box, onChange }: { box: Box; onChange: () => void }) {
               <p className="text-sm mt-1">Card in, power on. The first start takes a few minutes. Then the box sends what it hears and measures by itself.</p>
             </li>
           </ol>
+          {box.live && <Lights live={box.live} />}
           <Place box={box} onChange={onChange} />
         </>
       )}
@@ -237,5 +244,50 @@ function Rebuild({ box, onDone, onCancel }: { box: Box; onDone: () => void; onCa
       <div className="flex gap-3"><button className={button} disabled={busy}>Make new software</button><button type="button" className={quiet} onClick={onCancel}>Cancel</button></div>
       {error && <p className="text-red-700">{error}</p>}
     </form>
+  );
+}
+
+function ago(ts: string | null | undefined, now: number): string {
+  if (!ts || !now) return "";
+  const m = Math.round((now - new Date(ts).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  return h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`;
+}
+
+// The builder's test lights: each step of the build guide ends in "this one turns green".
+function Lights({ live }: { live: Live }) {
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const t = setInterval(tick, 30000);
+    return () => { clearTimeout(first); clearInterval(t); };
+  }, []);
+  const recent = (ts: string | null | undefined, hours: number) => !!ts && !!now && now - new Date(ts).getTime() < hours * 3600e3;
+  const rows: { ok: boolean; label: string; text: string }[] = [
+    { ok: recent(live.heardAt, 2), label: "The box is on", text: live.heardAt ? `last heard ${ago(live.heardAt, now)}` : "not heard from yet" },
+    { ok: !!live.detection, label: "Microphone", text: live.detection ? `${live.detection.species}, ${Math.round(live.detection.confidence * 100)}% sure, ${ago(live.detection.ts, now)}` : "no bird heard yet" },
+    ...live.soil.map((p) => ({
+      ok: !!p.last,
+      label: `Soil probe ${p.depthCm ?? "?"} cm`,
+      text: p.last ? `${p.last.vwc ?? "?"}% moisture, ${p.last.tempC ?? "?"} °C, ${ago(p.last.ts, now)}` : "no reading yet",
+    })),
+    { ok: live.on4g, label: "4G", text: live.on4g ? "the stick has a mobile network" : "no 4G stick seen yet" },
+  ];
+  return (
+    <div className="mt-5 rounded-lg border border-line p-3">
+      <div className="font-medium">What the box has sent</div>
+      <p className="text-sm text-muted">On the desk the box wakes once an hour for 15 minutes; this page checks every minute.</p>
+      <ul className="mt-2 grid gap-1.5 text-sm">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-start gap-2">
+            <span className={`mt-1 inline-block w-3 h-3 rounded-full shrink-0 ${r.ok ? "bg-accent" : "border border-line bg-white"}`} />
+            <span><span className="font-medium">{r.label}</span> <span className="text-muted">{r.text}</span></span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/session";
-import { boxOut } from "@/lib/boxout";
+import { boxLive, boxOut } from "@/lib/boxout";
 import { BoxApp } from "@/components/BoxApp";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function BoxPage() {
   const boxes = user ? await prisma.box.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, include: { place: { select: { slug: true } } } }) : [];
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
-      <BoxApp email={user?.email ?? null} initial={JSON.parse(JSON.stringify(boxes.map(boxOut)))} />
+      <BoxApp email={user?.email ?? null} initial={JSON.parse(JSON.stringify(await Promise.all(boxes.map(async (b) => ({ ...boxOut(b), live: await boxLive(b.placeId) })))))} />
     </div>
   );
 }
