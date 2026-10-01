@@ -12,6 +12,8 @@ Software on the node:
 
 The schedule is seasonal: about ten hours a day from March to October, **one hour a day from November to February**, at a fixed clock time so the winter sample does not drift around the daily cycle. Set it in the Witty Pi schedule script. The soil timer keeps its 20-minute interval; in winter that simply yields three readings on the hour the node is awake, which is plenty for soil that moves slowly.
 
+**Probe addresses set themselves.** Both probes ship on Modbus address 1. With `PROBE_ADDRESSES=1,2`, the first time the soil agent finds exactly one probe on 1 and none on 2, it moves that probe to 2 and writes `/data/life-node/probe-2-set`, so it happens once per card. The build guide has the builder connect the 30 cm probe alone first, then add the 10 cm one. `PROBE_AUTO_ADDRESS=0` turns it off; `--set-address` still works by hand.
+
 The probes take 5 V from a USB-A breakout on the Pi, so they are powered exactly when the Pi is: the Witty Pi switches them for free. Do not wire them to the charge controller's load output, which is never itself switched; there they would draw around 0.5 W all day and night, more than the whole winter budget. (`PROBE_POWER_GPIO` still exists for a build that wants a MOSFET-switched 12 V rail instead.)
 
 **Audio clip saving must be off in BirdNET-Go.** Detections leave the node, sound does not. It is what keeps the node honest with the people whose land it sits on, and what keeps a 500 MB SIM alive for ten years.

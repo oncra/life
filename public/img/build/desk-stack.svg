@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" font-family="Helvetica, Arial, sans-serif" font-size="15">
+<rect width="900" height="360" fill="#fbfaf6"/>
+<text x="30" y="36" font-size="19" font-weight="bold" fill="#1b1f1a">From the side: the Witty Pi sits on the Pi</text>
+<rect x="120" y="250" width="560" height="14" rx="3" fill="#2f7a3f"/>
+<text x="700" y="262" fill="#1b1f1a">Raspberry Pi 4</text>
+<rect x="560" y="214" width="110" height="36" rx="3" fill="#a9b0b8"/><text x="615" y="237" text-anchor="middle" font-size="12" fill="#1b1f1a">USB</text>
+<rect x="130" y="264" width="60" height="8" fill="#999"/><text x="160" y="292" text-anchor="middle" font-size="12" fill="#6b7268">memory card underneath</text>
+<rect x="200" y="232" width="200" height="18" fill="#222"/><text x="300" y="226" text-anchor="middle" font-size="12" fill="#fff"> </text>
+<rect x="129" y="150" width="12" height="100" fill="#c9a24a"/>
+<rect x="659" y="150" width="12" height="100" fill="#c9a24a"/>
+<text x="40" y="200" fill="#6b7268" font-size="13">brass</text><text x="40" y="216" fill="#6b7268" font-size="13">standoffs</text>
+<rect x="200" y="164" width="200" height="68" fill="#333"/>
+<text x="300" y="204" text-anchor="middle" fill="#fff" font-size="12">Witty Pi socket on the Pi's 40 pins</text>
+<rect x="120" y="150" width="560" height="14" rx="3" fill="#1d1d1d"/>
+<text x="700" y="162" fill="#1b1f1a">Witty Pi 4</text>
+<circle cx="560" cy="140" r="10" fill="#c0c0c0" stroke="#888"/><text x="580" y="128" font-size="12" fill="#6b7268">clock battery</text>
+<rect x="470" y="132" width="34" height="18" rx="3" fill="#777"/><text x="487" y="122" text-anchor="middle" font-size="12" fill="#6b7268">USB-C: power in</text>
+<rect x="208" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="228" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="248" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="268" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="288" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="308" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="328" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="348" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="368" y="112" width="4" height="38" fill="#d4af37"/>
+<rect x="388" y="112" width="4" height="38" fill="#d4af37"/>
+<text x="200" y="100" fill="#1b1f1a" font-weight="bold">the 40 pins come through on top: the microphone wires go here</text>
+<text x="120" y="330" fill="#6b7268" font-size="13">Power always goes into the Witty Pi, never into the Pi. Short pins on top? Add the tall stacking header from the kit.</text>
+</svg>

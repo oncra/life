@@ -66,7 +66,8 @@ function envFile(o: { hostname: string; password: string; lat: number; lon: numb
     `RS485_PORT=/dev/ttyUSB0`,
     `PROBE_ADDRESSES=1,2`,
     `PROBE_PROFILE=sen0600`,
-    `LIFE_POST_BATCH=3`,
+    // on the desk every reading is posted at once, so the box page shows it within minutes; in the field, hourly to spare the SIM
+    `LIFE_POST_BATCH=${wifi ? 1 : 3}`,
     `LIFE_MIN_CONFIDENCE=0.5`,
     // a box on WiFi is on a desk being tried out: awake 15 minutes in every hour; without WiFi it is in the field
     `SCHEDULE=${wifi ? "bench" : "season"}`,

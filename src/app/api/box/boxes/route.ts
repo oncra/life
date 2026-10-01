@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { json, unauthorized } from "@/lib/auth";
 import { currentUser } from "@/lib/session";
 import { buildImage, checkWifi, createBox } from "@/lib/boximage";
-import { boxOut } from "@/lib/boxout";
+import { boxLive, boxOut } from "@/lib/boxout";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export async function GET() {
   const user = await currentUser();
   if (!user) return unauthorized();
   const boxes = await prisma.box.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, include: { place: { select: { slug: true } } } });
-  return json({ email: user.email, items: boxes.map(boxOut) });
+  return json({ email: user.email, items: await Promise.all(boxes.map(async (b) => ({ ...boxOut(b), live: await boxLive(b.placeId) }))) });
 }
 
 export async function POST(req: Request) {

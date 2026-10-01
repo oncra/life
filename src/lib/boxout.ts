@@ -8,3 +8,25 @@ export function boxOut(b: Box & { place: { slug: string } }) {
     builtAt: b.builtAt, placedAt: b.placedAt, placeSlug: b.place.slug, createdAt: b.createdAt,
   };
 }
+
+/** What the box has sent so far: the builder's test lights. One query per kind, newest first. */
+export async function boxLive(placeId: string) {
+  const { prisma } = await import("./db");
+  const devices = await prisma.device.findMany({ where: { placeId }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
+  const ids = devices.map((d) => d.id);
+  const sound = devices.find((d) => d.kind === "SOUND");
+  const hb = await prisma.heartbeat.findFirst({ where: { deviceId: { in: ids } }, orderBy: { ts: "desc" }, select: { ts: true, cell: true, event: true } });
+  const det = sound ? await prisma.soundDetection.findFirst({ where: { deviceId: sound.id }, orderBy: { ts: "desc" }, select: { ts: true, species: true, confidence: true } }) : null;
+  const soil = await Promise.all(devices.filter((d) => d.kind === "SOIL").sort((a, b) => (a.depthCm ?? 0) - (b.depthCm ?? 0)).map(async (d) => {
+    const r = await prisma.soilReading.findFirst({ where: { deviceId: d.id }, orderBy: { ts: "desc" }, select: { ts: true, vwc: true, tempC: true } });
+    return { depthCm: d.depthCm, last: r };
+  }));
+  const cell = hb?.cell as { plmn?: string; cellId?: string | number } | null | undefined;
+  return {
+    heardAt: [hb?.ts, ...devices.map((d) => d.lastSeenAt)].filter(Boolean).sort((a, b) => +b! - +a!)[0] ?? null,
+    heartbeatAt: hb?.ts ?? null,
+    on4g: !!(cell && (cell.plmn || cell.cellId)),
+    detection: det ? { ts: det.ts, species: det.species, confidence: det.confidence } : null,
+    soil,
+  };
+}
