@@ -37,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link key={href} href={href} className="hover:text-foreground whitespace-nowrap">{label}</Link>
               ))}
               <a href="https://github.com/oncra/life" className="hover:text-foreground whitespace-nowrap">GitHub</a>
+              <Link href="/me" className="hover:text-foreground whitespace-nowrap">Your places</Link>
             </nav>
           </div>
         </header>

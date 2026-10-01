@@ -49,14 +49,18 @@ export async function reblur(placeId: string) {
 }
 
 /** Who may see this place exactly: an admin (key, or signed in with an ADMIN_EMAILS address), the place's
- * steward key, or the signed-in owner of a Life Box on it. `req` is given in API routes; pages use the cookie. */
+ * steward key, the signed-in owner of a Life Box on it, or someone given access to it (PlaceAccess). `req` is given in API routes; pages use the cookie. */
 export async function canSeeExact(place: Pick<Place, "id">, req?: Request): Promise<boolean> {
   if (req && canManagePlace(await authenticate(req), place.id)) return true;
   const user = await currentUser().catch(() => null);
   if (!user) return false;
   const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   if (admins.includes(user.email.toLowerCase())) return true;
-  return (await prisma.box.count({ where: { placeId: place.id, userId: user.id } })) > 0;
+  const [boxes, access] = await Promise.all([
+    prisma.box.count({ where: { placeId: place.id, userId: user.id } }),
+    prisma.placeAccess.count({ where: { placeId: place.id, userId: user.id } }),
+  ]);
+  return boxes + access > 0;
 }
 
 /** Whether a viewer may see this place at all: public places for everyone, private ones only for those who may see
