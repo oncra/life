@@ -83,7 +83,7 @@ Both probes leave the factory with the same address, so the box cannot tell them
 
 1. Switch off: pull the power supply out of the wall.
 2. Plug the **RS485 adapter** into a USB port of the Pi, and the **USB screw terminal** into another.
-3. Take one probe; leave the other in its bag. Put a ferrule on each of its four wires with the crimping pliers.
+3. Take one probe; leave the other in its bag. No ferrules needed yet: the bare wires go straight into the terminals.
 4. **Brown** into **VCC** and **black** into **GND** of the USB screw terminal. **Yellow** into **A+** and **blue** into **B−** of the RS485 adapter. Tighten the screws and tug each wire.
 5. Wrap a piece of tape around this probe's cable and write **30 cm** on it. The two probes look the same; from now on the tape is the only way to tell them apart.
 6. Put the prongs in a glass of water and switch on.
@@ -93,9 +93,9 @@ Both probes leave the factory with the same address, so the box cannot tell them
 ## Add the 10 cm soil probe
 
 1. Switch off.
-2. Take the four wires of the taped probe out of their terminals and cut off their ferrules.
+2. Take the four wires of the taped probe out of their terminals.
 3. Lay the second probe's wires next to them, **same colour with same colour**: brown with brown, black with black, yellow with yellow, blue with blue.
-4. Put each pair into **one ferrule together** (the next size up) and crimp it. Tug both wires; neither may come out.
+4. Put each pair into **one ferrule together** (one that holds two wires) with the crimping pliers and crimp it. Tug both wires; neither may come out.
 5. Put the four double ferrules back into the same terminals as before.
 6. Prongs of both probes in the air this time, and switch on.
 
