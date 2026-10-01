@@ -60,7 +60,9 @@ export default function LifeMap({ height = "70vh", center, zoom = 7, places, fet
 
       const placesLayer = L.geoJSON(undefined, {
         // a place that hides its location is a circle around somewhere near it: dashed, lightly filled
-        style: (f) => ({ color: VERDICT_COLOR[(f?.properties?.verdict as string) ?? "insufficient"], weight: 2, fillOpacity: f?.properties?.approximate ? 0.1 : 0.25, dashArray: f?.properties?.approximate ? "6 5" : undefined }),
+        style: (f) => f?.properties?.approximate
+          ? { color: "#ffffff", weight: 2, fillColor: VERDICT_COLOR[(f.properties.verdict as string) ?? "insufficient"], fillOpacity: 0.2, dashArray: "6 5" }
+          : { color: VERDICT_COLOR[(f?.properties?.verdict as string) ?? "insufficient"], weight: 2, fillOpacity: 0.25 },
         onEachFeature: (f, layer) => {
           const p = f.properties ?? {};
           layer.bindPopup(`<strong>${p.name ?? ""}</strong><br/>${Number(p.areaHa ?? 0).toFixed(1)} ha · ${p.observations ?? 0} satellite obs · ${p.devices ?? 0} devices<br/>Verdict: <b>${p.verdict ?? "insufficient"}</b>${p.approximate ? `<br/>Location shown to within ${(Number(p.approximateRadiusM ?? 1000) / 1000).toFixed(1)} km` : ""}<br/><a href="/places/${p.slug}">Open place</a>`);
@@ -91,7 +93,7 @@ export default function LifeMap({ height = "70vh", center, zoom = 7, places, fet
         try { const r = await fetch("/api/v1/places?format=geojson"); if (r.ok) { const fc = await r.json(); addPlaces(fc); if (!focus && fc.features?.length && !center) map.fitBounds(placesLayer.getBounds().pad(0.2)); } } catch {}
       }
       if (focus) {
-        const fl = L.geoJSON(focus as GeoJSON.GeoJsonObject, { style: focusApproximate ? { color: "#1b1f1a", weight: 2, fillOpacity: 0.08, dashArray: "8 6" } : { color: "#1b1f1a", weight: 3, fillOpacity: 0.05, dashArray: "4 3" } }).addTo(map);
+        const fl = L.geoJSON(focus as GeoJSON.GeoJsonObject, { style: focusApproximate ? { color: "#ffffff", weight: 3, fillColor: "#ffffff", fillOpacity: 0.12, dashArray: "8 6" } : { color: "#1b1f1a", weight: 3, fillOpacity: 0.05, dashArray: "4 3" } }).addTo(map);
         map.fitBounds(fl.getBounds().pad(focusApproximate ? 0.15 : 0.6));
       }
       if (onDraw) {

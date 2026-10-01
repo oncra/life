@@ -51,7 +51,9 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
-    command: ["npx", "tsx", "scripts/worker.ts"]
+    # the worker applies pending migrations itself (Prisma takes a lock, so it is safe next to the app doing the
+    # same): started first with a new client against an old schema, every job it picks up fails
+    command: ["sh", "-c", "npx prisma migrate deploy && npx tsx scripts/worker.ts"]
 
   caddy:
     image: caddy:2-alpine
