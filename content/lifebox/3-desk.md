@@ -9,6 +9,8 @@ parts: [Computer, "Scheduler + DC/DC", Storage, Bench supply, Instrument, I2S he
 
 Put everything for this part on the table and tick it off against the list at the end of this part. Look at each soil probe's cable: it should have four wires, **brown, black, yellow and blue**. A cable with other colours: stop here and ask before you connect it, because a wrong wire on the power can break the probe.
 
+![All the parts for one box laid out on a table, seen from above: enclosure with glands, laptop, Raspberry Pi with Witty Pi, meter, microphones, jumper wires, standoffs, ferrules, 4G stick, RS485 adapter, USB screw terminals, crimping pliers, two soil probes, charge controller, battery](../../public/img/build/2026-10-01-parts-laid-out.webp "Node 1, 1 October 2026: everything on the table before the build starts.")
+
 Nothing goes into the enclosure yet. On the desk you can see every light and reach every wire.
 
 > **Check.** Every line in the list has its part on the table.
@@ -24,7 +26,9 @@ The Witty Pi is the box's alarm clock: it switches the Pi on for the hours it sh
 3. Put the small round battery (CR2032) in its holder on the Witty Pi, if one came with it. It keeps the clock running when the power is off.
 4. Put the memory card into the slot on the underside of the Pi.
 
-The Pi's 40 pins come through on top of the Witty Pi. The microphone connects to them in the next step. If the pins on top are too short for the jumper wires to grip, press the extra tall stacking header from the kit onto them first.
+![The Witty Pi 4 seated on the Raspberry Pi, the row of 40 pins along its edge, the coin battery in its holder, the meter's cable in the Witty Pi's USB-C socket](../../public/img/build/2026-10-01-witty-pi-on-pi.webp "Node 1: the Witty Pi on the Pi. The 40 pins come through along the left edge; power goes into the Witty Pi's USB-C socket, bottom right.")
+
+The Pi's 40 pins come through on top of the Witty Pi, along its edge. The microphone connects to them in the next step.
 
 From now on the power always goes into the **Witty Pi**, never into the Pi itself: the Witty Pi feeds the Pi, and that is how it can switch it on and off.
 
@@ -49,13 +53,15 @@ Check each wire twice against the table. Power on the wrong pin can break the mi
 
 ## Switch on for the first time
 
-![The Raspberry Pi on the desk with the small meter between the power supply and the Pi](../../public/img/build/s1-meter.webp "Rendered impression. The meter sits between the wall supply and the Witty Pi, so you can read how much power the box uses.")
+![The desk with the Raspberry Pi and Witty Pi in front, the meter in the cable from the wall supply, soil probes, jumper wires and parts boxes behind](../../public/img/build/2026-10-01-desk-overview.webp "Node 1 on the desk. The meter sits between the wall supply and the Witty Pi, so you can read how much power the box uses.")
 
 1. Plug the small black meter into the power supply, and the supply's cable from the meter into the **USB-C socket of the Witty Pi** (not the one on the Pi).
 2. Plug the supply into the wall. If the Pi does not start by itself, press the button on the Witty Pi once.
 3. Wait. The first start takes a few minutes and the box restarts itself once. A flickering green light is normal.
 
-Write down what the meter shows after ten minutes. About 5 W is expected; that number decides how big the battery and panel need to be. Above 6.5 W, tell us via the feedback box at the bottom of this page.
+![Close-up of the meter's screen: 5.217 V, 0.351 A, 1.831 W](../../public/img/build/2026-10-01-meter.webp "The meter on node 1: volts, amps and, top right in yellow, watts. Watts is the number to write down.")
+
+Write down the watts the meter shows after ten minutes. About 5 W is expected; that number decides how big the battery and panel need to be. Above 6.5 W, tell us via the feedback box at the bottom of this page.
 
 On the desk the box wakes up once an hour and listens for 15 minutes, then switches itself off. That is the Witty Pi doing its job. When the box seems dead, look at the clock: it is waiting for the next hour.
 
@@ -71,7 +77,7 @@ Play a blackbird or a robin from your phone, close to the microphone, for a minu
 
 Both probes leave the factory with the same address, so the box cannot tell them apart. You fix that by connecting **one probe first**: the box sees a single probe and gives it its own address by itself. Then the second one joins.
 
-![Wiring diagram. One probe: brown to VCC and black to GND on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter.](../../public/img/build/s1-probe-wiring.svg "Step 1 is this part: one probe. Step 2, in the next part, adds the second probe on the same terminals.")
+![Wiring diagram. One probe: brown to VCC and black to GND on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter.](../../public/img/build/s1-probe-wiring.svg "Step 1 is this part: one probe. Step 2, in the next step, adds the second probe on the same terminals.")
 
 1. Switch off: pull the power supply out of the wall.
 2. Plug the **RS485 adapter** into a USB port of the Pi, and the **USB screw terminal** into another.
@@ -97,7 +103,7 @@ Both probes leave the factory with the same address, so the box cannot tell them
 
 The white stick is the box's own phone line, for the field where there is no WiFi.
 
-![The white 4G stick in the Pi's USB port with its light on, a laptop showing the stick's page](../../public/img/build/s1-modem.webp "Rendered impression. The network name is set once on the stick's own page, from your laptop.")
+![The white 4G stick opened with the SIM card in its slot, next to the RS485 adapter, two USB screw terminals, the crimping pliers and the box of ferrules](../../public/img/build/2026-10-01-stick-adapter-ferrules.webp "Node 1: the 4G stick open with its SIM in, the RS485 adapter and the two USB screw terminals in front, ferrules and crimping pliers behind.")
 
 1. Slide the SIM into the stick.
 2. Plug the stick into **your laptop** first. After half a minute, open [192.168.8.1](http://192.168.8.1) in your browser: that is the stick's own page.
