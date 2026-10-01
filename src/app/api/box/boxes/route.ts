@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { json, unauthorized } from "@/lib/auth";
 import { currentUser } from "@/lib/session";
 import { buildImage, checkWifi, createBox, goldenVersion } from "@/lib/boximage";
-import { boxLive, boxOut } from "@/lib/boxout";
+import { boxesOf, boxOwnersInclude, ownersOf, boxLive, boxOut } from "@/lib/boxout";
 import { ownPlaces } from "@/lib/places";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +19,9 @@ const Body = z.object({
 export async function GET() {
   const user = await currentUser();
   if (!user) return unauthorized();
-  const boxes = await prisma.box.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, include: { place: { select: { slug: true, name: true } } } });
+  const boxes = await prisma.box.findMany({ where: boxesOf(user.id), orderBy: { createdAt: "desc" }, include: boxOwnersInclude });
   const golden = await goldenVersion();
-  return json({ email: user.email, places: await ownPlaces(user.id), items: await Promise.all(boxes.map(async (b) => ({ ...boxOut(b, golden), live: await boxLive(b.placeId, b.hostname) }))) });
+  return json({ email: user.email, places: await ownPlaces(user.id), items: await Promise.all(boxes.map(async (b) => ({ ...boxOut(b, golden), owners: ownersOf(b), live: await boxLive(b.placeId, b.hostname) }))) });
 }
 
 export async function POST(req: Request) {
