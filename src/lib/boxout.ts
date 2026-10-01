@@ -1,10 +1,13 @@
 import type { Box } from "@/generated/prisma/client";
 
 /** What the box page shows about one box. The node password is for people who want to log in to the box itself. */
-export function boxOut(b: Box & { place: { slug: string; name?: string } }) {
+/** `golden` is the version of the golden image on the server now; a box image built on an older one is stale, because
+ * its own first part no longer fits the shared rest that the download appends. */
+export function boxOut(b: Box & { place: { slug: string; name?: string } }, golden?: string | null) {
   return {
     id: b.id, name: b.name, hostname: b.hostname, nodePassword: b.nodePassword, wifiSsid: b.wifiSsid,
     imageStatus: b.imageStatus, imageError: b.imageError, imageVersion: b.imageVersion, imageBytes: b.imageBytes ? Number(b.imageBytes) : null,
+    stale: b.imageStatus === "READY" && !!golden && b.imageVersion !== golden,
     builtAt: b.builtAt, placedAt: b.placedAt, placeSlug: b.place.slug, placeName: b.ownPlace ? null : (b.place.name ?? null), createdAt: b.createdAt,
   };
 }

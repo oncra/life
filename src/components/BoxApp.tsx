@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 type Box = {
   id: string; name: string; hostname: string; nodePassword: string; wifiSsid: string | null;
-  imageStatus: "BUILDING" | "READY" | "FAILED"; imageError: string | null; imageBytes: number | null;
+  imageStatus: "BUILDING" | "READY" | "FAILED"; imageError: string | null; imageBytes: number | null; stale?: boolean;
   builtAt: string | null; placedAt: string | null; placeSlug: string; placeName?: string | null;
   live?: Live;
 };
@@ -170,8 +170,17 @@ function BoxCard({ box, onChange }: { box: Box; onChange: () => void }) {
           <ol className="mt-4 grid gap-4">
             <li>
               <div className="font-medium">1. Download the software</div>
-              <a href={`/api/box/boxes/${box.id}/download`} className={`${button} inline-block mt-2`}>Download ({box.imageBytes ? `${Math.round(box.imageBytes / 1e6)} MB` : "about 0.9 GB"})</a>
-              <p className="text-sm text-muted mt-1">It is made for this box only. Do not share it: your WiFi password is inside.</p>
+              {box.stale ? (
+                <>
+                  <p className="text-sm mt-1">There is newer software since this box's was made. Make it again first; it takes a minute.</p>
+                  {!rebuild && <button className={`${button} inline-block mt-2`} onClick={() => setRebuild(true)}>Make the software again</button>}
+                </>
+              ) : (
+                <>
+                  <a href={`/api/box/boxes/${box.id}/download`} className={`${button} inline-block mt-2`}>Download ({box.imageBytes ? `${Math.round(box.imageBytes / 1e6)} MB` : "about 0.9 GB"})</a>
+                  <p className="text-sm text-muted mt-1">It is made for this box only. Do not share it: your WiFi password is inside.</p>
+                </>
+              )}
             </li>
             <li>
               <div className="font-medium">2. Put it on the memory card</div>
