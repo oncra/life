@@ -7,6 +7,8 @@ parts: [Charge controller, Battery, W2 battery lead, W2 fuse, Solar panel]
 
 ## Wire the power, battery before panel
 
+![The build table at the window: the open enclosure, the black battery, the blue charge controller, the Raspberry Pi with the Witty Pi, ferrules and pliers, and the laptop with this guide open](../../public/img/build/2026-10-01-build-table.webp "Node 1 at the window: the battery (black) and the charge controller (blue) are the parts this step adds.")
+
 In the field there is no socket. The panel charges the battery, the blue Victron charge controller looks after the battery, and the Witty Pi takes its power from the controller.
 
 ![The whole wiring: panel into the controller's PV terminals, battery through a fuse into BAT, and the controller's LOAD terminals to the Witty Pi's 6 to 30 V input](../../public/img/life-node-wiring.svg "The complete wiring of the box. On the desk you only need the controller, the battery, the fuse and the Witty Pi.")
