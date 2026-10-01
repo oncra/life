@@ -95,8 +95,10 @@ Both probes leave the factory with the same address, so the box cannot tell them
 1. Switch off.
 2. Take the four wires of the taped probe out of their terminals.
 3. Lay the second probe's wires next to them, **same colour with same colour**: brown with brown, black with black, yellow with yellow, blue with blue.
-4. Put each pair into **one ferrule together** (one that holds two wires) with the crimping pliers and crimp it. Tug both wires; neither may come out.
-5. Put the four double ferrules back into the same terminals as before.
+4. Twist each pair together tightly, same colour with same colour, so the strands of both wires make one bundle.
+5. Put the four pairs back into the same terminals as before, tighten the screws, and tug both wires of each pair: neither may come out. Turn the screw firmly but not so hard that strands break.
+
+A **ferrule is optional.** It holds the strands of both wires together, so the screw cannot push them apart, and it lasts longer in a box that gets warm and cold. Use one if a pair still slips out after you tighten the screw: put the pair into **one ferrule together** (one that holds two wires) and crimp it with the pliers. **Do not solder** the ends that go under a screw: solder slowly gives way under the pressure, so the screw loosens over the seasons and the probe drops out.
 6. Prongs of both probes in the air this time, and switch on.
 
 > **Check.** Both **Soil probe 10 cm** and **Soil probe 30 cm** are green with a fresh time, and the moisture now reads close to 0% (the prongs are in air). Hold the prongs of one probe in your hand for a minute: its temperature goes up on the next reading.
