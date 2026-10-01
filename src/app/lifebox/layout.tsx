@@ -22,7 +22,8 @@ export default function LifeboxLayout({ children }: { children: React.ReactNode 
               </Link>
             ))}
           </nav>
-          <a href="https://life.oncra.org/docs/build" className="ml-auto pl-4 text-muted hover:text-foreground whitespace-nowrap">Long form</a>
+          <Link href="/box" className="ml-auto pl-4 font-medium text-accent whitespace-nowrap">Get the software</Link>
+          <a href="https://life.oncra.org/docs/build" className="pl-2 text-muted hover:text-foreground whitespace-nowrap">Long form</a>
         </div>
       </div>
       {children}
