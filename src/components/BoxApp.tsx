@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 type Box = {
   id: string; name: string; hostname: string; nodePassword: string; wifiSsid: string | null;
   imageStatus: "BUILDING" | "READY" | "FAILED"; imageError: string | null; imageBytes: number | null; stale?: boolean;
-  builtAt: string | null; placedAt: string | null; placeSlug: string; placeName?: string | null;
+  builtAt: string | null; placedAt: string | null; placeSlug: string; placeName?: string | null; owners?: string[];
   live?: Live;
 };
 type Live = {
@@ -95,7 +95,7 @@ function Boxes({ email, initial, places }: { email: string; initial: Box[]; plac
         <button className={`${quiet} mt-6`} onClick={() => setAdding(true)}>Add another box</button>
       )}
       <div className="mt-6 grid gap-5">
-        {boxes.map((b) => <BoxCard key={b.id} box={b} onChange={refresh} />)}
+        {boxes.map((b) => <BoxCard key={b.id} box={b} me={email} onChange={refresh} />)}
       </div>
     </div>
   );
@@ -152,11 +152,13 @@ function NewBox({ first, places, onDone, onCancel }: { first: boolean; places: O
   );
 }
 
-function BoxCard({ box, onChange }: { box: Box; onChange: () => void }) {
+function BoxCard({ box, me, onChange }: { box: Box; me: string; onChange: () => void }) {
+  const others = (box.owners ?? []).filter((e) => e !== me);
   const [rebuild, setRebuild] = useState(false);
   return (
     <section className="rounded-xl border border-line bg-white p-4 sm:p-5">
       <h2 className="text-xl font-semibold">{box.name}</h2>
+      {others.length > 0 && <p className="text-sm text-muted">Shared with {others.join(", ")}</p>}
       <p className="text-sm text-muted">{box.wifiSsid ? <>WiFi: {box.wifiSsid}</> : box.imageStatus === "READY" ? "No WiFi: uses the 4G stick" : null}</p>
 
       {box.imageStatus === "BUILDING" && (
