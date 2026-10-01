@@ -14,6 +14,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!box) return json({ error: "not found" }, 404);
   const p = z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }).safeParse(await req.json().catch(() => null));
   if (!p.success) return json({ error: "That is not a location." }, 400);
-  await placeBox(id, p.data.lat, p.data.lon);
+  const problem = await placeBox(id, p.data.lat, p.data.lon);
+  if (problem) return json({ error: problem }, 400);
   return json({ ok: true });
 }

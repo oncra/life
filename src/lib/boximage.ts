@@ -4,6 +4,7 @@ import { createReadStream } from "node:fs";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PassThrough, Readable } from "node:stream";
+import * as turf from "@turf/turf";
 import { prisma } from "./db";
 import { hashKey, newKey } from "./auth";
 import { slugify, summarize } from "./geo";
@@ -94,22 +95,32 @@ async function newHostname(): Promise<string> {
   }
 }
 
-/** A new box: a private, unplaced place, its three devices, and the box row. The image is built after. */
-export async function createBox(userId: string, name: string) {
+/** The devices of one box. A place can carry more than one box (and devices registered by hand), so a box's own
+ * three are the ones created with its hostname in the notes. */
+export const boxDeviceNote = (hostname: string) => `Life Box ${hostname}`;
+
+/** A new box with its three devices and the box row. Without `placeId` the box gets a private, unplaced place of its
+ * own; with it, the box is set up for that existing place (the caller checks the person may). The image is built after. */
+export async function createBox(userId: string, name: string, placeId?: string) {
   const hostname = await newHostname();
-  const geometry = square(DEFAULT_LAT, DEFAULT_LON);
-  const s = summarize(geometry);
-  const place = await prisma.place.create({
-    data: { name, slug: await uniqueSlug(slugify(`${name}-${hostname}`)), geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, public: false, placed: false, landUse: "not yet placed", locationHidden: true, blurRadiusM: DEFAULT_BLUR_M },
-  });
+  let place;
+  if (placeId) {
+    place = await prisma.place.findUniqueOrThrow({ where: { id: placeId } });
+  } else {
+    const geometry = square(DEFAULT_LAT, DEFAULT_LON);
+    const s = summarize(geometry);
+    place = await prisma.place.create({
+      data: { name, slug: await uniqueSlug(slugify(`${name}-${hostname}`)), geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, public: false, placed: false, landUse: "not yet placed", locationHidden: true, blurRadiusM: DEFAULT_BLUR_M },
+    });
+  }
   const devices = [
     { kind: "SOUND" as const, model: "Life node v1, BirdNET-Go on Raspberry Pi 4, INMP441", heightM: 0.5 },
     { kind: "SOIL" as const, model: "DFRobot SEN0600", depthCm: 10 },
     { kind: "SOIL" as const, model: "DFRobot SEN0600", depthCm: 30 },
   ];
   // token hashes are placeholders until the image is built; buildImage mints the real tokens
-  for (const d of devices) await prisma.device.create({ data: { ...d, placeId: place.id, tokenHash: hashKey(newKey("lo_dev")), notes: `Life Box ${hostname}` } });
-  return prisma.box.create({ data: { userId, placeId: place.id, name, hostname, nodePassword: randomBytes(6).toString("base64url"), imageStatus: "BUILDING" } });
+  for (const d of devices) await prisma.device.create({ data: { ...d, placeId: place.id, tokenHash: hashKey(newKey("lo_dev")), notes: boxDeviceNote(hostname) } });
+  return prisma.box.create({ data: { userId, placeId: place.id, name, hostname, nodePassword: randomBytes(6).toString("base64url"), imageStatus: "BUILDING", ownPlace: !placeId } });
 }
 
 /** Mints fresh device tokens (so an older image of this box stops working) and writes the box's image. */
@@ -119,14 +130,17 @@ export async function buildImage(boxId: string, wifi: { ssid?: string; psk?: str
   try {
     const version = await goldenVersion();
     if (!version) throw new Error("the golden image is not on this server yet");
-    const sound = box.place.devices.find((d) => d.kind === "SOUND");
-    const soil = box.place.devices.filter((d) => d.kind === "SOIL");
+    const mine = box.place.devices.filter((d) => d.notes === boxDeviceNote(box.hostname));
+    const sound = mine.find((d) => d.kind === "SOUND");
+    const soil = mine.filter((d) => d.kind === "SOIL");
     if (!sound || soil.length < 2) throw new Error("this box is missing its devices");
     const tokens: [string, string, string] = [newKey("lo_dev"), newKey("lo_dev"), newKey("lo_dev")];
     await mkdir(work, { recursive: true });
     await mkdir(path.join(DIR, "boxes"), { recursive: true });
     const img = path.join(work, "head.img"), env = path.join(work, "life-node.env"), xz = path.join(work, "head.img.xz");
-    const lat = box.placedAt ? box.place.centroidLat : DEFAULT_LAT, lon = box.placedAt ? box.place.centroidLon : DEFAULT_LON;
+    // a box set up for an existing place listens for that place's birds from the start
+    const known = box.placedAt || box.place.placed;
+    const lat = known ? box.place.centroidLat : DEFAULT_LAT, lon = known ? box.place.centroidLon : DEFAULT_LON;
     await writeFile(env, envFile({ hostname: box.hostname, password: box.nodePassword, lat: Math.round(lat * 1e4) / 1e4, lon: Math.round(lon * 1e4) / 1e4, tokens, ssid: wifi.ssid, psk: wifi.psk }), { mode: 0o600 });
     await run("cp", ["--sparse=always", golden("head.img"), img]);
     await run("mcopy", ["-o", "-i", `${img}@@${FAT_OFFSET}`, env, "::life-node.env"]);
@@ -163,9 +177,18 @@ export async function imageStream(boxId: string): Promise<{ stream: ReadableStre
   return { stream: Readable.toWeb(out) as unknown as ReadableStream, bytes };
 }
 
-/** Put the box on the map where it now stands: a 1 ha square around the point, and the satellite starts. */
-export async function placeBox(boxId: string, lat: number, lon: number) {
-  const box = await prisma.box.findUniqueOrThrow({ where: { id: boxId } });
+/** Put the box on the map where it now stands. A box with its own place: a 1 ha square around the point, and the
+ * satellite starts. A box on an existing place: the point must be on (or within 200 m of) that place, the boundary
+ * stays, and only the box's devices get the position. Returns an error text for the person, or null. */
+export async function placeBox(boxId: string, lat: number, lon: number): Promise<string | null> {
+  const box = await prisma.box.findUniqueOrThrow({ where: { id: boxId }, include: { place: true } });
+  if (!box.ownPlace) {
+    const near = turf.booleanPointInPolygon(turf.point([lon, lat]), turf.buffer(box.place.geometry as unknown as PlaceGeometry, 0.2, { units: "kilometers" })!);
+    if (!near) return `That spot is not on ${box.place.name}. Stand next to the box, or check the numbers you typed.`;
+    await prisma.device.updateMany({ where: { placeId: box.placeId, notes: boxDeviceNote(box.hostname) }, data: { lat, lon, installedAt: new Date() } });
+    await prisma.box.update({ where: { id: boxId }, data: { placedAt: new Date() } });
+    return null;
+  }
   const geometry = square(lat, lon);
   const s = summarize(geometry);
   await prisma.place.update({ where: { id: box.placeId }, data: { geometry: geometry as object, areaHa: s.areaHa, centroidLat: s.centroidLat, centroidLon: s.centroidLon, placed: true, landUse: null } });
@@ -174,4 +197,5 @@ export async function placeBox(boxId: string, lat: number, lon: number) {
   await prisma.box.update({ where: { id: boxId }, data: { placedAt: new Date() } });
   await queueJob("context.enrich", box.placeId);
   await queueJob("satellite.backfill", box.placeId);
+  return null;
 }

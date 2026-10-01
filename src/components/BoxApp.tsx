@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 type Box = {
   id: string; name: string; hostname: string; nodePassword: string; wifiSsid: string | null;
   imageStatus: "BUILDING" | "READY" | "FAILED"; imageError: string | null; imageBytes: number | null;
-  builtAt: string | null; placedAt: string | null; placeSlug: string;
+  builtAt: string | null; placedAt: string | null; placeSlug: string; placeName?: string | null;
   live?: Live;
 };
 type Live = {
@@ -24,9 +24,11 @@ const input = "w-full rounded-lg border border-line bg-white px-3 py-2.5 text-ba
 const button = "rounded-lg bg-accent text-white px-4 py-2.5 font-medium disabled:opacity-50";
 const quiet = "rounded-lg border border-line bg-white px-4 py-2.5 font-medium hover:border-accent disabled:opacity-50";
 
-export function BoxApp({ email, initial }: { email: string | null; initial: Box[] }) {
+type OwnPlace = { id: string; name: string; slug: string };
+
+export function BoxApp({ email, initial, places = [] }: { email: string | null; initial: Box[]; places?: OwnPlace[] }) {
   if (!email) return <SignIn />;
-  return <Boxes email={email} initial={initial} />;
+  return <Boxes email={email} initial={initial} places={places} />;
 }
 
 export function SignIn({ title = "The software for your Life Box", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own." }: { title?: string; intro?: string } = {}) {
@@ -67,7 +69,7 @@ export function SignIn({ title = "The software for your Life Box", intro = "We m
   );
 }
 
-function Boxes({ email, initial }: { email: string; initial: Box[] }) {
+function Boxes({ email, initial, places }: { email: string; initial: Box[]; places: OwnPlace[] }) {
   const [boxes, setBoxes] = useState<Box[]>(initial);
   const [adding, setAdding] = useState(initial.length === 0);
   const building = boxes.some((b) => b.imageStatus === "BUILDING");
@@ -88,7 +90,7 @@ function Boxes({ email, initial }: { email: string; initial: Box[] }) {
       </div>
       <p className="text-sm text-muted mt-1">Signed in as {email}</p>
       {adding ? (
-        <NewBox first={boxes.length === 0} onDone={async () => { setAdding(false); await refresh(); }} onCancel={boxes.length ? () => setAdding(false) : undefined} />
+        <NewBox first={boxes.length === 0} places={places} onDone={async () => { setAdding(false); await refresh(); }} onCancel={boxes.length ? () => setAdding(false) : undefined} />
       ) : (
         <button className={`${quiet} mt-6`} onClick={() => setAdding(true)}>Add another box</button>
       )}
@@ -115,22 +117,32 @@ function WifiFields({ ssid, psk, setSsid, setPsk }: { ssid: string; psk: string;
   );
 }
 
-function NewBox({ first, onDone, onCancel }: { first: boolean; onDone: () => void; onCancel?: () => void }) {
+function NewBox({ first, places, onDone, onCancel }: { first: boolean; places: OwnPlace[]; onDone: () => void; onCancel?: () => void }) {
   const [name, setName] = useState(first ? "My Life Box" : "");
+  const [placeId, setPlaceId] = useState(places[0]?.id ?? "");
   const [ssid, setSsid] = useState("");
   const [psk, setPsk] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
-    try { await post("/api/box/boxes", { name, ssid, psk }); onDone(); } catch (x) { setError((x as Error).message); setBusy(false); }
+    try { await post("/api/box/boxes", { name, ssid, psk, placeId: placeId || undefined }); onDone(); } catch (x) { setError((x as Error).message); setBusy(false); }
   }
   return (
     <form onSubmit={submit} className="mt-6 grid gap-2 rounded-xl border border-line bg-white/60 p-4">
       <label className="font-medium" htmlFor="name">Name of the box</label>
       <input id="name" required className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Back field" />
       <WifiFields ssid={ssid} psk={psk} setSsid={setSsid} setPsk={setPsk} />
-      <p className="text-sm text-muted">Where the box stands comes later, when you put it in the ground.</p>
+      {places.length > 0 && (
+        <>
+          <label className="font-medium mt-2" htmlFor="place">Where it will stand</label>
+          <select id="place" className={input} value={placeId} onChange={(e) => setPlaceId(e.target.value)}>
+            {places.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            <option value="">Somewhere else</option>
+          </select>
+        </>
+      )}
+      <p className="text-sm text-muted">{placeId ? "The exact spot on it comes later, when you put the box in the ground." : "Where the box stands comes later, when you put it in the ground."}</p>
       <div className="flex gap-3 mt-2">
         <button className={button} disabled={busy}>{busy ? "Starting…" : "Make the software for this box"}</button>
         {onCancel && <button type="button" className={quiet} onClick={onCancel}>Cancel</button>}
@@ -210,14 +222,14 @@ function Place({ box, onChange }: { box: Box; onChange: () => void }) {
   if (box.placedAt) {
     return (
       <div className="mt-5 rounded-lg bg-[#f1efe6] p-3 text-sm">
-        <span className="font-medium">In the ground</span> since {new Date(box.placedAt).toLocaleDateString()}. <a className="underline" href={`/places/${box.placeSlug}`}>See what it measures</a>
+        <span className="font-medium">In the ground</span>{box.placeName ? ` on ${box.placeName}` : ""} since {new Date(box.placedAt).toLocaleDateString()}. <a className="underline" href={`/places/${box.placeSlug}`}>See what it measures</a>
       </div>
     );
   }
   return (
     <div className="mt-5 rounded-lg border border-dashed border-line p-3">
       <div className="font-medium">4. When it goes in the ground</div>
-      <p className="text-sm mt-1">Stand next to the box with your phone and press the button. Until then it can stay on your desk.</p>
+      <p className="text-sm mt-1">{box.placeName ? `It is set up for ${box.placeName}. ` : ""}Stand next to the box with your phone and press the button. Until then it can stay on your desk.</p>
       <button className={`${quiet} mt-2`} disabled={busy} onClick={here}>{busy ? "Finding you…" : "The box is here"}</button>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const m = manual.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/); if (m) save(+m[1], +m[2]); else setError("Type it as latitude, longitude, e.g. 52.38, 4.90"); }}>
         <input className={`${input} text-sm py-2`} value={manual} onChange={(e) => setManual(e.target.value)} placeholder="or type it: 52.38, 4.90" />
