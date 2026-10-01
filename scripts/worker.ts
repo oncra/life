@@ -76,14 +76,14 @@ async function schedule() {
     await pollBirdWeather(log);
     const q = await sweepSilent(log);
     if (q.opened) log(`silent sweep: ${q.opened} alert(s) opened`);
-    for (const p of await prisma.place.findMany({ where: { devices: { some: { kind: "SOUND" } } }, select: { id: true } })) {
+    for (const p of await prisma.place.findMany({ where: { placed: true, devices: { some: { kind: "SOUND" } } }, select: { id: true } })) {
       const open = await prisma.job.findFirst({ where: { placeId: p.id, status: { in: ["queued", "running"] } } });
       if (!open) await prisma.job.create({ data: { kind: "readings.recompute", placeId: p.id } });
     }
   }
   if (now - lastSchedule < 6 * 3600e3) return;
   lastSchedule = now;
-  const places = await prisma.place.findMany({ select: { id: true, context: true } });
+  const places = await prisma.place.findMany({ where: { placed: true }, select: { id: true, context: true } });
   for (const p of places) {
     if (!p.context) { const open = await prisma.job.findFirst({ where: { placeId: p.id, kind: "context.enrich", status: { in: ["queued", "running"] } } }); if (!open) await prisma.job.create({ data: { kind: "context.enrich", placeId: p.id } }); }
     const open = await prisma.job.findFirst({ where: { placeId: p.id, kind: { in: ["satellite.update", "satellite.backfill"] }, status: { in: ["queued", "running"] } } });

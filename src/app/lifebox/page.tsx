@@ -28,6 +28,14 @@ export default function LifeboxHome() {
         </div>
       </div>
 
+      <Link href="/box" className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent bg-white p-4 hover:bg-[#f6f5ee]">
+        <div>
+          <div className="font-semibold">Have a box in front of you?</div>
+          <div className="text-sm text-muted">Sign in with your email, give the WiFi, download the software made for your box.</div>
+        </div>
+        <span className="rounded-lg bg-accent text-white px-4 py-2 font-medium whitespace-nowrap">Get the software</span>
+      </Link>
+
       <h2 className="mt-10 text-xl font-semibold">The stages</h2>
       <ol className="mt-3 grid gap-3">
         {steps.map((s) => (

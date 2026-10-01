@@ -29,6 +29,12 @@ services:
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
       LIFEBOX_ACCESS_CODE: ${LIFEBOX_ACCESS_CODE:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-life@oncra.org}
+      IMAGE_DIR: /images
+    volumes:
+      # the golden image split for per-box images, and each box's own boot part (node/image/split-golden.sh)
+      - ./images:/images
     expose: ["3000"]
 
   worker:

@@ -65,6 +65,8 @@ model Place {
   stewardName    String?
   stewardContact String?
   public         Boolean  @default(true)
+  /// false while a Life Box exists but has not been put in the ground; the worker skips unplaced places
+  placed         Boolean  @default(true)
   context        Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -75,6 +77,7 @@ model Place {
   visits    Visit[]
   apiKeys   ApiKey[]
   jobs      Job[]
+  boxes     Box[]
 }
 
 model Device {
@@ -292,4 +295,61 @@ model PlanFeedback {
 
   @@index([page, createdAt])
   @@index([status, createdAt])
+}
+
+/// Someone who builds a Life Box. Signs in with a one-time code sent by email; no password.
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  lastLogin DateTime?
+  sessions  Session[]
+  boxes     Box[]
+}
+
+model LoginCode {
+  id        String    @id @default(cuid())
+  email     String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum ImageStatus {
+  BUILDING
+  READY
+  FAILED
+}
+
+/// One Life Box and its personal image: the golden image with the box's settings and device tokens on the boot partition.
+model Box {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId      String
+  place        Place        @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  name         String
+  hostname     String       @unique
+  nodePassword String
+  wifiSsid     String?
+  imageStatus  ImageStatus  @default(BUILDING)
+  imageError   String?
+  imageVersion String?
+  imageBytes   BigInt?
+  builtAt      DateTime?
+  placedAt     DateTime?
+  createdAt    DateTime     @default(now())
 }
