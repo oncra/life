@@ -4,15 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 type Item = { id: string; kind: "NOTE" | "AI_CHANGE"; status: string; body: string; author: string | null; note: string | null; changeUrl: string | null; createdAt: string };
 
 const statusText: Record<string, string> = {
-  NEW: "note", QUEUED: "queued for the AI", RUNNING: "the AI is working on it", DONE: "changed", BLOCKED: "held: needs a human", DISMISSED: "dismissed",
+  NEW: "note", QUEUED: "queued for the AI", RUNNING: "the AI is working on it", DONE: "changed", BLOCKED: "held: needs a human", DISMISSED: "dismissed", ROLLED_BACK: "changed, then rolled back by the maintainer",
 };
 
 export function Feedback({ page }: { page: string }) {
   const [items, setItems] = useState<Item[]>([]);
   const [body, setBody] = useState("");
   const [author, setAuthor] = useState("");
-  const [code, setCode] = useState("");
-  const [askCode, setAskCode] = useState(false);
+  const [website, setWebsite] = useState(""); // honeypot: people never see it, form-filling bots fill it
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -24,7 +23,6 @@ export function Feedback({ page }: { page: string }) {
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     setAuthor(localStorage.getItem("lifebox.author") ?? "");
-    setCode(localStorage.getItem("lifebox.code") ?? "");
   }, []);
   useEffect(() => {
     if (!items.some((i) => i.status === "QUEUED" || i.status === "RUNNING")) return;
@@ -34,30 +32,26 @@ export function Feedback({ page }: { page: string }) {
 
   async function submit(kind: "NOTE" | "AI_CHANGE") {
     if (body.trim().length < 3) { setMsg("Write a sentence first."); return; }
-    if (kind === "AI_CHANGE" && !code) { setAskCode(true); setMsg("An AI change needs the change code. Ask the plan's owner for it once; it is remembered in this browser."); return; }
     setBusy(true); setMsg(null);
     localStorage.setItem("lifebox.author", author);
-    if (code) localStorage.setItem("lifebox.code", code);
-    const r = await fetch("/api/lifebox/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page, kind, body, author: author || undefined, code: kind === "AI_CHANGE" ? code : undefined }) });
+    const r = await fetch("/api/lifebox/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page, kind, body, author: author || undefined, website: website || undefined }) });
     setBusy(false);
-    if (r.status === 403) { setAskCode(true); setMsg("That change code is not right."); return; }
-    if (!r.ok) { setMsg(`Could not save (${r.status}).`); return; }
+    if (!r.ok) { setMsg((await r.json().catch(() => ({}))).error ?? `Could not save (${r.status}).`); return; }
     setBody("");
-    setMsg(kind === "AI_CHANGE" ? "Queued. The AI picks it up within about ten minutes, changes the plan, and reports here." : "Saved. It is shown on this page.");
+    setMsg(kind === "AI_CHANGE" ? "On its way. The AI picks it up within a few minutes, changes the plan, and reports here." : "Saved. It is shown on this page.");
     load();
   }
 
   return (
     <section className="mt-12 rounded-lg border border-line bg-white p-4 md:p-5" id="feedback">
       <h2 className="text-lg font-semibold">Feedback on this page</h2>
-      <p className="text-sm text-muted mt-1">A note is shown here for everyone. An AI change is applied to the plan by an AI running on the maintainer&apos;s own account: it edits these pages (and the bench log), publishes, and writes back what it did or why it held off.</p>
+      <p className="text-sm text-muted mt-1">A note is shown here for everyone. An AI change is made to the plan straight away: an AI edits these pages (and the bench log), publishes, and writes back here what it did or why it held off. The maintainer then keeps the change or rolls it back.</p>
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={2000} placeholder="What is wrong, missing, or should be measured here?" className="mt-3 w-full rounded-md border border-line p-2 text-sm" />
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={60} placeholder="Your name (optional)" className="rounded-md border border-line p-2 text-sm w-full sm:w-44" />
-        {askCode && <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={80} placeholder="Change code" className="rounded-md border border-line p-2 text-sm w-full sm:w-40" type="password" />}
+        <input value={website} onChange={(e) => setWebsite(e.target.value)} name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
         <button disabled={busy} onClick={() => submit("NOTE")} className="rounded-md border border-line px-3 py-2 text-sm hover:border-accent disabled:opacity-50">Leave a note</button>
         <button disabled={busy} onClick={() => submit("AI_CHANGE")} className="rounded-md bg-accent text-white px-3 py-2 text-sm font-medium disabled:opacity-50">AI change</button>
-        {!askCode && <button type="button" onClick={() => setAskCode(true)} className="text-xs text-muted underline">have a change code?</button>}
       </div>
       {msg && <p className="mt-2 text-sm">{msg}</p>}
       {items.length > 0 && (

@@ -28,7 +28,6 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
-      LIFEBOX_ACCESS_CODE: ${LIFEBOX_ACCESS_CODE:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-life@oncra.org}
       # comma-separated; people signed in with one of these addresses see every place's exact boundary

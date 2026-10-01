@@ -282,6 +282,8 @@ enum FeedbackStatus {
   DONE
   BLOCKED
   DISMISSED
+  /// applied, then undone by the maintainer
+  ROLLED_BACK
 }
 
 /// Feedback on the Life Box build plan (lifebox.oncra.org). A NOTE is shown on the page it was
@@ -299,8 +301,11 @@ model PlanFeedback {
   createdAt  DateTime       @default(now())
   startedAt  DateTime?
   finishedAt DateTime?
+  /// salted hash of the sender's address, only to limit how many AI changes one visitor starts
+  ipHash     String?
 
   @@index([page, createdAt])
+  @@index([ipHash, createdAt])
   @@index([status, createdAt])
 }
 
