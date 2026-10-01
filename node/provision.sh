@@ -27,6 +27,7 @@ install -m 0755 "$HERE/life-guard.py" /usr/local/bin/life-guard
 install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life-guard/life-guard.hex" /usr/share/life-node/firmware/ && install -m 0755 "$HERE/firmware/life-guard/flash.sh" /usr/share/life-node/firmware/
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
+install -m 0755 "$HERE/image/life-wittypi.sh" /usr/local/sbin/life-wittypi
 install -d /usr/share/life-node/schedules /usr/share/life-node/wittypi
 install -m 0644 "$HERE/image/schedules/"*.wpi /usr/share/life-node/schedules/
 install -m 0644 "$HERE/life-node.env.example" /usr/share/life-node/life-node.env.example

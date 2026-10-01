@@ -4,6 +4,7 @@ After=wittypi.service time-sync.target
 Wants=time-sync.target
 [Service]
 Type=oneshot
+ExecCondition=/usr/local/sbin/life-wittypi
 ExecStart=/usr/local/sbin/life-schedule
 [Install]
 WantedBy=multi-user.target
