@@ -44,9 +44,9 @@ The microphone is the small round black board, about 14 mm across, with a tiny h
 2. Turn it over and solder the six pins on the side with the hole.
 3. Clip the short ends flush on that side, so the hole side lies flat against the port in the box later.
 
-Then it connects with six short jumper wires to the pins on top of the Witty Pi. The names (VDD, GND, L/R, SCK, WS, SD) are printed next to the pins on the board; boards differ in the order, so go by the letters, not by where a pin sits. The Witty Pi pins are numbered: pin 1 is the corner pin at the end away from the USB sockets, odd numbers on the row towards the middle of the board, even numbers on the row along the edge.
+Then it connects with six short jumper wires to the pins on top of the Witty Pi. The names (VDD, GND, L/R, SCK, WS, SD) are printed next to the pins on the board; boards differ in the order, so go by the letters, not by where a pin sits. The Witty Pi pins are numbered: pin 1 is the corner pin at the memory-card end, away from the USB sockets and the battery, on the row towards the middle of the board. Odd numbers run along that row, even numbers along the row at the edge. The "P1" printed at the battery end is the name of the whole 40-pin header, not pin 1. To be sure, look under the Raspberry Pi: pin 1 is the only one with a square solder pad.
 
-![The round INMP441 microphone and the Pi's header: L/R to pin 9, WS to pin 35, SCK to pin 12, SD to pin 38, VDD to pin 1, GND to pin 6; inset: solder the pin strips on the chip side, clip them flush on the hole side](../../public/img/build/desk-mic.svg "Six wires, each colour to its pin. L/R goes to ground, which makes it the left channel.")
+![The round INMP441 microphone and the Pi's header: L/R to pin 9, WS to pin 35, SCK to pin 12, SD to pin 38, VDD to pin 1, GND to pin 6; inset: solder the pin strips on the chip side, clip them flush on the hole side](../../public/img/build/desk-mic.svg "The header as it lies on the desk, USB sockets to the left. Six wires, each colour to its pin. L/R goes to ground, which makes it the left channel.")
 
 | Microphone pin | Header pin | What it is |
 | :-- | :-- | :-- |
