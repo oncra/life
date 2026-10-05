@@ -127,6 +127,29 @@ def set_address(new, old):
         print("some probes need a power cycle before the new address takes effect; cycle it and run --scan", file=sys.stderr)
         return False
 
+AUTO_ADDR_DONE = QUEUE.parent / "probe-2-set"
+
+def auto_address():
+    """Give the first probe address 2 without a laptop, once.
+
+    Both probes leave the factory on address 1. The build guide says: connect only the 30 cm probe, switch on, wait
+    for its first reading on the box page, then add the 10 cm probe. So on a node that expects addresses 1 and 2, the
+    first time exactly one probe answers on 1 and nothing on 2, that probe becomes 2. A marker on /data makes this
+    happen once in the node's life, so a probe replaced later is never renumbered behind anyone's back.
+    """
+    if ADDRS[:2] != [1, 2] or AUTO_ADDR_DONE.exists() or os.environ.get("PROBE_AUTO_ADDRESS", "1") != "1":
+        return
+    start, count, _ = PROFILES[PROFILE]
+    def answers(a):
+        try:
+            instrument(a).read_registers(start, count, functioncode=3); return True
+        except Exception:
+            return False
+    if answers(2):
+        AUTO_ADDR_DONE.write_text("found at 2\n"); return
+    if answers(1) and set_address(2, 1):
+        AUTO_ADDR_DONE.write_text(f"set {datetime.now(timezone.utc).isoformat()}\n")
+
 def main():
     if SCAN:
         sys.exit(0 if scan() else 1)
@@ -139,6 +162,7 @@ def main():
     if not FLUSH:
         rail(True)
         try:
+            auto_address()
             for i, addr in enumerate(ADDRS):
                 token = os.environ.get(f"LIFE_DEVICE_TOKEN_SOIL_{i+1}")
                 if not token: continue

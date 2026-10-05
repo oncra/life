@@ -193,3 +193,71 @@ export function planTotals() {
     benchRows: bench.length, benchMeasured: bench.filter((r) => r.measured !== "").length,
   };
 }
+
+// --- the one-page build guide ---------------------------------------------------------
+// All parts of content/lifebox/ on one page, in `order`. Every `##` heading is a step, numbered across the whole
+// guide; a blockquote that starts with **Check.** becomes the step's check card.
+
+export interface GuideStep { id: string; n: number; title: string }
+export interface GuideSection { slug: string; anchor: string; title: string; short: string; parts: string[]; shopping: boolean; html: string; steps: GuideStep[] }
+
+export function guide(): GuideSection[] {
+  const files = fs.readdirSync(root).filter((f) => f.endsWith(".md") && f !== "index.md").sort();
+  let n = 0;
+  const seen = new Set<string>();
+  return files
+    .map((f) => ({ f, ...matter(fs.readFileSync(path.join(root, f), "utf8")) }))
+    .sort((a, b) => Number(a.data.order ?? 99) - Number(b.data.order ?? 99))
+    .map(({ f, data, content }) => {
+      const steps: GuideStep[] = [];
+      const g = new Marked({
+        gfm: true,
+        walkTokens(token) {
+          if ((token.type === "link" || token.type === "image") && typeof token.href === "string") token.href = siteHref(token.href);
+        },
+        renderer: {
+          heading({ tokens, depth }) {
+            const text = this.parser.parseInline(tokens);
+            if (depth !== 2) return `<h${depth}>${text}</h${depth}>\n`;
+            let id = slugify(text.replace(/<[^>]+>/g, ""));
+            while (seen.has(id)) id += "-2";
+            seen.add(id);
+            steps.push({ id, n: ++n, title: text.replace(/<[^>]+>/g, "") });
+            return `<h2 id="${id}" class="step-head" data-step="${n}"><span class="step-n">${n}</span><span>${text}</span></h2>\n`;
+          },
+          blockquote({ tokens }) {
+            const inner = this.parser.parse(tokens);
+            const check = /^<p><strong>Check\.<\/strong>/.test(inner.trim());
+            return check ? `<div class="check">${inner.replace("<strong>Check.</strong>", '<strong class="check-label">Check</strong>')}</div>\n` : `<blockquote>${inner}</blockquote>\n`;
+          },
+          image({ href, title, text }) {
+            const cap = title ? `<figcaption>${esc(title)}</figcaption>` : "";
+            return `<figure><img src="${esc(href)}" alt="${esc(text)}" loading="lazy" />${cap}</figure>`;
+          },
+        },
+      });
+      const html = g.parse(content) as string;
+      const slug = f.replace(/\.md$/, "");
+      return {
+        slug, anchor: slug.replace(/^\d+-/, ""), title: String(data.title ?? slug), short: String(data.short ?? ""),
+        parts: Array.isArray(data.parts) ? data.parts.map(String) : [], shopping: data.shopping === true, html, steps,
+      };
+    });
+}
+
+/** Old one-page-per-stage links land on the matching part of the one-page guide. */
+export const legacyAnchors: Record<string, string> = {
+  have: "order", "0-before": "software", "1-bench": "desk", "2-power": "power", "3-box": "box", "4-post": "field", "5-soak": "watch",
+};
+
+/** The order list grouped by shop, for the "order the parts" step. */
+export function shoppingList(): { shop: string; parts: Part[]; total: number }[] {
+  const by = new Map<string, Part[]>();
+  for (const p of orderList()) {
+    const shop = /bouwmarkt|cables\/connectors/i.test(p.shop) ? "DIY shop or electronics shop" : p.shop;
+    by.set(shop, [...(by.get(shop) ?? []), p]);
+  }
+  return [...by.entries()]
+    .map(([shop, parts]) => ({ shop, parts: [...parts].sort((a, b) => Number(a.basket === "R2") - Number(b.basket === "R2")), total: parts.reduce((s, p) => s + p.total, 0) }))
+    .sort((a, b) => (a.shop.startsWith("DIY") ? 1 : 0) - (b.shop.startsWith("DIY") ? 1 : 0) || b.total - a.total);
+}

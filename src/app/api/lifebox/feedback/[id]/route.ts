@@ -5,7 +5,7 @@ import { authenticate, json, unauthorized } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 const Patch = z.object({
-  status: z.enum(["NEW", "QUEUED", "RUNNING", "DONE", "BLOCKED", "DISMISSED"]),
+  status: z.enum(["NEW", "QUEUED", "RUNNING", "DONE", "BLOCKED", "DISMISSED", "ROLLED_BACK"]),
   note: z.string().trim().max(1000).optional(),
   changeUrl: z.string().url().max(300).optional(),
 });
@@ -24,7 +24,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data: {
       status, note, changeUrl,
       startedAt: status === "RUNNING" ? now : undefined,
-      finishedAt: status === "DONE" || status === "BLOCKED" || status === "DISMISSED" ? now : undefined,
+      finishedAt: status === "DONE" || status === "BLOCKED" || status === "DISMISSED" || status === "ROLLED_BACK" ? now : undefined,
     },
   }).catch(() => null);
   if (!item) return json({ error: "not found" }, 404);

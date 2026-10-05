@@ -23,6 +23,14 @@ A power cut at any moment leaves root untouched, because root is never written. 
 3. Boot. `life-firstboot` grows p3, takes the env file, writes host keys, seeds the Witty Pi scripts. `life-schedule` writes the season's schedule into the Witty Pi. BirdNET-Go starts on the I2S microphone. The soil timer fires every 20 minutes, the push timer hourly (detections plus the heartbeat with the modem's cell), and `life-flush` runs on the way down with a `shutdown` heartbeat, so a planned sleep and a crash look different from the oracle. With `GUARD=1`, `life-guard check` runs before any of that at every boot: on an alarm boot it reports the loop and the cell first and silences the guard only inside a maintenance window.
 4. SSH as `life` with the password given at build time or the key baked in. Check: `systemctl list-timers`, `journalctl -u life-soil`, `ls /data/life-node`.
 
+## One image per node, ready to flash
+
+`personalize.sh` puts a node's `life-node.env` on the boot partition of the golden image and recompresses it, so the builder only downloads, flashes and boots (no root needed: mtools writes the FAT partition inside the file; about 6 minutes on 4 cores). The result holds the node's device tokens and WiFi password, so it is handed over behind a login, never as a release asset.
+
+    bash node/image/personalize.sh life-node-v1.img.xz node.env life-node-1.img.xz
+
+A WiFi name with spaces goes in single quotes (`WIFI_SSID='Office WiFi'`); the script refuses an unquoted value with a space.
+
 ## Changing the root later
 
 Root is read-only, so `apt-get` and edits under `/etc` vanish at the next reboot. To change it: `sudo raspi-config nonint disable_overlayfs && sudo reboot`, make the change, `sudo raspi-config nonint enable_overlayfs && sudo reboot`. Or take out `overlayroot=tmpfs:recurse=0` from `cmdline.txt` on the boot partition from any laptop. Better still, change `provision.sh` and rebuild, so the next node gets it too.
@@ -34,6 +42,8 @@ Runs as the `birdnet-go.service` from `/data/birdnet-go`. `build.sh` runs it onc
 The microphone is an INMP441 on I2S (pins 18, 19, 20), which Linux sees as the `googlevoicehat` sound card; `dtparam=audio=off` keeps it the only card on the node so BirdNET-Go's default source picks it.
 
 ## Witty Pi
+
+`life-wittypi` runs before both the daemon and the schedule. It lets them start only when a Witty Pi 4 answers on I2C **and** sits in the supply path (its own input voltage is up). A Witty Pi stacked on the Pi while the supply goes into the Pi's own USB-C can order a shutdown but cannot cut or restore power, and the halted Pi then draws about 1.8 W and never wakes; that happened on node 1's bench. When the check passes it also sets the board's **default ON** (register 17), so the Pi starts the moment the Witty Pi gets power instead of waiting for a press on K1. A node whose battery ran flat comes back on its own when the charge controller switches its load output on again. `WITTYPI_DEFAULT_ON=0` in the env keeps the button behaviour.
 
 The UUGear software runs from `/data/wittypi` under `wittypi.service` instead of the `init.d` script its installer would write. `schedules/` has three scripts: `summer` (10 h from 05:00), `winter` (1 h from 07:00), `bench` (15 min in every hour). `life-schedule` picks by month unless `SCHEDULE=` in the env says otherwise, and only rewrites the Witty Pi when the wanted script differs from the one in place. The `astral` dawn/dusk computation from the node README is the intended replacement; it is installed but not yet wired in.
 

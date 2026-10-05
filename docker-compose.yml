@@ -28,7 +28,14 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
-      LIFEBOX_ACCESS_CODE: ${LIFEBOX_ACCESS_CODE:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-life@oncra.org}
+      # comma-separated; people signed in with one of these addresses see every place's exact boundary
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      IMAGE_DIR: /images
+    volumes:
+      # the golden image split for per-box images, and each box's own boot part (node/image/split-golden.sh)
+      - ./images:/images
     expose: ["3000"]
 
   worker:
@@ -43,7 +50,9 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
-    command: ["npx", "tsx", "scripts/worker.ts"]
+    # the worker applies pending migrations itself (Prisma takes a lock, so it is safe next to the app doing the
+    # same): started first with a new client against an old schema, every job it picks up fails
+    command: ["sh", "-c", "npx prisma migrate deploy && npx tsx scripts/worker.ts"]
 
   caddy:
     image: caddy:2-alpine

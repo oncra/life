@@ -72,7 +72,7 @@ Gate: the card boots, `systemctl list-timers` shows `life-soil.timer` and `life-
 
 Everything loose on a desk, powered from a USB supply through the inline meter. No enclosure, no battery, no MPPT. One thing added at a time, and a line in the log after each.
 
-**1.1 Inventory against the order list.** Three lines from reichelt, one from UUGear, one from TelecomShop (all delivered), then the Opencircuit parcel (Pi, RS485 adapter, card, header), the DigiKey parcel (three probes) and the Amazon.nl small parts. Check the SEN0600 leads for a published colour code; they are undocumented, so if there is no code, meter them before applying power.
+**1.1 Inventory against the order list.** Three lines from reichelt, one from UUGear, one from TelecomShop (all delivered), then the Opencircuit parcel (Pi, RS485 adapter, card, header), the DigiKey parcel (three probes) and the Amazon.nl small parts. Check the SEN0600 leads against DFRobot's colour code: brown VCC (5 to 30 V), black GND, yellow RS485-A, blue RS485-B. A lead with other colours gets metered before power.
 
 **1.2 Measure the Pi alone.** This is the most important half hour of the build, because every energy number on the kit page rests on the phrase "about 5 W while awake" and nobody has measured it. Record: idle at the prompt, boot peak, and steady state with BirdNET-Go running. If the awake figure comes in above about 6.5 W, the summer margin is gone and either the schedule or the panel changes, so record it before buying anything else.
 
@@ -85,6 +85,10 @@ life-soil-agent --scan                      # confirm, then connect both
 ```
 
 `--scan` prints the raw registers as well as the decoded values. That is deliberate: the `sen0600` profile was written from a datasheet and has never seen a probe, so the raw words are the evidence that the register map is right. Moisture should read a plausible percentage and temperature a plausible room temperature. Air is near zero, a glass of water is near saturation, and a hand around the prongs moves the temperature within a minute. If the decoded values are nonsense but the raw words are stable, the map is wrong and not the probe.
+
+Both probes share one USB-to-RS485 adapter, because RS485 is a bus, and the order is what makes that work. Pi off for every wiring change. **Step 1**, one probe alone, one wire per terminal: brown to VCC and black to GND of the USB screw terminal, yellow to A+ and blue to B− of the adapter; the adapter's GND and the terminal's D−, D+ and ID stay empty. Write address 2, power-cycle the probe if the scan still shows 1, and tape the lead "30 cm, address 2". **Step 2**, the second probe joins the first on the same four terminals, same colour with same colour, each pair crimped into one ferrule a size up. Swapped yellow and blue break nothing, but nothing answers. No termination resistor is needed on 2 m leads at 9600 baud. Address 1 (untaped) is the 10 cm probe, address 2 the 30 cm one, matching `SOIL_1` and `SOIL_2` in `life-node.env`. The diagram and the numbered steps are in the [build guide](https://life.oncra.org/lifebox#desk).
+
+![Wiring diagram for the two soil probes: step 1 one probe, step 2 both on the same terminals](../public/img/build/s1-probe-wiring.svg)
 
 **1.4 First real soil reading.** Both probes on the bus, addresses 1 and 2, `PROBE_PROFILE=sen0600`, tokens in place. Run the agent once by hand, then let the timer do it. Watch both devices' `lastSeenAt` move on the bench place.
 
@@ -100,7 +104,7 @@ Gate for stage 1: both probes answer on their own addresses, one detection and t
 
 **2.2 Schedule.** Set the Witty Pi for a short cycle first, say awake fifteen minutes in every hour, so that a day of testing gives a dozen cycles instead of one. Confirm that `life-flush.service` actually runs before shutdown and that the queue is empty afterwards. Only then set the real seasonal schedule: about ten hours a day March to October, one hour a day November to February, at a fixed clock time so the winter sample does not wander around the daily cycle.
 
-**2.3 Brown-out and recovery.** Pull the supply mid-cycle, three times. The node must come back on its own with no card corruption and no lost queue. This is the single most likely field failure and it is trivial to test on a desk.
+**2.3 Brown-out and recovery.** Pull the supply mid-cycle, three times. The node must come back on its own with no card corruption and no lost queue. Coming back on its own depends on the Witty Pi's **default ON** setting, which the image sets at every boot (`life-wittypi`); from the factory the board waits for a press on its K1 button. This is the single most likely field failure and it is trivial to test on a desk.
 
 **2.4 Twenty-four hours unattended**, with the meter logging. Compare against the modelled 54.6 Wh/day summer and 9.6 Wh/day winter, including the roughly 4.6 Wh/day parasitic floor from the charge controller's own consumption. A measurement more than about 20 percent above the model means the kit page's energy section is wrong and gets corrected, not explained.
 

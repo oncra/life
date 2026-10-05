@@ -48,6 +48,27 @@ elif "notes" in tables:
     for r in con.execute("select date, time, scientific_name, common_name, confidence from notes where (date || 'T' || time) > ? order by date, time", (since[:19],)):
         ts = f"{r['date']}T{r['time']}"
         rows.append((ts, {"ts": datetime.fromisoformat(ts).astimezone().isoformat(), "species": r["common_name"], "scientific": r["scientific_name"], "confidence": float(r["confidence"]), "detector": "birdnet-go"}))
+elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c in con.execute("pragma table_info(detections)")]:
+    # BirdNET-Go schema since mid 2026: detections(label_id, detected_at in unix seconds, begin_time/end_time in ms,
+    # confidence) joined to labels(scientific_name) and label_types; only labels of type 'species' are birds or bats.
+    # The database carries no common name, so ask BirdNET-Go's own local API for the names it has shown lately and
+    # fall back to the scientific name: a detection must never wait for a name.
+    names = {}
+    try:
+        with urllib.request.urlopen(os.environ.get("BIRDNET_API", "http://127.0.0.1:8080/api/v2") + "/detections?limit=1000", timeout=10) as resp:
+            names = {d["scientificName"]: d["commonName"] for d in json.load(resp).get("data", []) if d.get("scientificName") and d.get("commonName")}
+    except Exception as e:  # noqa: BLE001 - BirdNET-Go is down at shutdown; the rows still go out
+        print(f"common names skipped: {e}", file=sys.stderr)
+    since_epoch = int(datetime.fromisoformat(since.replace("+00:00", "")[:19]).timestamp())
+    q = """select d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
+           join labels l on l.id = d.label_id join label_types t on t.id = l.label_type_id
+           where t.name = 'species' and d.detected_at > ? order by d.detected_at"""
+    for r in con.execute(q, (since_epoch,)):
+        at = datetime.fromtimestamp(r["detected_at"])
+        det = {"ts": at.astimezone().isoformat(), "species": names.get(r["scientific_name"], r["scientific_name"]), "scientific": r["scientific_name"], "confidence": float(r["confidence"]), "detector": "birdnet-go"}
+        if r["begin_time"] and r["end_time"] and r["end_time"] > r["begin_time"]:
+            det["durationS"] = round((r["end_time"] - r["begin_time"]) / 1000, 1)
+        rows.append((at.isoformat(timespec="seconds"), det))
 else:
     sys.exit(f"unknown schema in {db}: tables {sorted(tables)}")
 

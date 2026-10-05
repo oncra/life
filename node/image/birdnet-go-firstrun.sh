@@ -16,6 +16,11 @@ p = pathlib.Path("/data/birdnet-go/config.yaml"); s = p.read_text()
 s2, n = re.subn(r"(\n        export:\n            debug: \w+\n            enabled: )true", r"\1false", s, count=1)
 assert n == 1, "export.enabled not found where expected; inspect the config"
 s2 = s2.replace("\n    locale: en-us", "\n    locale: en", 1)
+# the default source is "sysdefault", which BirdNET-Go does not find on a node (device_found=false, the capture
+# stream stays closed and it analyses nothing). The I2S microphone is the only sound card (dtparam=audio=off),
+# so it is card 0, device 0, which BirdNET-Go names ":0,0".
+s2, n = re.subn(r"(\n              device: )sysdefault", r'\1":0,0"', s2, count=1)
+assert n == 1, "audio source device not found where expected; inspect the config"
 p.write_text(s2)
 print("clip saving off")
 PY

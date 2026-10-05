@@ -41,7 +41,7 @@ A device of kind SOIL delivers `{ts, depthCm, vwc %, tempC, ec µS/cm, co2Ppm?, 
 
 ### 2.3b Context layers (built: SoilGrids; specified: the rest)
 
-At registration and yearly, each place is enriched from open global layers, stored as `place.context` and used by the readings. Built: ISRIC SoilGrids v2.0 at the centroid (clay, sand, silt, organic carbon, pH, bulk density, WRB class; 250 m; CC BY 4.0), setting the Cycling model's moisture optimum from clay fraction. Specified: ETH 10 m canopy height 2020 (Structure witness), Walker et al. potential carbon and Bastin potential tree cover (distance to potential for Productivity and Structure), Hansen tree-cover loss and ESRI 10 m land cover (land-use context), NASA FIRMS and OPERA disturbance alerts (dated shocks for Resilience), RESOLVE ecoregion (neighbour-crowd stratum). Rationale and the Restor assessment: [Coupling with Restor](restor.md).
+At registration and yearly, each place is enriched from open global layers, stored as `place.context` and used by the readings. Built: ISRIC SoilGrids v2.0 at the centroid (clay, sand, silt, organic carbon, pH, bulk density, WRB class; 250 m; CC BY 4.0), setting the Cycling model's moisture optimum from clay fraction. Specified: ETH 10 m canopy height 2020 (Structure witness), Walker et al. potential carbon and Bastin potential tree cover (distance to potential for Productivity and Structure), Hansen tree-cover loss and ESRI 10 m land cover (land-use context), NASA FIRMS and OPERA disturbance alerts (dated shocks for Resilience), RESOLVE ecoregion (neighbour-crowd stratum); for places in the Netherlands, AHN national airborne lidar (0.5 m surface minus terrain model, a flight every ~3 years since 2020: AHN4 2020-2022, AHN5 2023-2025, AHN6 from 2025; open data via PDOK and AHN's sheet index), which replaces the ETH 2020 canopy-height witness there with a measured, repeated one. Rationale and the Restor assessment: [Coupling with Restor](restor.md).
 
 ### 2.4 Visits (built: storage; specified: scheduler)
 
@@ -61,7 +61,7 @@ Distinct species with detection confidence ≥ 0.7 per calendar year. Needs two 
 
 ### 3.3 Structure (built)
 
-Median NDSI (biophony minus anthrophony, normalised) per year from delivered indices. Needs two years. Change above +0.05 rising, below −0.05 falling. Specified: ADI/AEI trend, and a canopy-structure component from Sentinel-1 and lidar where available.
+Median NDSI (biophony minus anthrophony, normalised) per year from delivered indices. Needs two years. Change above +0.05 rising, below −0.05 falling. Specified: ADI/AEI trend, and a canopy-structure component from Sentinel-1 and lidar where available. Where lidar is AHN (the Netherlands), the component is the change between consecutive flights in canopy cover above 2 m and in height-class diversity (share of the place in 0-2, 2-5, 5-10 and 10+ m), read at the same 0.5 m pixels in both flights. A rise in the taller classes with the lower ones still present reads as layering, the structure a recovering woodland or food forest builds; a loss of the taller classes is a dated shock for Resilience. Two caveats travel with it: AHN is flown in the leafless season, and AHN4 kept the averaged rather than the highest return per pixel, so an AHN4-to-AHN5 change is partly method and gets lower confidence than AHN5-to-AHN6.
 
 ### 3.4 Renewal (built)
 

@@ -65,6 +65,14 @@ model Place {
   stewardName    String?
   stewardContact String?
   public         Boolean  @default(true)
+  /// false while a Life Box exists but has not been put in the ground; the worker skips unplaced places
+  placed         Boolean  @default(true)
+  /// true: the public sees a circle of blurRadiusM around (blurLat, blurLon) instead of the boundary; the exact
+  /// geometry, centroid and device positions are shown only to the place's owner, its steward key and admins
+  locationHidden Boolean  @default(false)
+  blurLat        Float?
+  blurLon        Float?
+  blurRadiusM    Int?
   context        Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -75,6 +83,8 @@ model Place {
   visits    Visit[]
   apiKeys   ApiKey[]
   jobs      Job[]
+  boxes     Box[]
+  access    PlaceAccess[]
 }
 
 model Device {
@@ -272,6 +282,8 @@ enum FeedbackStatus {
   DONE
   BLOCKED
   DISMISSED
+  /// applied, then undone by the maintainer
+  ROLLED_BACK
 }
 
 /// Feedback on the Life Box build plan (lifebox.oncra.org). A NOTE is shown on the page it was
@@ -289,7 +301,86 @@ model PlanFeedback {
   createdAt  DateTime       @default(now())
   startedAt  DateTime?
   finishedAt DateTime?
+  /// salted hash of the sender's address, only to limit how many AI changes one visitor starts
+  ipHash     String?
 
   @@index([page, createdAt])
+  @@index([ipHash, createdAt])
   @@index([status, createdAt])
+}
+
+/// Someone who builds a Life Box. Signs in with a one-time code sent by email; no password.
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  lastLogin DateTime?
+  sessions  Session[]
+  boxes     Box[]
+  places    PlaceAccess[]
+}
+
+model LoginCode {
+  id        String    @id @default(cuid())
+  email     String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum ImageStatus {
+  BUILDING
+  READY
+  FAILED
+}
+
+/// One Life Box and its personal image: the golden image with the box's settings and device tokens on the boot partition.
+model Box {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId      String
+  place        Place        @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  name         String
+  hostname     String       @unique
+  nodePassword String
+  wifiSsid     String?
+  imageStatus  ImageStatus  @default(BUILDING)
+  imageError   String?
+  imageVersion String?
+  imageBytes   BigInt?
+  builtAt      DateTime?
+  placedAt     DateTime?
+  /// false: the box was set up for a place that already existed; placing it records where it stands on that place
+  /// and never redraws the boundary
+  ownPlace     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+}
+
+/// A person who may see a place exactly and follow it, without a Life Box on it (yet). Granted by an admin or the
+/// place's steward key: POST /api/v1/places/{id}/access.
+model PlaceAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  role      String   @default("owner")
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+  @@index([placeId])
 }

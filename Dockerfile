@@ -15,7 +15,8 @@ RUN npx prisma generate && npm run build
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates curl && rm -rf /var/lib/apt/lists/*
+# xz-utils + mtools: per-box card images (src/lib/boximage.ts)
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates curl xz-utils mtools && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/src/generated ./src/generated
