@@ -104,7 +104,7 @@ Gate for stage 1: both probes answer on their own addresses, one detection and t
 
 **2.2 Schedule.** Set the Witty Pi for a short cycle first, say awake fifteen minutes in every hour, so that a day of testing gives a dozen cycles instead of one. Confirm that `life-flush.service` actually runs before shutdown and that the queue is empty afterwards. Only then set the real seasonal schedule: about ten hours a day March to October, one hour a day November to February, at a fixed clock time so the winter sample does not wander around the daily cycle.
 
-**2.3 Brown-out and recovery.** Pull the supply mid-cycle, three times. The node must come back on its own with no card corruption and no lost queue. This is the single most likely field failure and it is trivial to test on a desk.
+**2.3 Brown-out and recovery.** Pull the supply mid-cycle, three times. The node must come back on its own with no card corruption and no lost queue. Coming back on its own depends on the Witty Pi's **default ON** setting, which the image sets at every boot (`life-wittypi`); from the factory the board waits for a press on its K1 button. This is the single most likely field failure and it is trivial to test on a desk.
 
 **2.4 Twenty-four hours unattended**, with the meter logging. Compare against the modelled 54.6 Wh/day summer and 9.6 Wh/day winter, including the roughly 4.6 Wh/day parasitic floor from the charge controller's own consumption. A measurement more than about 20 percent above the model means the kit page's energy section is wrong and gets corrected, not explained.
 

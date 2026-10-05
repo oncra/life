@@ -3,6 +3,8 @@ Description=Witty Pi 4 daemon (scheduled power, RTC, shutdown on the button and 
 After=life-firstboot.service
 [Service]
 Type=simple
+# only with a Witty Pi in the supply path; also sets the board to switch the Pi on when power arrives
+ExecCondition=/usr/local/sbin/life-wittypi
 WorkingDirectory=/data/wittypi
 ExecStart=/data/wittypi/daemon.sh
 Restart=on-failure

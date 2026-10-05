@@ -43,6 +43,8 @@ The microphone is an INMP441 on I2S (pins 18, 19, 20), which Linux sees as the `
 
 ## Witty Pi
 
+`life-wittypi` runs before both the daemon and the schedule. It lets them start only when a Witty Pi 4 answers on I2C **and** sits in the supply path (its own input voltage is up). A Witty Pi stacked on the Pi while the supply goes into the Pi's own USB-C can order a shutdown but cannot cut or restore power, and the halted Pi then draws about 1.8 W and never wakes; that happened on node 1's bench. When the check passes it also sets the board's **default ON** (register 17), so the Pi starts the moment the Witty Pi gets power instead of waiting for a press on K1. A node whose battery ran flat comes back on its own when the charge controller switches its load output on again. `WITTYPI_DEFAULT_ON=0` in the env keeps the button behaviour.
+
 The UUGear software runs from `/data/wittypi` under `wittypi.service` instead of the `init.d` script its installer would write. `schedules/` has three scripts: `summer` (10 h from 05:00), `winter` (1 h from 07:00), `bench` (15 min in every hour). `life-schedule` picks by month unless `SCHEDULE=` in the env says otherwise, and only rewrites the Witty Pi when the wanted script differs from the one in place. The `astral` dawn/dusk computation from the node README is the intended replacement; it is installed but not yet wired in.
 
 ## Known limits
