@@ -38,9 +38,15 @@ Do not switch anything on yet.
 
 ## Wire the microphone
 
-The microphone is the small square board, about the size of a fingernail. It connects with five short jumper wires to the pins on top of the Witty Pi. The pins are numbered: pin 1 is the corner pin at the end away from the USB sockets, odd numbers on the row towards the middle of the board, even numbers on the row along the edge.
+The microphone is the small round black board, about 14 mm across, with a tiny hole in the middle: that hole is where the sound goes in. It comes with two loose strips of three pins, which have to be soldered on first. If you have never soldered, ask someone who has; it takes five minutes.
 
-![The INMP441 microphone wired to the Pi's header: VDD to pin 1, GND and L/R to pins 6 and 9, SCK to pin 12, WS to pin 35, SD to pin 38](../../public/img/build/desk-mic.svg "Five wires. L/R goes to ground, which makes it the left channel.")
+1. Push both strips into the board from the side with the chip (the small metal block), long pins pointing up.
+2. Turn it over and solder the six pins on the side with the hole.
+3. Clip the short ends flush on that side, so the hole side lies flat against the port in the box later.
+
+Then it connects with six short jumper wires to the pins on top of the Witty Pi. The names (VDD, GND, L/R, SCK, WS, SD) are printed next to the pins on the board; boards differ in the order, so go by the letters, not by where a pin sits. The Witty Pi pins are numbered: pin 1 is the corner pin at the end away from the USB sockets, odd numbers on the row towards the middle of the board, even numbers on the row along the edge.
+
+![The round INMP441 microphone and the Pi's header: L/R to pin 9, WS to pin 35, SCK to pin 12, SD to pin 38, VDD to pin 1, GND to pin 6; inset: solder the pin strips on the chip side, clip them flush on the hole side](../../public/img/build/desk-mic.svg "Six wires, each colour to its pin. L/R goes to ground, which makes it the left channel.")
 
 | Microphone pin | Header pin | What it is |
 | :-- | :-- | :-- |
@@ -51,7 +57,7 @@ The microphone is the small square board, about the size of a fingernail. It con
 | WS | 35 | word select |
 | SD | 38 | sound data |
 
-Check each wire twice against the table. Power on the wrong pin can break the microphone, nothing else.
+Check each wire twice against the table, reading the letters on the board. Power on the wrong pin can break the microphone, nothing else.
 
 ## Switch on for the first time
 
@@ -73,7 +79,7 @@ On the desk the box wakes up once an hour and listens for 15 minutes, then switc
 
 Play a blackbird or a robin from your phone, close to the microphone, for a minute or two. Any recording of a garden bird will do; search for *blackbird song* on YouTube.
 
-> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. Only hiss and no bird after two tries: check the five wires against the table.
+> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. Only hiss and no bird after two tries: check the six wires against the table.
 
 ## Connect the 30 cm soil probe, alone
 
