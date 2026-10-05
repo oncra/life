@@ -15,6 +15,10 @@ vin=$(r 1); vind=$(r 2)
 if [ "$vin" -lt 3 ]; then
   echo "life-wittypi: Witty Pi present but not in the supply path (input ${vin}.${vind} V), skipping"; exit 1
 fi
+# the board only cuts power after a shutdown when it can see UART0's TXD, and only after the daemon's SYS_UP
+grep -q "^enable_uart=1" /boot/firmware/config.txt && grep -q "^dtoverlay=disable-bt" /boot/firmware/config.txt \
+  || echo "life-wittypi: WARNING config.txt lacks enable_uart=1 / dtoverlay=disable-bt; the board cannot see the Pi shut down"
+command -v gpio >/dev/null || echo "life-wittypi: WARNING wiringPi gpio is missing; the Witty Pi daemon will exit and never send SYS_UP"
 want=${WITTYPI_DEFAULT_ON:-1}
 if [ "$(r 17)" != "$want" ]; then
   i2cset -y $BUS $ADDR 17 "$want" && echo "life-wittypi: default ON set to $want"

@@ -28,6 +28,13 @@ install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
 install -m 0755 "$HERE/image/life-wittypi.sh" /usr/local/sbin/life-wittypi
+# the Witty Pi daemon drives its pins with wiringPi's gpio tool and exits without it; it is the daemon that sends
+# SYS_UP on GPIO-17, and only after SYS_UP does the board watch TXD and cut power once the Pi has shut down
+if ! command -v gpio >/dev/null; then
+  curl -fsSL -o /tmp/wiringpi.deb https://github.com/WiringPi/WiringPi/releases/download/v3.20/wiringpi_3.20_arm64.deb
+  echo "85f5965d57adb895b97b3f8b04083613d00964f930cb86822459eae5a97dc804  /tmp/wiringpi.deb" | sha256sum -c - >/dev/null && apt-get install -y -qq /tmp/wiringpi.deb >/dev/null; rm -f /tmp/wiringpi.deb
+  command -v gpio >/dev/null || { echo "wiringPi did not install; the Witty Pi daemon will not run"; exit 1; }
+fi
 install -d /usr/share/life-node/schedules /usr/share/life-node/wittypi
 install -m 0644 "$HERE/image/schedules/"*.wpi /usr/share/life-node/schedules/
 install -m 0644 "$HERE/life-node.env.example" /usr/share/life-node/life-node.env.example
@@ -88,6 +95,11 @@ dtoverlay=googlevoicehat-soundcard
 CFG
 fi
 sed -i 's/^dtparam=audio=on/dtparam=audio=off/' $FW/config.txt
+# Witty Pi 4: it watches the TXD pin of UART0 (the PL011) on GPIO-14 to know the Pi is up or down. On a Pi 4
+# the PL011 belongs to Bluetooth unless an overlay moves it, and enable_uart=1 alone gives the mini UART, whose
+# TXD does not tell the board anything. No Bluetooth on a field node, so it is switched off.
+grep -q '^enable_uart=1' $FW/config.txt || printf '\n# Witty Pi 4: UART0 on GPIO-14, its TXD tells the board the Pi is up\nenable_uart=1\ndtoverlay=disable-bt\n' >> $FW/config.txt
+systemctl disable hciuart.service bluetooth.service >/dev/null 2>&1 || true
 sed -i 's/ resize$//; s/ resize / /' $FW/cmdline.txt
 # recurse=0: /data and /boot/firmware stay real, writable mounts; only root is overlaid
 grep -q 'overlayroot=tmpfs' $FW/cmdline.txt || sed -i 's/^/overlayroot=tmpfs:recurse=0 /' $FW/cmdline.txt
