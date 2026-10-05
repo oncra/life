@@ -78,6 +78,8 @@ In the oracle design, birds and bats are the routine insect sensor; an insect ca
 
 The licence line matters: if the oracle is ever sold as a service, the BirdNET family needs a commercial licence or a replacement. Perch and scikit-maad do not.
 
+Since release 20260823 BirdNET-Go also runs **Google Perch v2** beside BirdNET v2.4 ([model files](https://huggingface.co/tphakala/Perch-v2-Models), Apache-2.0, checked 2026-10-05). The ARM build cut to Central Europe is 46 MB, 873 classes (675 species plus 198 sound events such as engines and voices) and about 250 MB of RAM, so it fits a Pi 4 with 2 GB next to BirdNET. Building the image with `PERCH_REGION=central-europe` enables both, and every detection then names the model or models that heard it (`birdnet-go:birdnet+perch`). That is the bench comparison. It does not yet clear the licence: the weights are free for commercial use, but BirdNET-Go itself is CC BY-NC-SA 4.0, so a paid service would also need a different runtime around the model.
+
 ## Soil probes
 
 ### Recommended: LoRaWAN moisture + temperature (+ EC)
