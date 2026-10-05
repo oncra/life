@@ -41,6 +41,12 @@ Runs as the `birdnet-go.service` from `/data/birdnet-go`. `build.sh` runs it onc
 
 The microphone is an INMP441 on I2S (pins 18, 19, 20), which Linux sees as the `googlevoicehat` sound card; `dtparam=audio=off` keeps it the only card on the node so BirdNET-Go's default source picks it.
 
+## Perch v2 beside BirdNET (optional)
+
+`PERCH_REGION=central-europe` at build time runs `perch-v2.sh` after the BirdNET-Go first run: it fetches Google's Perch v2, the int8 ARM build cut to Central Europe (46 MB, 873 classes, about 250 MB of RAM; Apache-2.0), from the HuggingFace repo BirdNET-Go's own model gallery uses, checks both files against pinned SHA-256 sums, puts them in `/data/birdnet-go/models/perch_v2/` and enables `perch_v2` next to `birdnet` in `config.yaml`. Both models listen to the same microphone. A detection backed by both is one detection with two contributions in BirdNET-Go's database, and `life-push` sends it once with `detector` set to `birdnet-go:birdnet+perch`, so the oracle can compare the models without counting a bird twice. Perch's sound events (engines, voices) stay on the node like every non-species label. Perch follows `birdnet.threshold` unless `perch.overridethreshold` is set.
+
+A node that already runs the plain image can get the same without a reflash, because `/data` is writable: run `perch-v2.sh` against `/data` on the node and restart `birdnet-go`.
+
 ## Witty Pi
 
 `life-wittypi` runs before both the daemon and the schedule. It lets them start only when a Witty Pi 4 answers on I2C **and** sits in the supply path (its own input voltage is up). A Witty Pi stacked on the Pi while the supply goes into the Pi's own USB-C can order a shutdown but cannot cut or restore power, and the halted Pi then draws about 1.8 W and never wakes; that happened on node 1's bench. When the check passes it also sets the board's **default ON** (register 17), so the Pi starts the moment the Witty Pi gets power instead of waiting for a press on K1. A node whose battery ran flat comes back on its own when the charge controller switches its load output on again. `WITTYPI_DEFAULT_ON=0` in the env keeps the button behaviour.

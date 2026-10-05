@@ -59,13 +59,26 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
             names = {d["scientificName"]: d["commonName"] for d in json.load(resp).get("data", []) if d.get("scientificName") and d.get("commonName")}
     except Exception as e:  # noqa: BLE001 - BirdNET-Go is down at shutdown; the rows still go out
         print(f"common names skipped: {e}", file=sys.stderr)
+    # Which model heard it: with more than one classifier enabled (BirdNET beside Perch v2), one detection can be
+    # backed by several models, recorded in detection_model_contributions. The detector field names them all, e.g.
+    # "birdnet-go:birdnet+perch", so the oracle can compare models without counting one bird twice.
+    models, contrib = {}, {}
+    if "ai_models" in tables:
+        models = {r[0]: r[1].lower().split()[0] for r in con.execute("select id, name from ai_models")}
     since_epoch = int(datetime.fromisoformat(since.replace("+00:00", "")[:19]).timestamp())
-    q = """select d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
+    if models and "detection_model_contributions" in tables:
+        for r in con.execute("""select c.detection_id, c.model_id from detection_model_contributions c join detections d on d.id = c.detection_id
+                                where d.detected_at > ?""", (since_epoch,)):
+            contrib.setdefault(r[0], set()).add(models.get(r[1], str(r[1])))
+    q = """select d.id, d.model_id, d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
            join labels l on l.id = d.label_id join label_types t on t.id = l.label_type_id
            where t.name = 'species' and d.detected_at > ? order by d.detected_at"""
     for r in con.execute(q, (since_epoch,)):
         at = datetime.fromtimestamp(r["detected_at"])
         det = {"ts": at.astimezone().isoformat(), "species": names.get(r["scientific_name"], r["scientific_name"]), "scientific": r["scientific_name"], "confidence": float(r["confidence"]), "detector": "birdnet-go"}
+        heard_by = contrib.get(r["id"]) or ({models[r["model_id"]]} if r["model_id"] in models else set())
+        if heard_by:
+            det["detector"] = "birdnet-go:" + "+".join(sorted(heard_by))
         if r["begin_time"] and r["end_time"] and r["end_time"] > r["begin_time"]:
             det["durationS"] = round((r["end_time"] - r["begin_time"]) / 1000, 1)
         rows.append((at.isoformat(timespec="seconds"), det))

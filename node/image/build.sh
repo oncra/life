@@ -2,7 +2,7 @@
 # Build the Life node golden image on a Linux workstation (x86_64 is fine: the arm64 root is entered
 # through qemu-user-static). Needs root, and: qemu-user-static binfmt-support xz-utils util-linux e2fsprogs.
 #
-#   sudo LIFE_USER_PASSWORD=... [AUTHORIZED_KEYS=~/.ssh/id_ed25519.pub] \
+#   sudo LIFE_USER_PASSWORD=... [AUTHORIZED_KEYS=~/.ssh/id_ed25519.pub] [PERCH_REGION=central-europe] \
 #     bash node/image/build.sh raspios-lite-arm64.img.xz birdnet-go-linux-arm64.tar.gz wittyPi.zip out.img
 #
 # Layout of the result (9 GiB image; flash with dd or Raspberry Pi Imager, "no customisation"):
@@ -40,6 +40,8 @@ echo ">> installing inside the arm64 root"
 chroot "$R" /bin/bash -c 'mv /etc/resolv.conf /etc/resolv.conf.orig; cp /etc/resolv.conf.build /etc/resolv.conf; apt-get update -qq; LIFE_USER_PASSWORD="$0" bash /tmp/stage/node/provision.sh /tmp/stage/bng /tmp/stage/witty; mv /etc/resolv.conf.orig /etc/resolv.conf; rm /etc/resolv.conf.build; apt-get clean' "$LIFE_USER_PASSWORD"
 # BirdNET-Go: a first run writes its default config and fetches the model; then clip saving goes off
 chroot "$R" /bin/bash -c 'bash /tmp/stage/node/image/birdnet-go-firstrun.sh'
+# optional second classifier: PERCH_REGION=central-europe adds Google Perch v2 (Apache-2.0) beside BirdNET
+[ -n "${PERCH_REGION:-}" ] && PERCH_REGION="$PERCH_REGION" bash "$HERE/perch-v2.sh" "$R/data"
 rm -rf "$R/tmp/stage" "$R/usr/bin/qemu-aarch64-static"
 umount -R "$R"; losetup -d "$LOOP"; LOOP=
 echo ">> $OUT ready; compress with: xz -T0 -9 $OUT"
