@@ -27,6 +27,8 @@ install -m 0755 "$HERE/life-guard.py" /usr/local/bin/life-guard
 install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life-guard/life-guard.hex" /usr/share/life-node/firmware/ && install -m 0755 "$HERE/firmware/life-guard/flash.sh" /usr/share/life-node/firmware/
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
+install -m 0755 "$HERE/image/life-schedule-wpi.py" /usr/local/sbin/life-schedule-wpi
+life-schedule-wpi --now 2026-06-21T05:00 | grep -q "^ON" || { echo "life-schedule-wpi does not run"; exit 1; }
 install -m 0755 "$HERE/image/life-wittypi.sh" /usr/local/sbin/life-wittypi
 # the Witty Pi daemon drives its pins with wiringPi's gpio tool and exits without it; it is the daemon that sends
 # SYS_UP on GPIO-17, and only after SYS_UP does the board watch TXD and cut power once the Pi has shut down
@@ -39,6 +41,10 @@ install -d /usr/share/life-node/schedules /usr/share/life-node/wittypi
 install -m 0644 "$HERE/image/schedules/"*.wpi /usr/share/life-node/schedules/
 install -m 0644 "$HERE/life-node.env.example" /usr/share/life-node/life-node.env.example
 cp -r "$WITTY"/. /usr/share/life-node/wittypi/ && chmod +x /usr/share/life-node/wittypi/*.sh
+# UUGear's rtc_to_system switches NTP off when the daemon trusts the RTC at boot, which leaves a node whose RTC was
+# never set on the wrong time for good. NTP stays on here; life-schedule writes the synced time back into the RTC.
+sed -i 's/^\([[:space:]]*\)sudo timedatectl set-ntp 0/\1: # life node: NTP stays on (was: sudo timedatectl set-ntp 0)/' /usr/share/life-node/wittypi/utilities.sh
+grep -q 'set-ntp 0 >' /usr/share/life-node/wittypi/utilities.sh && echo "warning: the Witty Pi utilities still switch NTP off; life-schedule switches it back on" || true
 
 # BirdNET-Go, native arm64 release
 install -m 0755 "$BNG/birdnet-go" /usr/local/bin/birdnet-go

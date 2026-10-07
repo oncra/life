@@ -1,10 +1,14 @@
 [Unit]
-Description=Life node: apply the season's Witty Pi schedule
+Description=Life node: set the clock, then apply the season's Witty Pi schedule
+# an untrusted clock exits 1 and leaves the node on; try again every five minutes until the clock syncs
+StartLimitIntervalSec=0
 After=wittypi.service time-sync.target
 Wants=time-sync.target
 [Service]
 Type=oneshot
 ExecCondition=/usr/local/sbin/life-wittypi
 ExecStart=/usr/local/sbin/life-schedule
+Restart=on-failure
+RestartSec=300
 [Install]
 WantedBy=multi-user.target

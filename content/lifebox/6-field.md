@@ -7,7 +7,7 @@ parts: [Post and mount, Solar panel]
 
 ## Make the field software
 
-In the field there is no WiFi, and the box should listen ten hours a day in summer instead of fifteen minutes an hour. Both are set by the software.
+In the field there is no WiFi, and the box should listen ten hours a day in summer (eight from dawn, two from sunset) instead of fifteen minutes an hour. Both are set by the software.
 
 1. On [your box page](https://life.oncra.org/box), choose **Another WiFi? Make new software for this box**, leave both WiFi fields **empty**, and press the button.
 2. Download it and put it on the memory card as before.

@@ -57,6 +57,8 @@ There is no commercial LoRaWAN or NB-IoT recorder that ships species detections 
 | **Song Meter SM5BAT** | Veldshop €1,199 | €1,199 | 500 kHz, 2 ultrasonic + 2 acoustic channels, 150 nights |
 | **AudioMoth at 250 to 384 kHz** | as above | €212 with case | cheapest bat option; days not weeks at full rate, use triggered recording |
 | **PUC Bat Edition** | as above | €495 | the only connected bat option under €1,000 |
+| **AudioMoth USB Microphone** (Open Acoustic Devices) | [LABmaker, Berlin, $79](https://www.labmaker.org/products/audiomoth-usb-microphone) (about €71 at the ECB rate of 2026-10-07); [GroupGets, US, $79.99](https://groupgets.com/products/audiomoth-usb-microphone); [splashproof case $29.99](https://www.labmaker.org/products/audiomoth-usb-microphone-case) | about €71 | **the Life node's bat microphone.** AudioMoth's own front end without the card and batteries, powered and read over USB as a standard sound card, up to 384 kHz, audible and ultrasonic together; works on a Raspberry Pi. BirdNET-Go's own hardware guide recommends it for bats. Checked 2026-10-07 |
+| **Dodotronic Ultramic 384K PRO** | [Dodotronic, Italy, €140](https://www.dodotronic.com/product/ultramic384k-pro/) | €140 | USB-C, 384 kHz, plug-and-play sound card, with or without a waterproof membrane (the membrane costs sensitivity at the top of the range). The EU alternative at twice the price. Checked 2026-10-07 |
 
 ### Insect cameras (instead of traps)
 
@@ -73,10 +75,14 @@ In the oracle design, birds and bats are the routine insect sensor; an insect ca
 | [BirdNET-Go](https://github.com/tphakala/birdnet-go), [BirdNET-Pi](https://github.com/Nachtzuster/BirdNET-Pi) | 24/7 on a Pi, MQTT, webhooks | CC BY-NC-SA 4.0 |
 | [BattyBirdNET-Analyzer](https://github.com/rdz-oss/BattyBirdNET-Analyzer) | European bats | CC BY-NC-SA 4.0 |
 | [BatDetect2](https://github.com/macaodha/batdetect2) | bat call detection | CC BY-NC 4.0 |
+| [BSG-BAT](https://zenodo.org/records/15495676) (University of Jyväskylä, 2025) | 21 European bat species from 384 kHz audio, PyTorch, six 83 MB models usable as an ensemble | **CC BY 4.0**, models and code |
+| [Tadarida](https://github.com/YvesBas/Tadarida-C) (MNHN, Vigie-Chiro) | bat and bush-cricket detection and classification | GPL-3.0 / LGPL-3.0, but the classifier is built from your own reference library |
 | [Perch 2.0](https://github.com/google-research/perch) | embeddings for your own classifiers (insects, frogs, machines) | Apache-2.0 |
 | [scikit-maad](https://github.com/scikit-maad/scikit-maad) | acoustic indices (ACI, ADI, NDSI, BI) | BSD-3 |
 
 The licence line matters: if the oracle is ever sold as a service, the BirdNET family needs a commercial licence or a replacement. Perch and scikit-maad do not.
+
+**For bats the licence question has an answer today.** BattyBirdNET, which BirdNET-Go runs out of the box, is CC BY-NC-SA 4.0 and works on BirdNET's own embeddings, and BatDetect2 is CC BY-NC 4.0, so both are for research and the bench. BSG-BAT is CC BY 4.0: free to use in a paid service with attribution (checked on Zenodo 2026-10-07). Its 21 species cover most of the Dutch list (common, Nathusius' and soprano pipistrelle, noctule, Leisler's, serotine, Daubenton's, both long-eared bats, parti-coloured, barbastelle) but not the other Myotis, and so not the pond bat, for which the Netherlands holds an internationally important share. It wants mono audio at 384 kHz, which is exactly what the AudioMoth USB Microphone gives.
 
 Since release 20260823 BirdNET-Go also runs **Google Perch v2** beside BirdNET v2.4 ([model files](https://huggingface.co/tphakala/Perch-v2-Models), Apache-2.0, checked 2026-10-05). The ARM build cut to Central Europe is 46 MB, 873 classes (675 species plus 198 sound events such as engines and voices) and about 250 MB of RAM, so it fits a Pi 4 with 2 GB next to BirdNET. Building the image with `PERCH_REGION=central-europe` enables both, and every detection then names the model or models that heard it (`birdnet-go:birdnet+perch`). That is the bench comparison. It does not yet clear the licence: the weights are free for commercial use, but BirdNET-Go itself is CC BY-NC-SA 4.0, so a paid service would also need a different runtime around the model.
 
