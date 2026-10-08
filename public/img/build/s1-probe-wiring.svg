@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 850" font-family="Inter,Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 875" font-family="Inter,Helvetica,Arial,sans-serif">
 <style>.h{font-size:22px;font-weight:700;fill:#131c28}.s{font-size:14px;fill:#333}.b{font-size:15px;font-weight:600;fill:#131c28}.c{text-anchor:middle}.r{text-anchor:end}.i{font-style:italic;fill:#777}.box{fill:#f4f6f8;stroke:#55606b;stroke-width:1.5}.port{fill:#c9d0d6;stroke:#55606b}.term{fill:#2f8f4e;stroke:#1d5c32}.screw{fill:#d9d9d9;stroke:#666}.usb{stroke:#888;stroke-width:6;fill:none}.w{fill:none;stroke-width:4;stroke-linejoin:round}.probe{fill:#222}.prong{stroke:#9aa3ab;stroke-width:5;stroke-linecap:round}.lead{stroke:#333;stroke-width:9;stroke-linecap:round;fill:none}.ferrule{fill:#9aa3ab;stroke:#555;opacity:.95}</style>
 <rect width="100%" height="100%" fill="#fff"/>
 <text x="30" y="40" class="h">Step 1: one probe only, to set its address</text><text x="30" y="62" class="s">Pi off while wiring. One wire per terminal. The second probe stays in its bag.</text>
@@ -12,18 +12,18 @@
 <rect x="500" y="165" width="34" height="20" class="term"/><circle cx="517" cy="175" r="5" class="screw"/><text x="492" y="180" class="r s">GND</text>
 <text x="542" y="180" class="s i">empty</text>
 <path d="M184,275 H300" class="usb"/>
-<rect x="300" y="215" width="200" height="135" rx="6" class="box"/><text x="400" y="272" class="c b">USB screw terminal</text><text x="400" y="292" class="c s">(5 V for the probes)</text>
-<rect x="500" y="215" width="34" height="20" class="term"/><circle cx="517" cy="225" r="5" class="screw"/><text x="492" y="230" class="r s">VCC</text>
-<rect x="500" y="240" width="34" height="20" class="term"/><circle cx="517" cy="250" r="5" class="screw"/><text x="492" y="255" class="r s">D−</text>
-<text x="542" y="254" class="s i">empty</text>
-<rect x="500" y="265" width="34" height="20" class="term"/><circle cx="517" cy="275" r="5" class="screw"/><text x="492" y="280" class="r s">D+</text>
+<rect x="300" y="215" width="200" height="135" rx="6" class="box"/><text x="400" y="272" class="c b">USB screw terminal</text><text x="400" y="292" class="c s">(+ is 5 V, − is ground)</text>
+<rect x="500" y="215" width="34" height="20" class="term"/><circle cx="517" cy="225" r="5" class="screw"/><text x="492" y="230" class="r s">S</text>
+<text x="542" y="229" class="s i">empty</text>
+<rect x="500" y="240" width="34" height="20" class="term"/><circle cx="517" cy="250" r="5" class="screw"/><text x="492" y="255" class="r b">+</text>
+<rect x="500" y="265" width="34" height="20" class="term"/><circle cx="517" cy="275" r="5" class="screw"/><text x="492" y="280" class="r s">D−</text>
 <text x="542" y="279" class="s i">empty</text>
-<rect x="500" y="290" width="34" height="20" class="term"/><circle cx="517" cy="300" r="5" class="screw"/><text x="492" y="305" class="r s">ID</text>
+<rect x="500" y="290" width="34" height="20" class="term"/><circle cx="517" cy="300" r="5" class="screw"/><text x="492" y="305" class="r s">D+</text>
 <text x="542" y="304" class="s i">empty</text>
-<rect x="500" y="315" width="34" height="20" class="term"/><circle cx="517" cy="325" r="5" class="screw"/><text x="492" y="330" class="r s">GND</text>
+<rect x="500" y="315" width="34" height="20" class="term"/><circle cx="517" cy="325" r="5" class="screw"/><text x="492" y="330" class="r b">−</text>
 <path d="M534,115 H554 L760,203.5 " stroke="#e0b000" class="w"/>
 <path d="M534,145 H554 L760,208.5 " stroke="#1f5fbf" class="w"/>
-<path d="M534,225 H554 L760,213.5 " stroke="#7a4a1e" class="w"/>
+<path d="M534,250 H554 L760,213.5 " stroke="#7a4a1e" class="w"/>
 <path d="M534,325 H554 L760,218.5 " stroke="#1a1a1a" class="w"/>
 <path d="M760,211 H830" class="lead"/>
 <rect x="830" y="180" width="60" height="62" rx="6" class="probe"/>
@@ -42,21 +42,21 @@
 <rect x="500" y="585" width="34" height="20" class="term"/><circle cx="517" cy="595" r="5" class="screw"/><text x="492" y="600" class="r s">GND</text>
 <text x="542" y="600" class="s i">empty</text>
 <path d="M184,695 H300" class="usb"/>
-<rect x="300" y="635" width="200" height="135" rx="6" class="box"/><text x="400" y="692" class="c b">USB screw terminal</text><text x="400" y="712" class="c s">(5 V for the probes)</text>
-<rect x="500" y="635" width="34" height="20" class="term"/><circle cx="517" cy="645" r="5" class="screw"/><text x="492" y="650" class="r s">VCC</text>
-<rect x="500" y="660" width="34" height="20" class="term"/><circle cx="517" cy="670" r="5" class="screw"/><text x="492" y="675" class="r s">D−</text>
-<text x="542" y="674" class="s i">empty</text>
-<rect x="500" y="685" width="34" height="20" class="term"/><circle cx="517" cy="695" r="5" class="screw"/><text x="492" y="700" class="r s">D+</text>
+<rect x="300" y="635" width="200" height="135" rx="6" class="box"/><text x="400" y="692" class="c b">USB screw terminal</text><text x="400" y="712" class="c s">(+ is 5 V, − is ground)</text>
+<rect x="500" y="635" width="34" height="20" class="term"/><circle cx="517" cy="645" r="5" class="screw"/><text x="492" y="650" class="r s">S</text>
+<text x="542" y="649" class="s i">empty</text>
+<rect x="500" y="660" width="34" height="20" class="term"/><circle cx="517" cy="670" r="5" class="screw"/><text x="492" y="675" class="r b">+</text>
+<rect x="500" y="685" width="34" height="20" class="term"/><circle cx="517" cy="695" r="5" class="screw"/><text x="492" y="700" class="r s">D−</text>
 <text x="542" y="699" class="s i">empty</text>
-<rect x="500" y="710" width="34" height="20" class="term"/><circle cx="517" cy="720" r="5" class="screw"/><text x="492" y="725" class="r s">ID</text>
+<rect x="500" y="710" width="34" height="20" class="term"/><circle cx="517" cy="720" r="5" class="screw"/><text x="492" y="725" class="r s">D+</text>
 <text x="542" y="724" class="s i">empty</text>
-<rect x="500" y="735" width="34" height="20" class="term"/><circle cx="517" cy="745" r="5" class="screw"/><text x="492" y="750" class="r s">GND</text>
+<rect x="500" y="735" width="34" height="20" class="term"/><circle cx="517" cy="745" r="5" class="screw"/><text x="492" y="750" class="r b">−</text>
 <path d="M566,532 H586 L760,573.5 " stroke="#e0b000" class="w"/>
 <path d="M534,532 H566" stroke="#e0b000" class="w"/>
 <path d="M566,562 H586 L760,578.5 " stroke="#1f5fbf" class="w"/>
 <path d="M534,562 H566" stroke="#1f5fbf" class="w"/>
-<path d="M566,642 H586 L760,583.5 " stroke="#7a4a1e" class="w"/>
-<path d="M534,642 H566" stroke="#7a4a1e" class="w"/>
+<path d="M566,667 H586 L760,583.5 " stroke="#7a4a1e" class="w"/>
+<path d="M534,667 H566" stroke="#7a4a1e" class="w"/>
 <path d="M566,742 H586 L760,588.5 " stroke="#1a1a1a" class="w"/>
 <path d="M534,742 H566" stroke="#1a1a1a" class="w"/>
 <path d="M760,581 H830" class="lead"/>
@@ -69,8 +69,8 @@
 <path d="M534,538 H566" stroke="#e0b000" class="w"/>
 <path d="M566,568 H586 L760,718.5 " stroke="#1f5fbf" class="w"/>
 <path d="M534,568 H566" stroke="#1f5fbf" class="w"/>
-<path d="M566,648 H586 L760,723.5 " stroke="#7a4a1e" class="w"/>
-<path d="M534,648 H566" stroke="#7a4a1e" class="w"/>
+<path d="M566,673 H586 L760,723.5 " stroke="#7a4a1e" class="w"/>
+<path d="M534,673 H566" stroke="#7a4a1e" class="w"/>
 <path d="M566,748 H586 L760,728.5 " stroke="#1a1a1a" class="w"/>
 <path d="M534,748 H566" stroke="#1a1a1a" class="w"/>
 <path d="M760,721 H830" class="lead"/>
@@ -81,7 +81,8 @@
 <text x="880" y="682" class="c b">probe 10 cm, address 1</text><text x="880" y="770" class="c s i">factory setting, no change</text>
 <rect x="536" y="526" width="30" height="18" rx="3" class="ferrule"/>
 <rect x="536" y="556" width="30" height="18" rx="3" class="ferrule"/>
-<rect x="536" y="636" width="30" height="18" rx="3" class="ferrule"/>
+<rect x="536" y="661" width="30" height="18" rx="3" class="ferrule"/>
 <rect x="536" y="736" width="30" height="18" rx="3" class="ferrule"/>
 <text x="553" y="802" class="c s">grey = one ferrule holding two wires of the SAME colour</text>
-<text x="30" y="835" class="s">Colours per DFRobot SEN0600 wiki: brown VCC (5 to 30 V), black GND, yellow 485-A, blue 485-B.</text></svg>
+<text x="30" y="835" class="s">Colours per DFRobot SEN0600 wiki: brown VCC (5 to 30 V), black GND, yellow 485-A, blue 485-B.</text>
+<text x="30" y="858" class="s">A terminal marked VCC and GND instead: + is VCC, − is GND. S is the cable shield, not power.</text></svg>
