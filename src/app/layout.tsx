@@ -19,6 +19,7 @@ const nav = [
   ["/docs/spec", "Spec"],
   ["/docs", "Guides"],
   ["/docs/api", "API"],
+  ["/backlog", "Backlog"],
 ];
 const build = ["/lifebox", "Build a Life Box"];
 

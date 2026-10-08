@@ -384,3 +384,27 @@ model PlaceAccess {
   @@unique([userId, placeId])
   @@index([placeId])
 }
+
+enum BacklogLane {
+  BACKLOG
+  NEXT
+  DOING
+  DONE
+}
+
+/// One idea on the build backlog (/backlog), a kanban everyone can read. Changes need the board password
+/// (BACKLOG_PASSWORD), a sign-in, or the admin key.
+model BacklogCard {
+  id        String      @id @default(cuid())
+  lane      BacklogLane @default(BACKLOG)
+  /// order within the lane, lowest on top; a move takes the midpoint between its new neighbours
+  rank      Float
+  title     String
+  body      String?
+  author    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  doneAt    DateTime?
+
+  @@index([lane, rank])
+}

@@ -32,6 +32,8 @@ services:
       MAIL_FROM: ${MAIL_FROM:-life@oncra.org}
       # comma-separated; people signed in with one of these addresses see every place's exact boundary
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      # the password that lets a browser change /backlog (signed-in people and the admin key need none)
+      BACKLOG_PASSWORD: ${BACKLOG_PASSWORD:-}
       IMAGE_DIR: /images
     volumes:
       # the golden image split for per-box images, and each box's own boot part (node/image/split-golden.sh)

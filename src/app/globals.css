@@ -71,3 +71,9 @@ main { overflow-x: clip; }
 .guide .check { border: 1px solid var(--accent); background: #eef4ec; border-radius: 10px; padding: 0.2rem 0.9rem; margin: 1rem 0 0.5rem; }
 .guide .check-label { display: inline-block; background: var(--accent); color: #fff; border-radius: 999px; padding: 0 0.55rem; margin-right: 0.35rem; font-size: 0.8rem; }
 .guide figure { max-width: 40rem; }
+
+/* Backlog board: with a mouse, a card's move buttons show when you point at it; on touch they are always there */
+@media (hover: hover) {
+  .bl-card .bl-moves { opacity: 0; transition: opacity 0.12s; }
+  .bl-card:hover .bl-moves, .bl-card:focus-within .bl-moves { opacity: 1; }
+}

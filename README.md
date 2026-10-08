@@ -15,6 +15,7 @@ Reference instance: **https://life.oncra.org**
 - [Specification](content/spec.md): the rules, with status (built / specified / open).
 - [Hardware guide](content/hardware.md): what to buy, prices checked 2026-09-12.
 - [Steward guide](content/guide-steward.md), [sound install](content/install-sound.md), [soil install](content/install-soil.md), [data protocols](content/data-protocols.md), [roles](content/roles.md), [API](content/api.md).
+- [Backlog](https://life.oncra.org/backlog): ideas we come across while building, on a kanban. Everyone can read it; changing it takes the board password or a sign-in.
 
 ## Run your own
 
