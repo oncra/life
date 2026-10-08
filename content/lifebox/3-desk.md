@@ -77,9 +77,13 @@ On the desk the box wakes up once an hour and listens for 15 minutes, then switc
 
 ## Let it hear a bird
 
-Play a blackbird or a robin from your phone, close to the microphone, for a minute or two. Any recording of a garden bird will do; search for *blackbird song* on YouTube.
+Play a blackbird or a robin from your phone for a minute or two, with the phone's speaker 5 to 10 cm from the small hole in the microphone.
 
-> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. Only hiss and no bird after two tries: check the six wires against the table.
+**Keep the room quiet while it plays: no talking, no radio, no television.** The box throws away every few seconds of sound in which it hears a human voice, birds included. That is on purpose: it is how the box keeps its promise that it never records people, and in a field it costs nothing. On a desk it means that a conversation next to the box, or a video with a narrator, gives no bird at all, and it looks exactly like a broken microphone.
+
+So use a recording of the bird alone. [xeno-canto.org](https://xeno-canto.org) has field recordings of every species without commentary: search for *blackbird* or *Turdus merula*.
+
+> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. No bird after two tries: first try once more in a silent room with a recording that has no voice in it. Still nothing: check the six wires against the table. A microphone that is wired wrong gives no sound at all, not hiss.
 
 ## Connect the 30 cm soil probe, alone
 
