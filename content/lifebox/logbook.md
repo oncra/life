@@ -9,15 +9,19 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 8 October 2026
 
+![Two of the builders leaning into the picture at the desk, laughing; in front of them two laptops, a multimeter, the Raspberry Pi with the Witty Pi and its coloured microphone wires, and a coil of probe cable](../../public/img/build/2026-10-08-builders.webp "Node 1's builders at the desk, 8 October: the day the probes, the birds and the power switch all worked.")
+
 ### Dinner is 60 °C
 
 *Fun fact.* The 30 cm soil probe had just passed its test in a glass of water when dinner arrived on the same table. So the probe went into the pan. It read **100 % moisture and 57 to 60 °C**, rising while we watched. The probe is rated to 80 °C, so mash is within specification.
 
 ![A soil probe standing in a pan of orange mash topped with rocket, on a wooden board; behind it the Raspberry Pi with the Witty Pi on top, the black RS485 adapter and a tangle of cables](../../public/img/build/2026-10-08-probe-in-dinner.webp "Node 1, 8 October: the 30 cm soil probe in the dinner. 100 % moisture, just under 60 °C.")
 
+![A pan of mash with the soil probe standing in it, on a board on the dinner table; next to it the Raspberry Pi with its cables, behind it the youngest builder looking down at the table](../../public/img/build/2026-10-08-dinner-at-the-desk.webp "The desk became the dinner table, and the box stayed on it.")
+
 The serious half of that hour: the same probe read **0.0 % in air, 100.0 % in water** and climbed from 20 to 26 °C in a warm hand. The way the node turns the probe's raw numbers into moisture and temperature had been written from the datasheet and had never met a real probe. It holds at both ends. ([#50](https://github.com/oncra/life/pull/50))
 
-![The soil probe standing in a glass of water on a wooden table, its black lead curling away](../../public/img/build/2026-10-08-probe-in-water.webp "The test before dinner: 100.0 % moisture and 19.7 °C in tap water, six readings out of six.")
+![A smiling builder at the desk behind two laptops and a multimeter; in the foreground the soil probe stands in a glass of water, its black lead curling back to the Raspberry Pi](../../public/img/build/2026-10-08-probe-in-water.webp "The test before dinner: 100.0 % moisture and 19.7 °C in tap water, six readings out of six.")
 
 ### The first list of birds: 22 species in twelve minutes
 
