@@ -16,6 +16,8 @@ stage,what,how,modelled,unit,measured,date,notes
 1.5,bat energy per summer day,"meter log over one day, with and without the bat microphone",4.5,Wh/day,,,"modelled 2.7 to 6.2 Wh/day from the battery (90 % converter): microphone 0.3 to 1.3, classifier 2.4 to 4.9"
 1.6,bytes per hourly batched post,modem counter before and after,12,kB,,,TLS handshake dominates
 1.6,LTE signal strength on the desk,modem web UI at 192.168.8.1,,dBm,,,baseline for the in-box comparison
+2.2,boot draw through the Witty Pi,USB inline meter on the Witty Pi's supply during the first boot,,W,3.0,2026-10-08,"node 1 with the microphone fitted and the RS485 adapter plugged in, on ethernet and WiFi; about 3 W with peaks to 4 W on the meter display"
+2.2,Witty Pi with the Pi switched off,same meter after a shutdown,,W,0.0,2026-10-08,"node 1: the board cut power seven seconds after the shutdown and the meter read 0.0 W, below its resolution; the red LED went out. With the image of 30 September the same shutdown left the Pi halted at 1.11 W, because the board never saw it go down (no UART0 on GPIO-14, no SYS_UP)"
 2.2,shutdown flush,life-flush.service then check the queue,0,rows left,,,
 2.3,brown-out recoveries,pull the supply mid-cycle three times,3,of 3,,,no card corruption and no lost queue
 2.4,energy over 24 h summer schedule,meter logging for a full day,54.6,Wh/day,,,
