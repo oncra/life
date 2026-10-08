@@ -31,7 +31,7 @@ export function BoxApp({ email, initial, places = [] }: { email: string | null; 
   return <Boxes email={email} initial={initial} places={places} />;
 }
 
-export function SignIn({ title = "The software for your Life Box", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own." }: { title?: string; intro?: string } = {}) {
+export function SignIn({ title = "The software for your Life Box", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own.", compact = false }: { title?: string; intro?: string; compact?: boolean } = {}) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -48,16 +48,16 @@ export function SignIn({ title = "The software for your Life Box", intro = "We m
   }
   return (
     <div>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
-      <p className="mt-3 text-muted">{intro}</p>
+      {compact ? <h2 className="text-lg font-semibold">{title}</h2> : <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>}
+      <p className={compact ? "mt-1 text-sm text-muted" : "mt-3 text-muted"}>{intro}</p>
       {!sent ? (
-        <form onSubmit={send} className="mt-6 grid gap-3">
+        <form onSubmit={send} className={`${compact ? "mt-3" : "mt-6"} grid gap-3`}>
           <label className="font-medium" htmlFor="email">Your email</label>
           <input id="email" type="email" required autoComplete="email" className={input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.org" />
           <button className={button} disabled={busy}>{busy ? "Sending…" : "Send me a code"}</button>
         </form>
       ) : (
-        <form onSubmit={signIn} className="mt-6 grid gap-3">
+        <form onSubmit={signIn} className={`${compact ? "mt-3" : "mt-6"} grid gap-3`}>
           <label className="font-medium" htmlFor="code">The six digits we sent to {email}</label>
           <input id="code" inputMode="numeric" autoComplete="one-time-code" required className={`${input} tracking-[0.4em] text-xl`} value={code} onChange={(e) => setCode(e.target.value)} placeholder="000000" autoFocus />
           <button className={button} disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>

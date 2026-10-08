@@ -67,7 +67,7 @@ export default function LifeboxGuide() {
         })}
 
         <section className="mt-14 border-t border-line pt-6 text-sm text-muted">
-          <p>The reasoning behind every choice is in the <Link className="underline" href="/docs/build">long build plan</Link> and on the <Link className="underline" href="/docs/kit">kit page</Link>. Comfortable with a terminal? <a className="underline" href="https://github.com/oncra/life/tree/main/node">node/</a> in the repository is the software inside the box.</p>
+          <p>The reasoning behind every choice is in the <Link className="underline" href="/docs/build">long build plan</Link> and on the <Link className="underline" href="/docs/kit">kit page</Link>. Comfortable with a terminal? <a className="underline" href="https://github.com/oncra/life/tree/main/node">node/</a> in the repository is the software inside the box. Ideas for later go on the <Link className="underline" href="/backlog">backlog</Link>.</p>
           <details className="mt-4">
             <summary className="cursor-pointer">How node 1 is going: the orders</summary>
             <div className="mt-3 overflow-x-auto rounded-lg border border-line bg-white">
