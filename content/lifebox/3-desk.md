@@ -85,16 +85,16 @@ Play a blackbird or a robin from your phone, close to the microphone, for a minu
 
 Both probes leave the factory with the same address, so the box cannot tell them apart. You fix that by connecting **one probe first**: the box sees a single probe and gives it its own address by itself. Then the second one joins.
 
-![Wiring diagram. One probe: brown to VCC and black to GND on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter.](../../public/img/build/s1-probe-wiring.svg "Step 1 is this part: one probe. Step 2, in the next step, adds the second probe on the same terminals.")
+![Wiring diagram. One probe: brown to + and black to − on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter; S, D− and D+ stay empty.](../../public/img/build/s1-probe-wiring.svg "Step 1 is this part: one probe. Step 2, in the next step, adds the second probe on the same terminals.")
 
 1. Switch off: pull the power supply out of the wall.
 2. Plug the **RS485 adapter** into a USB port of the Pi, and the **USB screw terminal** into another.
 3. Take one probe; leave the other in its bag. No ferrules needed yet: the bare wires go straight into the terminals.
-4. **Brown** into **VCC** and **black** into **GND** of the USB screw terminal. **Yellow** into **A+** and **blue** into **B−** of the RS485 adapter. Tighten the screws and tug each wire.
+4. The USB screw terminal has five screws, marked **S, +, D−, D+, −**. **Brown** into **+** and **black** into **−**. The other three stay empty: **S** is the cable shield, not power, and a probe on S gets no power and stays silent. (Some terminals say VCC and GND instead: then brown into VCC, black into GND.) **Yellow** into **A+** and **blue** into **B−** of the RS485 adapter, not into D+ and D−. Tighten the screws and tug each wire.
 5. Wrap a piece of tape around this probe's cable and write **30 cm** on it. The two probes look the same; from now on the tape is the only way to tell them apart.
 6. Put the prongs in a glass of water and switch on.
 
-> **Check.** On your box page, **Soil probe 30 cm** turns green, with a moisture close to 100% (the prongs are in water). Then switch off. Nothing on the light after an hour: yellow and blue are probably swapped. Swapping them back breaks nothing.
+> **Check.** On your box page, **Soil probe 30 cm** turns green, with a moisture close to 100% (the prongs are in water). Then switch off. Nothing on the light after an hour: check that brown sits in **+** and not in **S**, then try swapping yellow and blue. Neither mistake breaks anything.
 
 ## Add the 10 cm soil probe
 
