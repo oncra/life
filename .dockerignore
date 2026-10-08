@@ -4,3 +4,5 @@ node_modules
 .env
 *.md
 !content/*.md
+# per-host data, mounted at run time (./images:/images); 2+ GB that every build would otherwise copy
+images
