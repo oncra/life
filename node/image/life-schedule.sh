@@ -12,6 +12,7 @@
 # 2), computed for the node's own place by life-schedule-wpi, so the dawn chorus, the evening chorus and the first
 # hours of the bats are all inside a window. Winter (November to February): one hour from 07:00 at a fixed clock
 # time, so the winter sample does not drift around the daily cycle. SCHEDULE=bench: 15 minutes in every hour.
+# SCHEDULE=none: no schedule, the node stays on (desk work).
 set -u
 W=/data/wittypi; STATE=/data/life-node
 set -a; [ -f $STATE/env ] && . $STATE/env; set +a
@@ -34,6 +35,15 @@ else
   echo "life-schedule: clock not trusted ($(date '+%F %T %Z'): no sync, $why); no shutdown scheduled, retrying"
   wp clear_shutdown_time
   exit 1
+fi
+
+# SCHEDULE=none: no schedule at all, for work on the desk. The clock above is still set; the node stays on until
+# someone shuts it down, and the Witty Pi's default ON brings it back when power returns.
+if [ "${SCHEDULE:-season}" = none ]; then
+  rm -f $W/schedule.wpi
+  wp clear_shutdown_time; wp clear_startup_time
+  echo "life-schedule: SCHEDULE=none, no schedule; the node stays on"
+  exit 0
 fi
 
 case "${SCHEDULE:-season}" in
