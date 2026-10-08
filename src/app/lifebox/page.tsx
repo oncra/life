@@ -17,7 +17,10 @@ export default function LifeboxGuide() {
           <div className="md:col-span-3">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Build a Life Box</h1>
             <div className="prose mt-4 text-[0.98rem]" dangerouslySetInnerHTML={{ __html: intro }} />
-            <Link href="/box" className="mt-2 inline-block rounded-lg bg-accent text-white px-4 py-2.5 font-medium">Your box page</Link>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Link href="/box" className="inline-block rounded-lg bg-accent text-white px-4 py-2.5 font-medium">Your box page</Link>
+              <Link href="/lifebox/logbook" className="underline">Logbook: what building the first box taught us</Link>
+            </div>
           </div>
           <Image src="/img/life-node-impression.webp" alt="Impression of the Life Box: a small green box on a wooden post under a tilted solar panel, a skylark on the panel" width={1600} height={893} className="md:col-span-2 rounded-lg border border-line w-full" priority />
         </div>
