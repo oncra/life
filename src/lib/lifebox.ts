@@ -14,7 +14,7 @@ const kit = path.join(process.cwd(), "kit");
 // a sibling page is `1-bench.md`, a document is `../build.md`, an image `../../public/img/x`.
 function siteHref(href: string): string {
   let m = /^([a-z0-9-]+)\.md(#.*)?$/.exec(href);
-  if (m) return `/lifebox/${m[1]}${m[2] ?? ""}`;
+  if (m) return m[1] === "index" ? `/lifebox${m[2] ?? ""}` : `/lifebox/${m[1]}${m[2] ?? ""}`;
   m = /^\.\.\/([a-z0-9-]+)\.md(#.*)?$/.exec(href);
   if (m) return `/docs/${m[1]}${m[2] ?? ""}`;
   if (href.startsWith("../../public/")) return href.slice("../../public".length);
@@ -83,8 +83,11 @@ function readMeta(file: string): StepMeta {
   };
 }
 
+/** Pages in content/lifebox/ that are not parts of the guide: the intro and the logbook. */
+const notParts = new Set(["index.md", "logbook.md"]);
+
 export function listSteps(): StepMeta[] {
-  return fs.readdirSync(root).filter((f) => f.endsWith(".md") && f !== "index.md").map(readMeta).sort((a, b) => a.order - b.order);
+  return fs.readdirSync(root).filter((f) => f.endsWith(".md") && !notParts.has(f)).map(readMeta).sort((a, b) => a.order - b.order);
 }
 
 export function getStep(slug: string): Step | null {
@@ -98,6 +101,21 @@ export function getStep(slug: string): Step | null {
 export function planIntro(): string {
   const { content } = matter(fs.readFileSync(path.join(root, "index.md"), "utf8"));
   return md.parse(content) as string;
+}
+
+export interface LogDay { id: string; title: string; entries: string[] }
+
+/** The logbook (content/lifebox/logbook.md, served at /lifebox/logbook): a `##` per day, newest first, a `###` per entry. */
+export function logbook(): { title: string; short: string; html: string; days: LogDay[] } {
+  const { data, content } = matter(fs.readFileSync(path.join(root, "logbook.md"), "utf8"));
+  const days: LogDay[] = [];
+  for (const line of content.split("\n")) {
+    const day = /^## (.+)$/.exec(line);
+    if (day) { days.push({ id: slugify(day[1]), title: day[1], entries: [] }); continue; }
+    const entry = /^### (.+)$/.exec(line);
+    if (entry && days.length) days[days.length - 1].entries.push(entry[1]);
+  }
+  return { title: String(data.title ?? "Logbook"), short: String(data.short ?? ""), html: md.parse(content) as string, days };
 }
 
 export function isPlanPage(slug: string): boolean {
@@ -202,7 +220,7 @@ export interface GuideStep { id: string; n: number; title: string }
 export interface GuideSection { slug: string; anchor: string; title: string; short: string; parts: string[]; shopping: boolean; html: string; steps: GuideStep[] }
 
 export function guide(): GuideSection[] {
-  const files = fs.readdirSync(root).filter((f) => f.endsWith(".md") && f !== "index.md").sort();
+  const files = fs.readdirSync(root).filter((f) => f.endsWith(".md") && !notParts.has(f)).sort();
   let n = 0;
   const seen = new Set<string>();
   return files
