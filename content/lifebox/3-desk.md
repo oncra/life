@@ -79,11 +79,11 @@ On the desk the box wakes up once an hour and listens for 15 minutes, then switc
 
 Play a blackbird or a robin from your phone for a minute or two, with the phone's speaker 5 to 10 cm from the small hole in the microphone.
 
-**Keep the room quiet while it plays: no talking, no radio, no television.** The box throws away every few seconds of sound in which it hears a human voice, birds included. That is on purpose: it is how the box keeps its promise that it never records people, and in a field it costs nothing. On a desk it means that a conversation next to the box, or a video with a narrator, gives no bird at all, and it looks exactly like a broken microphone.
+**Keep the room quiet while it plays: no talking, no radio, no television.** The box throws away every few seconds of sound in which it hears a human voice, birds included. That is on purpose: it is how the box keeps its promise that it never records people, and in a field it costs nothing. On a desk it costs birds. On node 1, three minutes of bird recordings with people talking in the room gave 7 detections, with 36 stretches thrown away; the next three minutes in silence gave 14, with none thrown away. A video with a narrator talking all the way through can lose every one of them.
 
 So use a recording of the bird alone. [xeno-canto.org](https://xeno-canto.org) has field recordings of every species without commentary: search for *blackbird* or *Turdus merula*.
 
-> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. No bird after two tries: first try once more in a silent room with a recording that has no voice in it. Still nothing: check the six wires against the table. A microphone that is wired wrong gives no sound at all, not hiss.
+> **Check.** On your box page, **Microphone** turns green with the name of the bird. The box sends what it heard once an hour, so this light can take up to an hour. No bird after two tries: try once more in a silent room with a recording that has no voice in it. Still nothing: check the six wires against the table. A microphone that is wired wrong gives no sound at all, not hiss.
 
 ## Connect the 30 cm soil probe, alone
 
