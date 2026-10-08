@@ -55,7 +55,9 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
     # fall back to the scientific name: a detection must never wait for a name.
     names = {}
     try:
-        with urllib.request.urlopen(os.environ.get("BIRDNET_API", "http://127.0.0.1:8080/api/v2") + "/detections?limit=1000", timeout=10) as resp:
+        # BirdNET-Go caches the answer to each identical query for minutes, so a repeated query returns names that
+        # miss the newest species; a changing parameter gets a fresh page
+        with urllib.request.urlopen(os.environ.get("BIRDNET_API", "http://127.0.0.1:8080/api/v2") + f"/detections?limit=1000&_={int(datetime.now().timestamp())}", timeout=10) as resp:
             names = {d["scientificName"]: d["commonName"] for d in json.load(resp).get("data", []) if d.get("scientificName") and d.get("commonName")}
     except Exception as e:  # noqa: BLE001 - BirdNET-Go is down at shutdown; the rows still go out
         print(f"common names skipped: {e}", file=sys.stderr)
