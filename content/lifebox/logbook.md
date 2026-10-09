@@ -7,6 +7,12 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 9 October 2026
+
+### The first night on its own
+
+*Learning.* After the desk tests the 30 cm probe went into a planter in the living room and the box was left alone. From 22:14 to 07:34 it took a reading every twenty minutes and sent them every hour: **29 readings out of 29**, nothing missing, nobody touching it. The soil went from **52.0 % to 49.3 %** moisture, quickest in the first hour after the probe went in and then about a tenth of a percent an hour, and cooled from 19.5 to 18.8 °C. The second probe lay loose on the table and read the room: 0 % and 21.1 falling to 19.5 °C. The soil stayed cooler than the air and changed more slowly, which is what soil does. The 52 % itself is for potting compost, which holds far more water than a field does; in a planter the change is the reading to trust, not the level.
+
 ## 8 October 2026
 
 ![Two of the builders leaning into the picture at the desk, laughing; in front of them two laptops, a multimeter, the Raspberry Pi with the Witty Pi and its coloured microphone wires, and a coil of probe cable](../../public/img/build/2026-10-08-builders.webp "Node 1's builders at the desk, 8 October: the day the probes, the birds and the power switch all worked.")
