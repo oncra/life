@@ -15,14 +15,14 @@ export default function LifeboxGuide() {
       <div className="py-6 md:py-8">
         <div className="grid md:grid-cols-5 gap-6 items-start">
           <div className="md:col-span-3">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Build a Life Box</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Build a Life Node</h1>
             <div className="prose mt-4 text-[0.98rem]" dangerouslySetInnerHTML={{ __html: intro }} />
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link href="/box" className="inline-block rounded-lg bg-accent text-white px-4 py-2.5 font-medium">Your box page</Link>
-              <Link href="/lifebox/logbook" className="underline">Logbook: what building the first box taught us</Link>
+              <Link href="/node/logbook" className="underline">Logbook: what building the first box taught us</Link>
             </div>
           </div>
-          <Image src="/img/life-node-impression.webp" alt="Impression of the Life Box: a small green box on a wooden post under a tilted solar panel, a skylark on the panel" width={1600} height={893} className="md:col-span-2 rounded-lg border border-line w-full" priority />
+          <Image src="/img/life-node-impression.webp" alt="Impression of the Life Node: a small green box on a wooden post under a tilted solar panel, a skylark on the panel" width={1600} height={893} className="md:col-span-2 rounded-lg border border-line w-full" priority />
         </div>
 
         {sections.map((s, i) => {

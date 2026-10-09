@@ -31,7 +31,7 @@ export function BoxApp({ email, initial, places = [] }: { email: string | null; 
   return <Boxes email={email} initial={initial} places={places} />;
 }
 
-export function SignIn({ title = "The software for your Life Box", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own.", compact = false }: { title?: string; intro?: string; compact?: boolean } = {}) {
+export function SignIn({ title = "The software for your Life Node", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own.", compact = false }: { title?: string; intro?: string; compact?: boolean } = {}) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -85,7 +85,7 @@ function Boxes({ email, initial, places }: { email: string; initial: Box[]; plac
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{boxes.length > 1 ? "Your Life Boxes" : "Your Life Box"}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{boxes.length > 1 ? "Your Life Nodes" : "Your Life Node"}</h1>
         <button className="text-sm text-muted underline" onClick={async () => { await post("/api/box/logout", {}); location.reload(); }}>Sign out</button>
       </div>
       <p className="text-sm text-muted mt-1">Signed in as {email}</p>
@@ -118,7 +118,7 @@ function WifiFields({ ssid, psk, setSsid, setPsk }: { ssid: string; psk: string;
 }
 
 function NewBox({ first, places, onDone, onCancel }: { first: boolean; places: OwnPlace[]; onDone: () => void; onCancel?: () => void }) {
-  const [name, setName] = useState(first ? "My Life Box" : "");
+  const [name, setName] = useState(first ? "My Life Node" : "");
   const [placeId, setPlaceId] = useState(places[0]?.id ?? "");
   const [ssid, setSsid] = useState("");
   const [psk, setPsk] = useState("");

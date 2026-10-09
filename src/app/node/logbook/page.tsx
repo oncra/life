@@ -4,8 +4,8 @@ import { logbook } from "@/lib/lifebox";
 import { Feedback } from "@/components/Feedback";
 
 export const metadata: Metadata = {
-  title: "Life Box logbook",
-  description: "What building the first Life Box taught us, and what changed in the idea and in the build plan because of it.",
+  title: "Life Node logbook",
+  description: "What building the first Life Node taught us, and what changed in the idea and in the build plan because of it.",
 };
 
 // The building and development logbook: content/lifebox/logbook.md, a day per `##`, an entry per `###`, newest first.
@@ -14,7 +14,7 @@ export default function Logbook() {
   const entries = log.days.reduce((n, d) => n + d.entries.length, 0);
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-8">
-      <p className="text-sm"><Link className="underline" href="/lifebox">← Build a Life Box</Link></p>
+      <p className="text-sm"><Link className="underline" href="/node">← Build a Life Node</Link></p>
       <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">{log.title}</h1>
       <p className="text-muted mt-2">{log.short}</p>
 

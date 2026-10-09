@@ -4,7 +4,7 @@ import { prisma } from "./db";
 import { hashKey } from "./auth";
 import { sendMail } from "./mail";
 
-// People who build a Life Box sign in with a six-digit code sent to their email. No passwords, no links
+// People who build a Life Node sign in with a six-digit code sent to their email. No passwords, no links
 // (a code also works when the mail is read on a phone and the download happens on a laptop).
 export const SESSION_COOKIE = "life_session";
 const SESSION_DAYS = 30;
@@ -21,8 +21,8 @@ export async function sendLoginCode(email: string): Promise<{ ok: true } | { ok:
   await prisma.loginCode.create({ data: { email, codeHash: hashKey(`${email}:${code}`), expiresAt: new Date(Date.now() + CODE_MINUTES * 60e3) } });
   await sendMail({
     to: email,
-    subject: `${code} is your Life Box code`,
-    text: `Your code: ${code}\n\nType it on the page where you asked for it. It works for ${CODE_MINUTES} minutes.\n\nIf you did not ask for this, you can ignore this mail.\n\nLife oracle, ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org"}`,
+    subject: `${code} is your Life Node code`,
+    text: `Your code: ${code}\n\nType it on the page where you asked for it. It works for ${CODE_MINUTES} minutes.\n\nIf you did not ask for this, you can ignore this mail.\n\nLife Oracle, ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org"}`,
   });
   return { ok: true };
 }

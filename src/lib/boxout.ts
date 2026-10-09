@@ -1,4 +1,5 @@
 import type { Box } from "@/generated/prisma/client";
+import { boxDeviceNote } from "@/lib/boximage";
 
 /** The boxes a person may see and manage: the ones they made, and every box on a place they own. Two people who both
  * own a place (granted via /api/v1/places/{id}/access) each sign in with their own address and see the same box. */
@@ -28,7 +29,7 @@ export function boxOut(b: Box & { place: { slug: string; name?: string } }, gold
 /** What the box's own devices last sent. `hostname` picks this box's devices on a place that carries more than one. */
 export async function boxLive(placeId: string, hostname?: string) {
   const { prisma } = await import("./db");
-  const devices = await prisma.device.findMany({ where: { placeId, ...(hostname ? { notes: `Life Box ${hostname}` } : {}) }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
+  const devices = await prisma.device.findMany({ where: { placeId, ...(hostname ? { notes: boxDeviceNote(hostname) } : {}) }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
   const ids = devices.map((d) => d.id);
   const sound = devices.find((d) => d.kind === "SOUND");
   const hb = await prisma.heartbeat.findFirst({ where: { deviceId: { in: ids } }, orderBy: { ts: "desc" }, select: { ts: true, cell: true, event: true } });

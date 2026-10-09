@@ -11,11 +11,11 @@ export default async function Home() {
         <div className="md:col-span-3">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">Is life thriving here?<br />Let the place answer.</h1>
           <p className="mt-6 text-lg text-muted leading-relaxed max-w-2xl">
-            Restoring a piece of land is not the hard part. Proving that it worked is, and that cost is what keeps a twelve-hectare farmer out of nature finance. The life oracle is an open standard and open software that reads how a piece of land is doing from three cheap streams: satellite, a sound recorder and a soil probe. Seven readings, one verdict, no scheduled sampling. Built so that farmers, funders, verifiers and software agents can all check the same truth.
+            Restoring a piece of land is not the hard part. Proving that it worked is, and that cost is what keeps a twelve-hectare farmer out of nature finance. The Life Oracle is an open standard and open software that reads how a piece of land is doing from three cheap streams: satellite, a sound recorder and a soil probe. Seven readings, one verdict, no scheduled sampling. Built so that farmers, funders, verifiers and software agents can all check the same truth.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Open the map</Link>
-            <Link href="/lifebox" className="px-4 py-2 rounded-md bg-foreground text-white text-sm font-medium">Build a Life Box yourself →</Link>
+            <Link href="/node" className="px-4 py-2 rounded-md bg-foreground text-white text-sm font-medium">Build a Life Node yourself →</Link>
             <Link href="/places/new" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Register a place</Link>
             <Link href="/docs/greenpaper" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Read the green paper</Link>
           </div>
@@ -106,7 +106,7 @@ export default async function Home() {
             sizes="(min-width: 768px) 50vw, 100vw"
           />
           <div className="p-6 md:p-8 flex flex-col justify-center">
-            <h2 className="text-2xl font-semibold">The Life Box: one box on one post</h2>
+            <h2 className="text-2xl font-semibold">The Life Node: one box on one post</h2>
             <p className="mt-3 text-sm text-muted leading-relaxed">
               Two of the three streams come out of a single device. Inside the box a small computer listens and names the birds itself, so only detections leave the field; two probes wired into the same box read moisture and temperature at 10 and 30 cm; one 4G stick on a twelve-euro ten-year SIM carries both. A solar panel doubles as its roof. Nothing stands higher than 1,090 mm, which is how it disappears into a standing crop, and there is no farm network, no gateway and no subscription anywhere in it. About €840 in parts, with the bill of materials, the order list, the failure modes and a step-by-step build plan published, so anyone can build one.
             </p>
@@ -114,7 +114,7 @@ export default async function Home() {
               The picture is an impression of the design, not a photograph. The parts for the first box are on the table and the build has started.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/lifebox" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Build it yourself, step by step →</Link>
+              <Link href="/node" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Build it yourself, step by step →</Link>
               <Link href="/docs/kit" className="px-4 py-2 rounded-md border border-line text-sm font-medium">See the kit and parts</Link>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default async function Home() {
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           {[
             ["Steward (farmer, land manager)", "Register your place, get the satellite readings today, then add a recorder and a probe.", "/docs/guide-steward"],
-            ["Installer / node host", "Build a Life Box: one solar 4G box on a post, no farm network. Step-by-step plan with parts, photos and instructions for an AI agent.", "/lifebox"],
+            ["Installer / node host", "Build a Life Node: one solar 4G box on a post, no farm network. Step-by-step plan with parts, photos and instructions for an AI agent.", "/node"],
             ["Verifier", "Random and triggered visits. What to look at, what to record, how to file it.", "/docs/roles"],
             ["Funder, buyer, registry", "Read verdicts by API, pin a method version, let life set the carbon sampling burden.", "/docs/api"],
             ["Researcher / methodologist", "Propose changes to the seven readings. Everything is open and reproducible.", "/docs/spec"],

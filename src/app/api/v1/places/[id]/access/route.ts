@@ -6,7 +6,7 @@ import { normalizeEmail } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-// Who may see this place exactly and follow it, besides Life Box owners. Admin or the place's steward key.
+// Who may see this place exactly and follow it, besides Life Node owners. Admin or the place's steward key.
 // The person signs in at /me with a code sent to this address; nothing is mailed when access is given.
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {

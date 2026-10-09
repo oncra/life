@@ -49,7 +49,7 @@ export async function reblur(placeId: string) {
 }
 
 /** Who may see this place exactly: an admin (key, or signed in with an ADMIN_EMAILS address), the place's
- * steward key, the signed-in owner of a Life Box on it, or someone given access to it (PlaceAccess). `req` is given in API routes; pages use the cookie. */
+ * steward key, the signed-in owner of a Life Node on it, or someone given access to it (PlaceAccess). `req` is given in API routes; pages use the cookie. */
 export async function canSeeExact(place: Pick<Place, "id">, req?: Request): Promise<boolean> {
   if (req && canManagePlace(await authenticate(req), place.id)) return true;
   const user = await currentUser().catch(() => null);

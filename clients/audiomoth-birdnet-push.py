@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Post BirdNET-Analyzer CSV results (from AudioMoth or any recorder) to the life oracle.
+"""Post BirdNET-Analyzer CSV results (from AudioMoth or any recorder) to the Life Oracle.
 
     birdnet-analyzer analyze /media/card --lat 52.05 --lon 5.05 --week -1 --rtype csv --output ./out
     python3 audiomoth-birdnet-push.py ./out --token lo_dev_... --tz Europe/Amsterdam [--min-conf 0.5] [--dry-run]

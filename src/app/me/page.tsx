@@ -9,7 +9,7 @@ import { SignOut } from "@/components/SignOut";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your places", description: "Sign in to see your own places exactly and follow what they measure." };
 
-// The places a signed-in person looks after: given to them (PlaceAccess) or carrying their Life Box.
+// The places a signed-in person looks after: given to them (PlaceAccess) or carrying their Life Node.
 export default async function MePage() {
   const user = await currentUser();
   if (!user) {
@@ -30,7 +30,7 @@ export default async function MePage() {
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Your places</h1>
       <p className="mt-2 text-muted text-sm">Signed in as {user.email}. On these places you see the exact boundary; everyone else sees a circle.</p>
       {places.length === 0 ? (
-        <p className="mt-6">No places yet. A place appears here when it is registered for you, or when your Life Box is in the ground.</p>
+        <p className="mt-6">No places yet. A place appears here when it is registered for you, or when your Life Node is in the ground.</p>
       ) : (
         <ul className="mt-6 grid gap-3">
           {places.map((p) => (
@@ -44,7 +44,7 @@ export default async function MePage() {
         </ul>
       )}
       <div className="mt-8 flex gap-4 text-sm">
-        <Link href="/box" className="underline">Your Life Boxes</Link>
+        <Link href="/box" className="underline">Your Life Nodes</Link>
         <SignOut />
       </div>
     </div>

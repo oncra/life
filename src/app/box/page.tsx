@@ -8,7 +8,7 @@ import { ownPlaces } from "@/lib/places";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Your Life Box: get its software",
+  title: "Your Life Node: get its software",
   description: "Sign in with your email, name your box, give the WiFi it will use, and download a card image made for it.",
 };
 
