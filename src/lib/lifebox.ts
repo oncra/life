@@ -1,4 +1,4 @@
-// The Life Box build plan (lifebox.oncra.org): short pages in content/lifebox/, one per stage,
+// The Life Node build plan (served at /node): short pages in content/lifebox/, one per stage,
 // with the parts, the ledger and the bench log read from kit/*.csv so the pages cannot drift
 // from the files that are the source of truth.
 import fs from "node:fs";
@@ -14,7 +14,7 @@ const kit = path.join(process.cwd(), "kit");
 // a sibling page is `1-bench.md`, a document is `../build.md`, an image `../../public/img/x`.
 function siteHref(href: string): string {
   let m = /^([a-z0-9-]+)\.md(#.*)?$/.exec(href);
-  if (m) return m[1] === "index" ? `/lifebox${m[2] ?? ""}` : `/lifebox/${m[1]}${m[2] ?? ""}`;
+  if (m) return m[1] === "index" ? `/node${m[2] ?? ""}` : `/node/${m[1]}${m[2] ?? ""}`;
   m = /^\.\.\/([a-z0-9-]+)\.md(#.*)?$/.exec(href);
   if (m) return `/docs/${m[1]}${m[2] ?? ""}`;
   if (href.startsWith("../../public/")) return href.slice("../../public".length);
@@ -105,7 +105,7 @@ export function planIntro(): string {
 
 export interface LogDay { id: string; title: string; entries: string[] }
 
-/** The logbook (content/lifebox/logbook.md, served at /lifebox/logbook): a `##` per day, newest first, a `###` per entry. */
+/** The logbook (content/lifebox/logbook.md, served at /node/logbook): a `##` per day, newest first, a `###` per entry. */
 export function logbook(): { title: string; short: string; html: string; days: LogDay[] } {
   const { data, content } = matter(fs.readFileSync(path.join(root, "logbook.md"), "utf8"));
   const days: LogDay[] = [];

@@ -1,6 +1,6 @@
 ---
 title: "Logbook"
-short: "What building the first Life Box taught us, and what we changed in the idea and in the plan because of it. Newest first."
+short: "What building the first Life Node taught us, and what we changed in the idea and in the plan because of it. Newest first."
 ---
 
 The [build guide](index.md) tells you what to do. This page tells you why it says that: every entry is something the first box, node 1, taught us on a desk, and what changed in the concept, the software or the plan as a result. Nothing here is modelled; it all happened. Numbers that were measured are also in [`kit/bench-log.csv`](https://github.com/oncra/life/blob/main/kit/bench-log.csv), next to what we had expected.
@@ -8,6 +8,10 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
 ## 9 October 2026
+
+### A new name: Life Node
+
+*Change.* The box was called the Life Box. That name is already registered as a trade mark by several companies, some of them for electronic devices, and a surgical-safety charity has used it for years. It is now the **Life Node**: one node of the Life Oracle, the system that learns from every node whether life is coming back. The guide moved from /lifebox to /node; old links still work.
 
 ### The first night on its own
 
@@ -89,7 +93,7 @@ One caution we keep: the same manual says "about 4 µA" in another chapter. Even
 
 ### The box was listening to a microphone that does not exist
 
-*Change.* With the wiring right, sound arrived and still no bird was named. The bird recogniser had been told to listen to a device called `sysdefault`, which on a box does not exist. It reported no error and analysed silence. Pointed at the real microphone, it named a **blackbird at 96 %** within half a minute: the first bird a Life Box ever heard. ([#41](https://github.com/oncra/life/pull/41))
+*Change.* With the wiring right, sound arrived and still no bird was named. The bird recogniser had been told to listen to a device called `sysdefault`, which on a box does not exist. It reported no error and analysed silence. Pointed at the real microphone, it named a **blackbird at 96 %** within half a minute: the first bird a Life Node ever heard. ([#41](https://github.com/oncra/life/pull/41))
 
 *Change.* The blackbird then stayed on the box. The program that sends detections to the oracle did not understand the recogniser's current database, stopped, and took the hourly "I am alive" message down with it. Both go out now. ([#41](https://github.com/oncra/life/pull/41))
 

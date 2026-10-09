@@ -1,4 +1,4 @@
-# Life oracle: Next.js app + worker in one image.
+# Life Oracle: Next.js app + worker in one image.
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./

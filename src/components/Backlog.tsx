@@ -143,7 +143,7 @@ export function Backlog({ initial, editor: initialEditor }: { initial: BacklogCa
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Backlog</h1>
-          <p className="mt-1 text-muted">Ideas we come across while building the Life Box and the oracle.</p>
+          <p className="mt-1 text-muted">Ideas we come across while building the Life Node and the oracle.</p>
         </div>
         {!editor && <Unlock onDone={refresh} />}
         {editor === "password" && <button type="button" onClick={lock} className="text-sm text-muted underline">Lock</button>}

@@ -5,7 +5,7 @@ import { Backlog } from "@/components/Backlog";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Backlog: ideas from the build",
-  description: "Ideas we come across while building the Life Box and the oracle, on one board.",
+  description: "Ideas we come across while building the Life Node and the oracle, on one board.",
 };
 
 export default async function BacklogPage() {

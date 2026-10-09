@@ -12,7 +12,7 @@ import { queueJob, uniqueSlug } from "./places";
 import { DEFAULT_BLUR_M, reblur } from "./privacy";
 import type { PlaceGeometry } from "./geo";
 
-// A personal Life Box image, made in about half a minute instead of recompressing 9 GiB per box.
+// A personal Life Node image, made in about half a minute instead of recompressing 9 GiB per box.
 // The golden image is kept split at the start of the root partition (sector 1064960): the part before it
 // (partition table + FAT boot partition) as a raw file, the rest compressed once. Per box, the boot part gets
 // the box's life-node.env written into its FAT with mtools and is compressed alone; the download is the two
@@ -96,7 +96,7 @@ async function newHostname(): Promise<string> {
 }
 
 /** The devices of one box. A place can carry more than one box (and devices registered by hand), so a box's own
- * three are the ones created with its hostname in the notes. */
+ * three are the ones created with its hostname in the notes. Existing rows carry "Life Box", so the wording stays. */
 export const boxDeviceNote = (hostname: string) => `Life Box ${hostname}`;
 
 /** A new box with its three devices and the box row. Without `placeId` the box gets a private, unplaced place of its

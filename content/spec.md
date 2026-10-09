@@ -4,7 +4,7 @@ summary: "Data model, the seven readings with their exact rules, the verdict, co
 order: 2
 ---
 
-# Life oracle specification, version 0.1
+# Life Oracle specification, version 0.1
 
 Status markers: **built** (runs on life.oncra.org today), **specified** (agreed rule, not yet implemented), **open** (needs a decision).
 

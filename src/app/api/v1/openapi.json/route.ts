@@ -3,7 +3,7 @@ export const dynamic = "force-static";
 const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
 const spec = {
   openapi: "3.1.0",
-  info: { title: "Life oracle API", version: "0.1.0", description: "Seven readings and one verdict per place, plus ingest endpoints for sound recorders and soil probes. Auth: `Authorization: Bearer <key>`. Keys: admin (env), STEWARD/VERIFIER/CONSUMER keys (lo_key_…), device tokens (lo_dev_…).", license: { name: "Apache-2.0" } },
+  info: { title: "Life Oracle API", version: "0.1.0", description: "Seven readings and one verdict per place, plus ingest endpoints for sound recorders and soil probes. Auth: `Authorization: Bearer <key>`. Keys: admin (env), STEWARD/VERIFIER/CONSUMER keys (lo_key_…), device tokens (lo_dev_…).", license: { name: "Apache-2.0" } },
   servers: [{ url: `${base}/api/v1` }],
   paths: {
     "/places": {

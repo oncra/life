@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Push new BirdNET-Pi / BirdNET-Go detections to the life oracle.
+"""Push new BirdNET-Pi / BirdNET-Go detections to the Life Oracle.
 
 Reads the local detections database, posts rows newer than the stored cursor,
 and advances the cursor. Run every 10 minutes from cron:

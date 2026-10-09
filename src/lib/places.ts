@@ -16,7 +16,7 @@ export async function queueJob(kind: string, placeId?: string) {
   return prisma.job.create({ data: { kind, placeId } });
 }
 
-/** The places a person may set a Life Box up for: the ones given to them (PlaceAccess). */
+/** The places a person may set a Life Node up for: the ones given to them (PlaceAccess). */
 export async function ownPlaces(userId: string) {
   return (await prisma.placeAccess.findMany({ where: { userId }, include: { place: { select: { id: true, name: true, slug: true } } }, orderBy: { createdAt: "asc" } })).map((a) => a.place);
 }

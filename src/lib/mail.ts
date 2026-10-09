@@ -3,7 +3,7 @@
 export async function sendMail(m: { to: string; subject: string; text: string }) {
   const key = process.env.BREVO_API_KEY;
   const from = process.env.MAIL_FROM ?? "life@oncra.org";
-  const name = process.env.MAIL_FROM_NAME ?? "Life oracle";
+  const name = process.env.MAIL_FROM_NAME ?? "Life Oracle";
   if (!key) {
     if (process.env.NODE_ENV !== "production") { console.log(`[mail to ${m.to}] ${m.subject}\n${m.text}`); return; }
     throw new Error("BREVO_API_KEY is not set");

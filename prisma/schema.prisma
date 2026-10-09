@@ -65,7 +65,7 @@ model Place {
   stewardName    String?
   stewardContact String?
   public         Boolean  @default(true)
-  /// false while a Life Box exists but has not been put in the ground; the worker skips unplaced places
+  /// false while a Life Node exists but has not been put in the ground; the worker skips unplaced places
   placed         Boolean  @default(true)
   /// true: the public sees a circle of blurRadiusM around (blurLat, blurLon) instead of the boundary; the exact
   /// geometry, centroid and device positions are shown only to the place's owner, its steward key and admins
@@ -286,7 +286,7 @@ enum FeedbackStatus {
   ROLLED_BACK
 }
 
-/// Feedback on the Life Box build plan (lifebox.oncra.org). A NOTE is shown on the page it was
+/// Feedback on the Life Node build plan (lifebox.oncra.org). A NOTE is shown on the page it was
 /// written on; an AI_CHANGE is queued for the plan's change runner, which applies it to the
 /// plan pages and reports back in `note`.
 model PlanFeedback {
@@ -309,7 +309,7 @@ model PlanFeedback {
   @@index([status, createdAt])
 }
 
-/// Someone who builds a Life Box. Signs in with a one-time code sent by email; no password.
+/// Someone who builds a Life Node. Signs in with a one-time code sent by email; no password.
 model User {
   id        String    @id @default(cuid())
   email     String    @unique
@@ -347,7 +347,7 @@ enum ImageStatus {
   FAILED
 }
 
-/// One Life Box and its personal image: the golden image with the box's settings and device tokens on the boot partition.
+/// One Life Node and its personal image: the golden image with the box's settings and device tokens on the boot partition.
 model Box {
   id           String       @id @default(cuid())
   userId       String
@@ -370,7 +370,7 @@ model Box {
   createdAt    DateTime     @default(now())
 }
 
-/// A person who may see a place exactly and follow it, without a Life Box on it (yet). Granted by an admin or the
+/// A person who may see a place exactly and follow it, without a Life Node on it (yet). Granted by an admin or the
 /// place's steward key: POST /api/v1/places/{id}/access.
 model PlaceAccess {
   id        String   @id @default(cuid())

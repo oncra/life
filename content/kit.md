@@ -6,7 +6,7 @@ order: 3
 
 # The kit: Life node v1
 
-> **Building one?** The step-by-step plan, in plain language with instructions for an AI agent at every step, is at **[life.oncra.org/lifebox](https://life.oncra.org/lifebox)**.
+> **Building one?** The step-by-step plan, in plain language with instructions for an AI agent at every step, is at **[life.oncra.org/node](https://life.oncra.org/node)**.
 
 One box, one post, one radio. A landowner gets a sealed enclosure with a solar panel and two probe cables. They drive in a post, hang the box, push the probes into the ground. Everything else was done before it shipped. Prices and stock checked on live shop pages, most recently on 2026-09-16, when the first set was ordered. Incl. VAT unless a line says otherwise. The order list in the repository is the source of truth; this table is a description of it.
 

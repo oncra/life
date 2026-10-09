@@ -6,7 +6,7 @@ order: 4
 
 # Build plan: assembling node 1
 
-> **Building one?** The step-by-step plan, in plain language with instructions for an AI agent at every step, is at **[life.oncra.org/lifebox](https://life.oncra.org/lifebox)**.
+> **Building one?** The step-by-step plan, in plain language with instructions for an AI agent at every step, is at **[life.oncra.org/node](https://life.oncra.org/node)**.
 
 The [kit](kit.md) is designed and ordered. Nothing has been built and nothing has been measured. This page is the order of work, written so that someone who is not us can follow it, because that is the point of publishing it.
 
@@ -86,7 +86,7 @@ life-soil-agent --scan                      # confirm, then connect both
 
 `--scan` prints the raw registers as well as the decoded values. That is deliberate: the `sen0600` profile was written from a datasheet and has never seen a probe, so the raw words are the evidence that the register map is right. Moisture should read a plausible percentage and temperature a plausible room temperature. Air is near zero, a glass of water is near saturation, and a hand around the prongs moves the temperature within a minute. If the decoded values are nonsense but the raw words are stable, the map is wrong and not the probe.
 
-Both probes share one USB-to-RS485 adapter, because RS485 is a bus, and the order is what makes that work. Pi off for every wiring change. **Step 1**, one probe alone, one wire per terminal: brown to + and black to − of the USB screw terminal (marked S, +, D−, D+, −; on some, VCC and GND), yellow to A+ and blue to B− of the adapter; the adapter's GND and the terminal's S, D− and D+ stay empty. S is the cable shield: a probe wired to it gets no power and nothing answers, at any baud rate. Write address 2, power-cycle the probe if the scan still shows 1, and tape the lead "30 cm, address 2". **Step 2**, the second probe joins the first on the same four terminals, same colour with same colour, each pair crimped into one ferrule a size up. Swapped yellow and blue break nothing, but nothing answers. No termination resistor is needed on 2 m leads at 9600 baud. Address 1 (untaped) is the 10 cm probe, address 2 the 30 cm one, matching `SOIL_1` and `SOIL_2` in `life-node.env`. The diagram and the numbered steps are in the [build guide](https://life.oncra.org/lifebox#desk).
+Both probes share one USB-to-RS485 adapter, because RS485 is a bus, and the order is what makes that work. Pi off for every wiring change. **Step 1**, one probe alone, one wire per terminal: brown to + and black to − of the USB screw terminal (marked S, +, D−, D+, −; on some, VCC and GND), yellow to A+ and blue to B− of the adapter; the adapter's GND and the terminal's S, D− and D+ stay empty. S is the cable shield: a probe wired to it gets no power and nothing answers, at any baud rate. Write address 2, power-cycle the probe if the scan still shows 1, and tape the lead "30 cm, address 2". **Step 2**, the second probe joins the first on the same four terminals, same colour with same colour, each pair crimped into one ferrule a size up. Swapped yellow and blue break nothing, but nothing answers. No termination resistor is needed on 2 m leads at 9600 baud. Address 1 (untaped) is the 10 cm probe, address 2 the 30 cm one, matching `SOIL_1` and `SOIL_2` in `life-node.env`. The diagram and the numbered steps are in the [build guide](https://life.oncra.org/node#desk).
 
 ![Wiring diagram for the two soil probes: step 1 one probe, step 2 both on the same terminals](../public/img/build/s1-probe-wiring.svg)
 

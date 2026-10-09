@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy or update the life oracle on a host that has Docker + git. Idempotent.
+# Deploy or update the Life Oracle on a host that has Docker + git. Idempotent.
 #   ssh admin@HOST 'bash -s' < deploy/deploy.sh
 set -euo pipefail
 DIR=/opt/life
