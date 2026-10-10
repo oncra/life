@@ -26,7 +26,7 @@ stage,what,how,modelled,unit,measured,date,notes
 2.3,brown-out recoveries,pull the supply mid-cycle three times,3,of 3,,,no card corruption and no lost queue
 2.4,energy over 24 h summer schedule,meter logging for a full day,54.6,Wh/day,,,
 2.4,parasitic floor node powered down,meter with only MPPT and battery,4.6,Wh/day,,,Victron 10 mA load-off and 19 mA load-on at 12 V
-2.4,battery voltage floor overnight,MPPT app or VE.Direct,12.8,V,,,LiFePO4 knee is steep; below 12.0 is deep
+2.4,battery voltage floor overnight,"heartbeat (boot after the night; Witty Pi input, or VE.Direct), MPPT app",12.8,V,,,LiFePO4 knee is steep; below 12.0 is deep
 3.6,LTE signal strength inside the closed box,same web UI lid on,,dBm,,,more than about 10 dB worse than the desk means buy the pigtail and whip
 3.6,awake draw with the lid on in sun,meter after an hour closed,5.0,W,,,warm silicon draws more
 3.6,water after a five minute hose test,open and look,0,ml,,,
