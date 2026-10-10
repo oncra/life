@@ -11,6 +11,12 @@ type Live = {
   heardAt: string | null; heartbeatAt: string | null; on4g: boolean;
   detection: { ts: string; species: string; confidence: number } | null;
   soil: { depthCm: number | null; last: { ts: string; vwc: number | null; tempC: number | null } | null }[];
+  health?: Health | null;
+};
+type Health = {
+  ts: string; battV: number | null; battSrc: "mppt" | "wittypi" | null; battA: number | null; pvW: number | null; charge: string | null; mpptErr: number | null;
+  yieldTodayWh: number | null; yieldYdayWh: number | null; piW: number | null; boxTempC: number | null; cpuTempC: number | null; diskFreeMb: number | null;
+  throttled: string | null; wake: string | null; week: { low: { v: number; ts: string }; high: { v: number; ts: string }; n: number } | null;
 };
 
 async function post(url: string, body: unknown) {
@@ -270,6 +276,30 @@ function Rebuild({ box, onDone, onCancel }: { box: Box; onDone: () => void; onCa
   );
 }
 
+// The box's own condition, from the heartbeat it sends every hour anyway. A light is green when the reading is fine.
+function healthRows(h: Health | null | undefined): { ok: boolean; label: string; text: string }[] {
+  if (!h) return [];
+  const rows: { ok: boolean; label: string; text: string }[] = [];
+  if (h.battV !== null) {
+    const parts = [`${h.battV.toFixed(2)} V${h.battSrc === "wittypi" ? " at the Witty Pi" : ""}`];
+    if (h.charge) parts.push(`charger ${h.charge}`);
+    if (h.week && h.week.n > 1) parts.push(`week ${h.week.low.v.toFixed(2)} to ${h.week.high.v.toFixed(2)} V`);
+    rows.push({ ok: h.battV >= 12.0, label: "Battery", text: parts.join(", ") });
+  } else {
+    rows.push({ ok: false, label: "Battery", text: "no battery reading yet; on the desk the box runs on USB" });
+  }
+  if (h.pvW !== null || h.yieldYdayWh !== null) {
+    const parts = [h.pvW !== null ? `${h.pvW} W now` : "", h.yieldTodayWh !== null ? `${h.yieldTodayWh} Wh today` : "", h.yieldYdayWh !== null ? `${h.yieldYdayWh} Wh yesterday` : ""].filter(Boolean);
+    rows.push({ ok: !h.mpptErr, label: "Solar panel", text: parts.join(", ") + (h.mpptErr ? `, controller error ${h.mpptErr}` : "") });
+  }
+  const temp = h.boxTempC ?? h.cpuTempC;
+  if (temp !== null) {
+    const parts = [h.boxTempC !== null ? `${h.boxTempC} °C in the box` : "", h.cpuTempC !== null ? `processor ${h.cpuTempC} °C` : "", h.piW !== null ? `drawing ${h.piW} W` : ""].filter(Boolean);
+    rows.push({ ok: (h.cpuTempC ?? 0) < 75 && !h.throttled, label: "Inside the box", text: parts.join(", ") + (h.throttled ? `, throttled (${h.throttled})` : "") });
+  }
+  return rows;
+}
+
 function ago(ts: string | null | undefined, now: number): string {
   if (!ts || !now) return "";
   const m = Math.round((now - new Date(ts).getTime()) / 60000);
@@ -298,6 +328,7 @@ function Lights({ live }: { live: Live }) {
       text: p.last ? `${p.last.vwc ?? "?"}% moisture, ${p.last.tempC ?? "?"} °C, ${ago(p.last.ts, now)}` : "no reading yet",
     })),
     { ok: live.on4g, label: "4G", text: live.on4g ? "the stick has a mobile network" : "no 4G stick seen yet" },
+    ...healthRows(live.health),
   ];
   return (
     <div className="mt-5 rounded-lg border border-line p-3">

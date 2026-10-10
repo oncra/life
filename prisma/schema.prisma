@@ -48,6 +48,7 @@ enum AlertKind {
   SILENT
   MOVED
   TAMPER
+  LOW_BATTERY
 }
 
 model Place {

@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import type { AlertKind } from "@/generated/prisma/client";
+import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
 
 /**
  * Node liveness and theft, without hardware.
@@ -17,6 +18,7 @@ import type { AlertKind } from "@/generated/prisma/client";
 export type Cell = { plmn?: string; cellId?: string | number; tac?: string | number; pci?: number; band?: string; rsrp?: number; rssi?: number; sinr?: number; mode?: string };
 
 export const SILENT_AFTER_H = Number(process.env.SILENT_AFTER_H ?? 36);
+
 
 /** The identity part of a cell: what must match for "same place". Signal figures are left out. */
 export function cellKey(c: Cell | null | undefined): string | null {
@@ -55,6 +57,7 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   const where = `${d.place.name} (${d.model})`;
   if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}`, `life-moved-${deviceId}`);
   else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}`, `life-tamper-${deviceId}`);
+  else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${String(detail.v)} V${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. It will go quiet when the controller cuts the load, and come back with the sun.`, `${site}/places/${d.place.slug}`, `life-battery-${deviceId}`);
   else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}`, `life-silent-${deviceId}`);
   return alert;
 }
@@ -93,7 +96,11 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   let tamper = null;
   // a tamper inside an active window is the steward at work: recorded in the heartbeat, no alert, no push
   if (hb.event === "alarm" && !(maintenance && maintenance.active)) tamper = await openAlert(deviceId, "TAMPER", { loop: hb.tamper?.loop ?? "unknown", state: hb.tamper?.state, cell: hb.cell, cellChanged, maintenance: false, at: ts.toISOString() });
-  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
+  const batt = batteryOf(hb.metrics);
+  let lowBattery = null;
+  if (batt && batt.v < LOW_BATTERY_V) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt.v, src: batt.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, at: ts.toISOString() });
+  else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
+  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
 }
 
 /** Worker sweep: devices that have sent heartbeats and then stopped. */
