@@ -28,6 +28,8 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
+      CHECKIN_WEBHOOK_URL: ${CHECKIN_WEBHOOK_URL:-}
+      CHECKIN_WEBHOOK_TOKEN: ${CHECKIN_WEBHOOK_TOKEN:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-life@oncra.org}
       # comma-separated; people signed in with one of these addresses see every place's exact boundary
@@ -52,6 +54,8 @@ services:
       NEXT_PUBLIC_SITE_URL: ${SITE_URL}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
+      CHECKIN_WEBHOOK_URL: ${CHECKIN_WEBHOOK_URL:-}
+      CHECKIN_WEBHOOK_TOKEN: ${CHECKIN_WEBHOOK_TOKEN:-}
     # the worker applies pending migrations itself (Prisma takes a lock, so it is safe next to the app doing the
     # same): started first with a new client against an old schema, every job it picks up fails
     command: ["sh", "-c", "npx prisma migrate deploy && npx tsx scripts/worker.ts"]

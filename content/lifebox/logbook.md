@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### A line each time the box reports in
+
+*Change.* With the box on its field schedule it is off most of the day, and the only way to know it woke up was to go and look at its page. The oracle can now send one short line somewhere you already look, each time a box reports in: *started, battery 12.94 V, 16 °C in the box*, *checked in*, *switching off*. An alert, such as a low battery, goes to the same place marked as urgent. It is a setting on the oracle (a web address to send the lines to), off unless someone fills it in. PRLINK
+
 ### The box said it had moved while it stood on the desk
 
 *Change.* The 4G stick has no GPS, but every message carries the mobile mast the stick is talking to, and the oracle used that to notice a stolen box: the first mast heard was home, any other mast meant *moved*. Seventeen minutes after the stick first reported a mast, the alert went off, with the box on the same desk. In one afternoon it reported five different masts, on two phone networks and on both 3G and 4G: a box that stands still is passed around all the time. Home is now everything the box hears in its first two weeks. After that, a new mast in a neighbourhood it already knows is added quietly, and only a mast in a neighbourhood it has never been in raises the alert; the alert closes by itself when the box is heard from home again. The price: a box taken in its first two weeks, or moved a few streets, is not caught this way. The siren and the lid switch are there for that. In the same change the box now sends every three hours instead of every two, which saves about 3 MB a year: most messages go out when the box starts and when it stops, not in between. [#73](https://github.com/oncra/life/pull/73)

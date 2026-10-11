@@ -17,6 +17,11 @@ import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
  *
  * Each opened alert is pushed to ALERT_WEBHOOK_URL as {title, body, url, tag} with ALERT_WEBHOOK_TOKEN as
  * bearer, when those are set. Any endpoint that takes that shape will do; there is no mail from here.
+ *
+ * A second, quieter hook is for a status line somewhere a steward already looks: CHECKIN_WEBHOOK_URL gets one
+ * short line per heartbeat ("checked in, battery 12.9 V, 14 °C in the box") and one per opened alert, as
+ * {who, text, url, tag, tone} with tone "close" for a check-in and "urgent" for an alert, CHECKIN_WEBHOOK_TOKEN
+ * as bearer. It never holds a heartbeat up for more than a few seconds and never fails one.
  */
 
 export type Cell = { plmn?: string; cellId?: string | number; tac?: string | number; pci?: number; band?: string; rsrp?: number; rssi?: number; sinr?: number; mode?: string };
@@ -59,7 +64,37 @@ export function placeCell(home: HomeCell, cell: Cell, at: Date): { away: boolean
   return { away: false, learned: { ...home, cells } };
 }
 
+/** One status line to CHECKIN_WEBHOOK_URL. The tag is unique per line, so a reader that keeps lines by tag shows each. */
+export async function line(who: string, text: string, url: string, tag: string, tone: "close" | "urgent"): Promise<boolean> {
+  const hook = process.env.CHECKIN_WEBHOOK_URL;
+  if (!hook) return false;
+  try {
+    const res = await fetch(hook, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(process.env.CHECKIN_WEBHOOK_TOKEN ? { authorization: `Bearer ${process.env.CHECKIN_WEBHOOK_TOKEN}` } : {}) },
+      body: JSON.stringify({ who, text, url, tag, tone }),
+      signal: AbortSignal.timeout(4_000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** What a heartbeat says in one line: what the node did, its battery, the air in the box, and what it still holds. */
+export function checkinText(hb: { event?: string | null; metrics?: Record<string, unknown> | null }): string {
+  const m = hb.metrics ?? {};
+  const did = hb.event === "boot" ? "started" : hb.event === "shutdown" ? "switching off" : hb.event === "alarm" ? "alarm" : "checked in";
+  const parts = [did];
+  const batt = batteryOf(m);
+  if (batt) parts.push(`battery ${batt.v.toFixed(2)} V`);
+  if (typeof m.boxTempC === "number") parts.push(`${Math.round(m.boxTempC)} °C in the box`);
+  if (typeof m.unsent === "number" && m.unsent > 0) parts.push(`${m.unsent} readings still to send`);
+  return parts.join(", ");
+}
+
 export async function notify(title: string, body: string, url?: string, tag?: string): Promise<boolean> {
+  await line(title, body, url ?? "", `${tag ?? "life-alert"}-${Date.now()}`, "urgent");
   const hook = process.env.ALERT_WEBHOOK_URL;
   if (!hook) return false;
   try {
@@ -140,6 +175,11 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   let lowBattery = null;
   if (batt && batt.v < LOW_BATTERY_V) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt.v, src: batt.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, at: ts.toISOString() });
   else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
+  if (process.env.CHECKIN_WEBHOOK_URL) {
+    const d = await placeOf(deviceId);
+    const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
+    await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
+  }
   return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
 }
 
