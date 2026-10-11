@@ -18,7 +18,12 @@ In the field there is no socket. The panel charges the battery, the blue Victron
 3. The battery lead: the fuse holder goes in the red wire, **within a hand's width of the battery**. The fuse is not optional: a short circuit on a battery without one can start a fire.
 4. Connect the battery lead to the controller's **BAT** terminals first, then to the battery: red to plus, black to minus.
 5. Only now the panel, into the **PV** terminals. Indoors, lean it against a window; it gives a tenth of its power there, enough to see it charge.
-6. Install the **VictronConnect** app on your phone, find the controller over Bluetooth, and choose the **LiFePO4** battery preset.
+6. Install the **VictronConnect** app on your phone. It is the only way to see and set the controller, and neither the box nor the code printed on the controller leads you to it. Scan the code for your phone below, or search for *VictronConnect* in the App Store or Google Play.
+
+![Two QR codes side by side: the left one, marked iPhone and iPad, opens VictronConnect in the App Store; the right one, marked Android, opens it in Google Play](../../public/img/build/victronconnect-qr.svg "Scan with your phone's camera: left for iPhone and iPad, right for Android. Both open the VictronConnect app in the store.")
+
+7. Open the app, with Bluetooth on, next to the controller. It finds the controller by itself and then asks for a **PIN code**. That code is on a **sticker on the side of the controller**. Older controllers have no sticker; their code is 000000.
+8. In the app, choose the **LiFePO4** battery preset.
 
 The probes keep their power from the Pi's USB port, so they are off whenever the Pi sleeps. Never connect them to the controller.
 
