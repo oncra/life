@@ -73,6 +73,10 @@ install -m 0644 "$HERE"/image/life-firstboot.service "$HERE"/image/life-schedule
 sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD=/usr/local/bin/life-guard apply" LIFE_STATE=/data/life-node\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service /etc/systemd/system/life-guard.service
 systemctl enable ssh avahi-daemon life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service >/dev/null 2>&1
 systemctl disable userconfig.service 2>/dev/null || true
+# NetworkManager runs the network. systemd-networkd manages no link here, so its wait-online can only time out: two
+# minutes on every boot, with network-online.target and the timers held behind it. apt's daily timers have nothing
+# to do on a read-only root.
+systemctl mask systemd-networkd-wait-online.service apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1 || true
 
 # the Witty Pi's own installer does this: I2C on, its modules loaded
 echo i2c-dev > /etc/modules-load.d/life-i2c.conf
