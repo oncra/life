@@ -6,7 +6,11 @@ import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
  * Node liveness and theft, without hardware.
  *
  * A node posts a heartbeat with the cell its modem is camped on (PLMN + cell id, read from the 4G stick's own
- * web API). The first cell heard becomes the device's home cell. A later heartbeat from another cell opens a
+ * web API). The first cell heard becomes the device's home cell, and home is a set, not one cell: a node that
+ * stands still is handed from cell to cell, between bands, between 3G and 4G and, on a roaming SIM, between
+ * operators (node 1 reported five cells on two operators from one desk in an afternoon). Every cell heard in
+ * the first HOME_LEARN_DAYS after the home cell was set counts as home. After that a new cell in a tracking
+ * area the node has been in before is added quietly, and a cell in an area it has never been in opens a
  * MOVED alert: the box has travelled, and the cell says roughly where to. A device that has ever sent a
  * heartbeat and then stays quiet for SILENT_AFTER_H hours gets a SILENT alert; the next heartbeat resolves it.
  * Silent and moved are different failures and are kept apart on purpose.
@@ -20,10 +24,39 @@ export type Cell = { plmn?: string; cellId?: string | number; tac?: string | num
 export const SILENT_AFTER_H = Number(process.env.SILENT_AFTER_H ?? 36);
 
 
-/** The identity part of a cell: what must match for "same place". Signal figures are left out. */
+/** Days after a home cell is set (first heartbeat, or a steward re-homing the node) in which every cell heard is home. */
+export const HOME_LEARN_DAYS = Number(process.env.HOME_LEARN_DAYS ?? 14);
+const HOME_CELLS_MAX = 64;
+
+type CellId = { plmn?: string; cellId?: string | number; tac?: string | number };
+export type HomeCell = CellId & { since?: string; rehomedBy?: string; cells?: (CellId & { firstSeen: string })[] };
+
+/** The identity part of a cell: what must match for "same cell". Signal figures are left out. */
 export function cellKey(c: Cell | null | undefined): string | null {
   if (!c || c.cellId === undefined || c.cellId === null || c.cellId === "") return null;
   return `${c.plmn ?? "?"}/${c.cellId}`;
+}
+
+/** Operator and tracking area (LAC on 3G): the neighbourhood a cell belongs to, tens of cells wide. */
+export function areaKey(c: CellId | null | undefined): string | null {
+  if (!c || c.tac === undefined || c.tac === null || c.tac === "") return null;
+  return `${c.plmn ?? "?"}/${c.tac}`;
+}
+
+/**
+ * Where a heartbeat's cell stands against the node's home: a cell it has been on, a new cell that still counts as
+ * home (inside the learning window, or in a tracking area it has been in), or away. `learned` is the home record
+ * with the new cell added, to be stored; it is set only in the second case.
+ */
+export function placeCell(home: HomeCell, cell: Cell, at: Date): { away: boolean; learned?: HomeCell } {
+  const known = home.cells ?? [{ plmn: home.plmn, cellId: home.cellId, tac: home.tac, firstSeen: home.since ?? at.toISOString() }];
+  const key = cellKey(cell);
+  if (known.some((k) => cellKey(k) === key)) return { away: false };
+  const area = areaKey(cell);
+  const learning = home.since ? at.getTime() - new Date(home.since).getTime() < HOME_LEARN_DAYS * 864e5 : false;
+  if (!learning && !(area && known.some((k) => areaKey(k) === area))) return { away: true };
+  const cells = [...known, { plmn: cell.plmn, cellId: cell.cellId, tac: cell.tac, firstSeen: at.toISOString() }].slice(-HOME_CELLS_MAX);
+  return { away: false, learned: { ...home, cells } };
 }
 
 export async function notify(title: string, body: string, url?: string, tag?: string): Promise<boolean> {
@@ -83,15 +116,22 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   const dev = await prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true } });
   await prisma.heartbeat.create({ data: { deviceId, ts, event: hb.event, cell: hb.cell as object | undefined, metrics: hb.metrics as object | undefined } });
   const key = cellKey(hb.cell);
-  const homeKey = cellKey(dev.homeCell as Cell | null);
+  const home = dev.homeCell as HomeCell | null;
+  const homeKey = cellKey(home);
   const data: Record<string, unknown> = { lastHeartbeatAt: ts };
   if (hb.cell) data.cell = { ...hb.cell, seenAt: ts.toISOString() };
+  let cellChanged = false;
   if (key && !homeKey) data.homeCell = { plmn: hb.cell!.plmn, cellId: hb.cell!.cellId, tac: hb.cell!.tac, since: ts.toISOString() };
+  else if (key && home) {
+    const where = placeCell(home, hb.cell!, ts);
+    cellChanged = where.away;
+    if (where.learned) data.homeCell = where.learned;
+  }
   await prisma.device.update({ where: { id: deviceId }, data });
   const silent = await resolveAlerts(deviceId, "SILENT", "heartbeat");
   let moved = null;
-  const cellChanged = Boolean(key && homeKey && key !== homeKey);
-  if (cellChanged) moved = await openAlert(deviceId, "MOVED", { from: dev.homeCell, to: hb.cell, at: ts.toISOString() });
+  if (cellChanged) moved = await openAlert(deviceId, "MOVED", { from: { plmn: home!.plmn, cellId: home!.cellId, tac: home!.tac, since: home!.since }, to: hb.cell, at: ts.toISOString() });
+  else if (key && homeKey) await resolveAlerts(deviceId, "MOVED", "heartbeat");   // heard from home again: it had not travelled
   const maintenance = maintenanceOut(dev);
   let tamper = null;
   // a tamper inside an active window is the steward at work: recorded in the heartbeat, no alert, no push

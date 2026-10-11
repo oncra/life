@@ -1,7 +1,7 @@
 [Unit]
-Description=Life node: push to the oracle every two hours, and three minutes after boot (one TLS handshake each time)
+Description=Life node: push to the oracle every three hours, and three minutes after boot (one TLS handshake each time)
 [Timer]
 OnBootSec=3min
-OnUnitActiveSec=120min
+OnUnitActiveSec=180min
 [Install]
 WantedBy=timers.target
