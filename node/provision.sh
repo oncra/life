@@ -57,6 +57,9 @@ mkdir -p /data
 ln -sfn /data/life-node /var/lib/life-node
 ln -sfn /data/birdnet-go /var/lib/birdnet-go
 rm -rf /etc/NetworkManager/system-connections && ln -sfn /data/nm-connections /etc/NetworkManager/system-connections
+# route order: cable (metric 100), then WiFi (600), then the 4G stick (700). The profile sits on the read-only root,
+# beside the per-node connections on /data; NetworkManager wants it owned by root and closed to others.
+install -d /usr/lib/NetworkManager/system-connections && install -m 0600 -o root -g root "$HERE/image/life-4g.nmconnection" /usr/lib/NetworkManager/system-connections/life-4g.nmconnection
 rm -rf /var/log/journal && ln -sfn /data/log/journal /var/log/journal
 install -d /etc/systemd/journald.conf.d && install -m 0644 "$HERE/image/journald.conf" /etc/systemd/journald.conf.d/life.conf
 install -m 0644 "$HERE/image/sshd-life.conf" /etc/ssh/sshd_config.d/life.conf

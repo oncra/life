@@ -9,6 +9,22 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### Cable first, then WiFi, then the SIM
+
+*Change.* With the 4G stick in the Pi, the box sent everything over the SIM, also on a desk with a network cable and WiFi within reach: the clock, the weather lookup, every message. The stick presents itself to the computer as a network cable, so it was treated as the best way out. The SIM holds 500 MB for ten years, so that matters. The box now picks in a fixed order: a network cable if there is one, WiFi if not, and the SIM only when it has neither. Tested on node 1 by taking the cable away, then the WiFi, and watching which way a message to the oracle went each time; with both gone it arrived over 4G, and with both back it left the SIM alone again. It is part of the next image. What it does not catch: a cable or WiFi that is connected but has no internet behind it. [#64](https://github.com/oncra/life/pull/64)
+
+### One hourly message costs more data than planned
+
+*Learning.* The plan counted 12 kB for the message the box sends every hour. Measured on the stick's own counter, with nothing to report but "I am alive": **17.7 kB**. Nearly all of it is the greeting that sets up a secure connection, not the message. Ten messages a day at that size is about 65 MB a year, and the SIM gives 50 MB a year, so as it stands the card would run out after about eight years instead of ten, before soil readings and anything else the box does on the internet are counted. One measurement, so no conclusion yet; the next step is to count everything a day in the field would send, and then make the greeting smaller or the messages fewer. Also seen: in five idle minutes one burst of 7 kB went out that we cannot yet name. [#64](https://github.com/oncra/life/pull/64)
+
+### Three USB plugs do not fit side by side
+
+*Change.* The Pi has four USB sockets in two pairs, one above the other, close together. The RS485 adapter, the screw terminal for the probes and the 4G stick are each wider than a socket, so they push each other out. Two short USB extension leads solve it, and both are now on the order list and in the guide. One lead was not enough. [#64](https://github.com/oncra/life/pull/64)
+
+### The SIM is a foreign card everywhere
+
+*Change.* With the SIM the right way round the stick found the network and then refused to use it: *Data connections are disabled while roaming*. The 1NCE card is not from any one country, so it is roaming wherever it is, and the stick ships with roaming off. The guide now has that switch as its own step. On the desk the stick held 4G in the laptop (signal −95 dBm) and dropped to 3G an hour later in the Pi, a metre away: indoors is not where this box will live, but it is the number the closed box will be compared with. [#64](https://github.com/oncra/life/pull/64)
+
 ### The charge controller's app is hard to find, and it wants a code
 
 *Change.* The blue Victron charge controller is set up from a phone, with an app called VictronConnect. The guide named the app and nothing more. In practice the controller's own packaging does not say so clearly, the QR code printed on it does not lead to the app, and Victron's website does not put it in front of you; what worked was searching the App Store by name. Then the app found the controller over Bluetooth and asked for a PIN, which turned out to be on a sticker on the side of the controller. The step now carries two QR codes that open the app in the store, one for iPhone and one for Android, and says where the PIN is. A printed card with the same two things belongs in a kit that ships.

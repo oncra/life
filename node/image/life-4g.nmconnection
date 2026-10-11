@@ -1,0 +1,19 @@
+# The 4G stick is the last resort: cable first (metric 100), WiFi second (600), the SIM only when neither is there.
+# Without this the stick comes up as a second "wired" connection at metric 100 and carries everything, also on a desk.
+# Matched by driver, so it never catches the Pi's own ethernet port (bcmgenet).
+[connection]
+id=life-4g
+type=ethernet
+autoconnect=true
+autoconnect-priority=10
+
+[match]
+driver=cdc_ether;rndis_host;cdc_ncm;huawei_cdc_ncm;
+
+[ipv4]
+method=auto
+route-metric=700
+dns-priority=200
+
+[ipv6]
+method=disabled
