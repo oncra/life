@@ -11,7 +11,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### A line each time the box reports in
 
-*Change.* With the box on its field schedule it is off most of the day, and the only way to know it woke up was to go and look at its page. The oracle can now send one short line somewhere you already look, each time a box reports in: *started, battery 12.94 V, 16 °C in the box*, *checked in*, *switching off*. An alert, such as a low battery, goes to the same place marked as urgent. It is a setting on the oracle (a web address to send the lines to), off unless someone fills it in. PRLINK
+*Change.* With the box on its field schedule it is off most of the day, and the only way to know it woke up was to go and look at its page. The oracle can now send one short line somewhere you already look, each time a box reports in: *started, battery 12.94 V, 16 °C in the box*, *checked in*, *switching off*. An alert, such as a low battery, goes to the same place marked as urgent. It is a setting on the oracle (a web address to send the lines to), off unless someone fills it in. [#74](https://github.com/oncra/life/pull/74)
 
 ### The box said it had moved while it stood on the desk
 
