@@ -23,7 +23,7 @@ In the field there is no socket. The panel charges the battery, the blue Victron
 ![Two QR codes side by side: the left one, marked iPhone and iPad, opens VictronConnect in the App Store; the right one, marked Android, opens it in Google Play](../../public/img/build/victronconnect-qr.svg "Scan with your phone's camera: left for iPhone and iPad, right for Android. Both open the VictronConnect app in the store.")
 
 7. Open the app, with Bluetooth on, next to the controller. It finds the controller by itself and then asks for a **PIN code**. That code is on a **sticker on the side of the controller**. Older controllers have no sticker; their code is 000000.
-8. In the app, choose the **LiFePO4** battery preset.
+8. In the app, choose the **LiFePO4** battery preset. In VictronConnect it is called **Smart Lithium (LiFePO4)**, under settings (the gear wheel), **Battery preset**.
 
 The probes keep their power from the Pi's USB port, so they are off whenever the Pi sleeps. Never connect them to the controller.
 
