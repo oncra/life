@@ -19,7 +19,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### Three USB plugs do not fit side by side
 
-*Change.* The Pi has four USB sockets in two pairs, one above the other, close together. The RS485 adapter, the screw terminal for the probes and the 4G stick are each wider than a socket, so they push each other out. Two short USB extension leads solve it, and both are now on the order list and in the guide. One lead was not enough. [#64](https://github.com/oncra/life/pull/64)
+*Change.* The Pi has four USB sockets in two pairs, one above the other, close together. The RS485 adapter, the screw terminal for the probes and the 4G stick are each wider than a socket, so they push each other out. Two short USB extension leads solve it: one for the RS485 adapter and one for the 4G stick, while the screw terminal sits in the Pi itself. Both leads are now on the order list and in the guide. One lead was not enough. [#64](https://github.com/oncra/life/pull/64)
 
 ### The SIM is a foreign card everywhere
 

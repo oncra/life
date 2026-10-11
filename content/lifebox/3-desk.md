@@ -92,7 +92,7 @@ Both probes leave the factory with the same address, so the box cannot tell them
 ![Wiring diagram. One probe: brown to + and black to − on the USB screw terminal, yellow to A+ and blue to B− on the RS485 adapter; S, D− and D+ stay empty.](../../public/img/build/s1-probe-wiring.svg "Step 1 is this part: one probe. Step 2, in the next step, adds the second probe on the same terminals.")
 
 1. Switch off: pull the power supply out of the wall.
-2. Plug the **RS485 adapter** into a USB port of the Pi, and the **USB screw terminal** into another. The Pi's four USB ports sit close together, in two pairs one above the other, and these parts are wider than a port: if two do not fit next to each other, put one on a **short USB extension lead**. With the 4G stick, later, you need two leads in all.
+2. Plug the **USB screw terminal** straight into a USB port of the Pi. Plug the **RS485 adapter** into a **short USB extension lead**, and the lead into another port. The Pi's four USB ports sit close together, in two pairs one above the other, and the adapter is too wide to sit next to another plug. The 4G stick, later, gets the second lead.
 3. Take one probe; leave the other in its bag. No ferrules needed yet: the bare wires go straight into the terminals.
 4. The USB screw terminal has five screws, marked **S, +, D−, D+, −**. **Brown** into **+** and **black** into **−**. The other three stay empty: **S** is the cable shield, not power, and a probe on S gets no power and stays silent. (Some terminals say VCC and GND instead: then brown into VCC, black into GND.) **Yellow** into **A+** and **blue** into **B−** of the RS485 adapter, not into D+ and D−. Tighten the screws and tug each wire.
 5. Wrap a piece of tape around this probe's cable and write **30 cm** on it. The two probes look the same; from now on the tape is the only way to tell them apart.
@@ -126,7 +126,7 @@ The white stick is the box's own phone line, for the field where there is no WiF
 2. Plug the stick into **your laptop** first. After half a minute, open [192.168.8.1](http://192.168.8.1) in your browser: that is the stick's own page. If it says *SIM card not inserted or not working*, the card is in upside down or not pushed home. Take the stick out, turn the card over, and plug the stick in again: it only looks for the card when it starts.
 3. Under the mobile network settings (often *Settings*, then *Profile management*), add a profile with the network name (APN) **iot.1nce.net**, save it, and make it the default.
 4. Switch **data roaming** on, on the same settings pages. The 1NCE card is a foreign card in every country, so without roaming the stick finds the network and then says *Data connections are disabled while roaming*.
-5. When the stick's light shows it is connected, take it out of the laptop and plug it into the Pi. It is too wide to sit next to the other plugs: use the second **USB extension lead**.
+5. When the stick's light shows it is connected, take it out of the laptop and plug it into the Pi. It is too wide to sit next to the other plugs: put it on the second **USB extension lead**.
 
 You can leave the stick in while the box is on your desk. The box uses a network cable first, then your WiFi, and the SIM only when it has neither, so the desk does not eat into the card's ten years.
 
