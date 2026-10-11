@@ -1,4 +1,4 @@
-import type { Box } from "@/generated/prisma/client";
+import type { Box, Prisma } from "@/generated/prisma/client";
 import { boxDeviceNote } from "@/lib/boximage";
 import { batteryOf } from "@/lib/battery";
 
@@ -45,11 +45,29 @@ export function boxOut(b: Box & { place: { slug: string; name?: string } }, gold
   };
 }
 
-/** What the box has sent so far: the builder's test lights. One query per kind, newest first. */
-/** What the box's own devices last sent. `hostname` picks this box's devices on a place that carries more than one. */
-export async function boxLive(placeId: string, hostname?: string) {
+/** Devices on a place that no box made here owns: a node built by hand (node 1 on the bench was). */
+const handBuiltDevices: Prisma.DeviceWhereInput = { OR: [{ notes: null }, { NOT: { notes: { startsWith: "Life Box " } } }] };
+
+/** The nodes built by hand on the places a person looks after (given to them, or every place for an admin): devices
+ * that have reported but belong to no box made on /box. Shown on /box next to the boxes, so the builder's own bench
+ * node is there too. */
+export async function handNodes(user: { id: string; email: string }) {
   const { prisma } = await import("./db");
-  const devices = await prisma.device.findMany({ where: { placeId, ...(hostname ? { notes: boxDeviceNote(hostname) } : {}) }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
+  const { isAdminEmail } = await import("./privacy");
+  const places = await prisma.place.findMany({
+    where: { ...(isAdminEmail(user.email) ? {} : { access: { some: { userId: user.id } } }), devices: { some: { ...handBuiltDevices, lastSeenAt: { not: null } } } },
+    select: { id: true, slug: true, name: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return Promise.all(places.map(async (p) => ({ placeId: p.id, slug: p.slug, name: p.name, live: await boxLive(p.id, undefined, true) })));
+}
+
+/** What the box has sent so far: the builder's test lights. One query per kind, newest first. */
+/** What the box's own devices last sent. `hostname` picks this box's devices on a place that carries more than one;
+ * `handBuilt` picks the devices that belong to no box instead. */
+export async function boxLive(placeId: string, hostname?: string, handBuilt = false) {
+  const { prisma } = await import("./db");
+  const devices = await prisma.device.findMany({ where: { placeId, ...(hostname ? { notes: boxDeviceNote(hostname) } : handBuilt ? handBuiltDevices : {}) }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
   const ids = devices.map((d) => d.id);
   const sound = devices.find((d) => d.kind === "SOUND");
   const hb = await prisma.heartbeat.findFirst({ where: { deviceId: { in: ids } }, orderBy: { ts: "desc" }, select: { ts: true, cell: true, event: true, metrics: true } });

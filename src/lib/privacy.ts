@@ -50,12 +50,17 @@ export async function reblur(placeId: string) {
 
 /** Who may see this place exactly: an admin (key, or signed in with an ADMIN_EMAILS address), the place's
  * steward key, the signed-in owner of a Life Node on it, or someone given access to it (PlaceAccess). `req` is given in API routes; pages use the cookie. */
+/** Signed in with one of the ADMIN_EMAILS addresses. */
+export function isAdminEmail(email: string): boolean {
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return admins.includes(email.toLowerCase());
+}
+
 export async function canSeeExact(place: Pick<Place, "id">, req?: Request): Promise<boolean> {
   if (req && canManagePlace(await authenticate(req), place.id)) return true;
   const user = await currentUser().catch(() => null);
   if (!user) return false;
-  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  if (admins.includes(user.email.toLowerCase())) return true;
+  if (isAdminEmail(user.email)) return true;
   const [boxes, access] = await Promise.all([
     prisma.box.count({ where: { placeId: place.id, userId: user.id } }),
     prisma.placeAccess.count({ where: { placeId: place.id, userId: user.id } }),
