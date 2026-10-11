@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### Where the SIM's data really goes
+
+*Learning.* This morning's 17.7 kB for one hourly message came from the stick's own counter. Counting the packets on the box itself gives a different picture, in three parts. The hourly message with the birds and "I am alive" is **9.6 kB**, less than the 12 kB we had planned. The soil readings go separately, and each of the two probes opens its own secure connection: **18 kB** an hour, twice the size of the message we had been worrying about. And the stick spends data by itself: 6 to 15 kB every time it starts, while the box sends nothing at all. Together that is about 28 kB an hour, or 105 MB a year at ten hours a day, against the 50 MB a year the SIM gives. So the card would last about five years, not ten. The way out is plain: one connection an hour that carries everything, which brings the hour to about 11 kB and the year to about 40 MB. Not built yet. [#70](https://github.com/oncra/life/pull/70)
+
 ### A new image, started on node 1 before anyone else gets it
 
 *Change.* Everything learned since 7 October went into one new image: the order cable, WiFi, SIM, the start without the two-minute wait, and the fixes that had been put on node 1 by hand. Node 1's card was written with it and started. The soil timer ran two minutes after the start and read both probes, the first hourly message went out a minute later and the oracle answered, the microphone was being listened to, and with the stick in, the way out was WiFi. Only then did it become the image others download (image-v4). Not tried on this image yet: switching itself off and on by the clock, and a whole day on the SIM alone. The stick, on the same desk, was back on 4G (signal −104 dBm). [#69](https://github.com/oncra/life/pull/69)
