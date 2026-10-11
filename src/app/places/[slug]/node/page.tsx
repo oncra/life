@@ -3,10 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { canSeeExact, publicPlace } from "@/lib/privacy";
-import { asRange, nodeData, RANGES, signalPoint } from "@/lib/node";
+import { asRange, nodeData, nodeSignals, RANGES, signalPoint } from "@/lib/node";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { ago, fmtTime } from "@/lib/clock";
 import LifeMap from "@/components/LifeMap";
+import Globe from "@/components/node/Globe";
 import SeriesChart from "@/components/node/SeriesChart";
 import HeartbeatStrip from "@/components/node/HeartbeatStrip";
 import DawnChorus from "@/components/node/DawnChorus";
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const STATUS_TEXT = { live: "on", stale: "quiet", silent: "silent" } as const;
 const STATUS_BG = { live: "bg-accent", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
+const STATUS_DOT = { live: "bg-[#8be28f]", stale: "bg-amber-400", silent: "bg-[#8a8f86]" } as const;
 
 export default async function NodePage({ params, searchParams }: Props) {
   const { slug } = await params;
@@ -44,6 +46,9 @@ export default async function NodePage({ params, searchParams }: Props) {
     heardAt: last.heardAt ? new Date(last.heardAt).toISOString() : null, heartbeatAt: last.heartbeatAt ? new Date(last.heartbeatAt).toISOString() : null,
     lastSpecies: lastSpecies?.species ?? null, lastSpeciesAt: lastSpecies ? new Date(lastSpecies.last).toISOString() : null, speciesWeek: data.heardWeek, href: `/places/${stored.slug}/node`,
   };
+  // every other node on the globe too, dimmer; this place's own signal carries the point this viewer may see
+  const others = await nodeSignals(data.now);
+  const allSignals: NodeSignal[] = [signal, ...others.filter((o) => o.slug !== stored.slug)];
   const soilColors = [["#3b82c4", "#d9822b"], ["#1b3f6b", "#8a3b12"], ["#6ba3d6", "#e8a86b"]];
   const tiles: { label: string; value: string; sub: string; dot?: keyof typeof STATUS_BG }[] = [
     { label: "Last heard", value: last.heardAt ? ago(last.heardAt, data.now) : "never", sub: last.heardAt ? `${STATUS_TEXT[status]} · ${fmtTime(last.heardAt, data.zone)}` : "nothing received yet", dot: status },
@@ -72,14 +77,20 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {tiles.map((t) => (
-          <div key={t.label} className="rounded-lg border border-line bg-white p-3">
-            <div className="text-xs text-muted">{t.label}</div>
-            <div className="text-lg font-semibold mt-0.5 flex items-center gap-2">{t.dot && <span className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_BG[t.dot]}`} />}{t.value}</div>
-            {t.sub && <div className="text-xs text-muted mt-0.5">{t.sub}</div>}
-          </div>
-        ))}
+      <div className="mt-5 rounded-xl bg-[#0f1611] text-white p-3 md:p-4 grid lg:grid-cols-5 gap-4 overflow-hidden">
+        <div className="lg:col-span-3 relative">
+          <Globe signals={allSignals} focus={{ lat: point.lat, lon: point.lon, name: stored.name }} height={420} now={data.now} />
+          <div className="absolute bottom-0 left-1 right-1 text-[11px] leading-snug text-white/45">Every post travels from the node to the oracle in Nuremberg; the rings run while the node is being heard. Drag to turn. Land from Natural Earth.</div>
+        </div>
+        <div className="lg:col-span-2 grid grid-cols-2 gap-3 content-start">
+          {tiles.map((t) => (
+            <div key={t.label} className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+              <div className="text-xs text-white/55">{t.label}</div>
+              <div className="text-lg font-semibold mt-0.5 flex items-center gap-2">{t.dot && <span className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_DOT[t.dot]}`} />}{t.value}</div>
+              {t.sub && <div className="text-xs text-white/55 mt-0.5">{t.sub}</div>}
+            </div>
+          ))}
+        </div>
       </div>
 
       <section className="mt-8">
