@@ -56,7 +56,7 @@ The node folds all of it into one enclosure:
 
 > **Where you buy the panel and battery matters more than what they cost.** Offgridtec in Germany quoted **€232.90 of shipping on €88.30 of goods**: a hazardous-goods rate for the lithium battery plus freight for a bulky panel, crossing a border. Buying the same two things in the Netherlands and from reichelt costs more in parts and about €145 less delivered. Cheap parts behind expensive freight are not cheap.
 
-**Budget per node: about €755**, tamper guard and bat microphone included, set on 2026-10-11 (`kit/order-list.csv`, every line not marked `alt`). Without the bat microphone it is about €685, and without the tamper guard about €29 less again.
+**Budget per node: about €755**, tamper guard and bat microphone included, set on 2026-10-11 (`kit/order-list.csv`, every line not marked `alt`). Both the bat microphone and the tamper guard are part of the standard node (decided 2026-10-12); without them it would be about €655.
 
 | Part of the node | € |
 | --- | ---: |
