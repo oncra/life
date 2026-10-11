@@ -14,6 +14,8 @@ One image, flashed per node. Nothing per-node is baked in: the tokens, hostname,
 
 `/data` carries: `life-node/` (the env file, the soil queue, the push cursor), `birdnet-go/` (its config, database and model), `wittypi/` (the scheduler's scripts, schedule and logs), `nm-connections/`, `ssh/` (host keys), `log/journal/`. The corresponding paths on the root (`/var/lib/life-node`, `/var/lib/birdnet-go`, `/etc/NetworkManager/system-connections`, `/var/log/journal`) are symlinks into it, so nothing in the software needs to know.
 
+**Which way out.** A node can have three ways to the internet at once: a network cable, WiFi and the 4G stick. It uses the cable first, WiFi second and the SIM only when neither is there (route metrics 100, 600 and 700). The stick shows up as a USB ethernet device, and without `life-4g.nmconnection` NetworkManager treats it as a second cable at metric 100, so a node on a desk spends its ten-year SIM on clock syncs and weather lookups. The profile matches the stick by driver (`cdc_ether` and its relatives), never the Pi's own port. What it does not do: notice a cable or WiFi that is connected but has no internet behind it. NetworkManager's connectivity check would, at the price of a request over the SIM every few minutes, which the SIM cannot afford.
+
 A power cut at any moment leaves root untouched, because root is never written. What a power cut can lose is whatever was in flight on `/data` in that second, which is why the queue is appended and the push cursor advances only after the server has answered.
 
 ## Flashing a node

@@ -38,6 +38,7 @@ The node folds all of it into one enclosure:
 | 7 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead (node 1 bought four: three sat €0.51 under DigiKey's free-shipping line) | DigiKey (NL) | 2 × €30.04 = €60.08 |
 | 8 | RS485 adapter | Waveshare industrial USB to RS485, FT232RL, surge and ESD protected | Kiwi Electronics (NL) | €14.27 |
 | 9 | Probe power | USB-A plug to screw terminal, so the probes run off the Pi and stop when it does | Amazon.nl | €8.99 (2 pcs) |
+| 9b | USB leads ×2 | Short USB-A extension leads, male to female. The RS485 adapter, the screw terminal and the 4G stick are each wider than a USB socket and the Pi's sockets sit in two stacked pairs, so two of the three go on a lead. Added 2026-10-11, on node 1 | any electronics shop | ~€6 |
 | 10 | Solar panel | Enjoy Solar 100 W 12 V mono, anodised aluminium frame, 1190 × 540 mm, ships with 90 cm MC4 leads so no separate cable is needed | Accuweb (NL) | €85.00 |
 | 11 | Battery | LiFePO4 12.8 V 20 Ah, 256 Wh, 181 × 76 × 170 mm, M5 terminals | reichelt | €82.16 + €8.47 hazardous-goods surcharge |
 | 12 | Charge controller | Victron SmartSolar MPPT 75/10, load output, LiFePO4 preset | reichelt | €64.89 |
