@@ -6,8 +6,9 @@ result on the hourly detections post, so the SIM pays for one TLS handshake per 
 
 The cell comes from the 4G stick's own web API (Huawei HiLink, http://192.168.8.1): PLMN from
 /api/net/current-plmn, cell id, PCI, band and signal from /api/device/signal. Nothing is written to the stick.
-The oracle remembers the first cell it hears as the node's home cell and raises an alert when a later heartbeat
-comes from another one: the box has travelled, and the cell id says roughly where to. No coin cell, no extra
+The oracle learns the node's home from the cells it hears in the first two weeks (a still node is handed between
+cells, bands and operators) and raises an alert when a later heartbeat comes from a tracking area the node has
+never been in: the box has travelled, and the cell id says roughly where to. No coin cell, no extra
 hardware, and nothing for a thief to notice. On a bench without the stick the cell is simply absent.
 
 Power and box health ride along, from what is already in the box:
