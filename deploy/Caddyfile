@@ -7,3 +7,14 @@
 		Referrer-Policy strict-origin-when-cross-origin
 	}
 }
+
+# Short domains for the project: lifenode.eu points at the build guide of the
+# Life Node, lifeoracle.org at the Life Oracle itself. Temporary redirects, so
+# either can later serve its own site without browsers having cached a move.
+lifenode.eu, www.lifenode.eu {
+	redir https://life.oncra.org/node 302
+}
+
+lifeoracle.org, www.lifeoracle.org {
+	redir https://life.oncra.org{uri} 302
+}
