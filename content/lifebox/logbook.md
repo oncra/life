@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### A new image, started on node 1 before anyone else gets it
+
+*Change.* Everything learned since 7 October went into one new image: the order cable, WiFi, SIM, the start without the two-minute wait, and the fixes that had been put on node 1 by hand. Node 1's card was written with it and started. The soil timer ran two minutes after the start and read both probes, the first hourly message went out a minute later and the oracle answered, the microphone was being listened to, and with the stick in, the way out was WiFi. Only then did it become the image others download (image-v4). Not tried on this image yet: switching itself off and on by the clock, and a whole day on the SIM alone. The stick, on the same desk, was back on 4G (signal −104 dBm). [#67](https://github.com/oncra/life/pull/67)
+
 ### Two minutes of waiting at every start
 
 *Change.* After each start the box sat still for two minutes before its timers began: the hourly message and the soil readings waited on a network service that has nothing to manage on this computer and so could only give up after its time ran out. On a desk nobody notices; in the field it is two minutes of battery every morning with nothing heard and nothing sent. The next image leaves that service out, together with a daily software-update check that has nothing to update on a box whose system cannot be written. [#66](https://github.com/oncra/life/pull/66)
