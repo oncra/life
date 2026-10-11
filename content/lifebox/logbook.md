@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### Two minutes of waiting at every start
+
+*Change.* After each start the box sat still for two minutes before its timers began: the hourly message and the soil readings waited on a network service that has nothing to manage on this computer and so could only give up after its time ran out. On a desk nobody notices; in the field it is two minutes of battery every morning with nothing heard and nothing sent. The next image leaves that service out, together with a daily software-update check that has nothing to update on a box whose system cannot be written. [#66](https://github.com/oncra/life/pull/66)
+
 ### Cable first, then WiFi, then the SIM
 
 *Change.* With the 4G stick in the Pi, the box sent everything over the SIM, also on a desk with a network cable and WiFi within reach: the clock, the weather lookup, every message. The stick presents itself to the computer as a network cable, so it was treated as the best way out. The SIM holds 500 MB for ten years, so that matters. The box now picks in a fixed order: a network cable if there is one, WiFi if not, and the SIM only when it has neither. Tested on node 1 by taking the cable away, then the WiFi, and watching which way a message to the oracle went each time; with both gone it arrived over 4G, and with both back it left the SIM alone again. It is part of the next image. What it does not catch: a cable or WiFi that is connected but has no internet behind it. [#64](https://github.com/oncra/life/pull/64)
