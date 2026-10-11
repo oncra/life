@@ -72,6 +72,31 @@ main { overflow-x: clip; }
 .guide .check-label { display: inline-block; background: var(--accent); color: #fff; border-radius: 999px; padding: 0 0.55rem; margin-right: 0.35rem; font-size: 0.8rem; }
 .guide figure { max-width: 40rem; }
 
+/* Life Node signals on the map: a dot with rings that widen on the rhythm of the node's posts, and a label that
+   now and then says what it last heard. Green while heard, amber when quiet, grey when silent. */
+.sig-icon { background: transparent; border: 0; }
+.sig { position: relative; width: 0; height: 0; --c: #2f6b3a; }
+.sig-stale { --c: #b7791f; }
+.sig-silent { --c: #7a7a72; }
+.sig i { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--c); opacity: 0; animation: sig-ring 3.6s ease-out infinite; }
+.sig i:nth-child(2) { animation-delay: 1.2s; }
+.sig i:nth-child(3) { animation-delay: 2.4s; }
+.sig-silent i { animation-duration: 9s; }
+.sig-silent i:nth-child(2) { animation-delay: 3s; }
+.sig-silent i:nth-child(3) { animation-delay: 6s; }
+.sig b { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 999px; background: var(--c); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2); }
+.sig em { position: absolute; left: 12px; top: -34px; white-space: nowrap; font-style: normal; font-size: 12px; line-height: 1.4; background: #fff; color: #1b1f1a; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; opacity: 0; pointer-events: none; }
+.sig em.say { animation: sig-say 5s ease-out forwards; }
+.sig-glow { box-shadow: 0 0 0 0 rgba(47, 107, 58, 0.5); animation: sig-glow 2.4s ease-out infinite; }
+@keyframes sig-ring { 0% { transform: scale(0.25); opacity: 0.85; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes sig-say { 0% { opacity: 0; transform: translateY(6px); } 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-8px); } }
+@keyframes sig-glow { 0% { box-shadow: 0 0 0 0 rgba(47, 107, 58, 0.5); } 100% { box-shadow: 0 0 0 10px rgba(47, 107, 58, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .sig i { animation: none; opacity: 0.3; transform: scale(0.7); }
+  .sig em.say { animation: none; opacity: 1; }
+  .sig-glow { animation: none; }
+}
+
 /* Backlog board: with a mouse, a card's move buttons show when you point at it; on touch they are always there */
 @media (hover: hover) {
   .bl-card .bl-moves { opacity: 0; transition: opacity 0.12s; }

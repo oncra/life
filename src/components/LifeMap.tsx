@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import type * as LType from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 
 export interface LifeMapProps {
   height?: string;
@@ -19,18 +21,25 @@ export interface LifeMapProps {
   onDraw?: (ring: [number, number][]) => void;
   /** Shows a NASA GIBS MODIS NDVI overlay for this date (YYYY-MM-DD) if set */
   ndviDate?: string | null;
+  /** Life Nodes to draw as pulsing signals (see `nodeSignals` in src/lib/node.ts) */
+  signals?: NodeSignal[] | null;
+  /** Fetch every node's signal from the API */
+  fetchSignals?: boolean;
 }
 
 const VERDICT_COLOR: Record<string, string> = { thriving: "#2f6b3a", holding: "#8a9a2b", declining: "#b3452b", insufficient: "#7a7a72" };
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-export default function LifeMap({ height = "70vh", center, zoom = 7, places, fetchPlaces, focus, focusApproximate, onDraw, ndviDate }: LifeMapProps) {
+export default function LifeMap({ height = "70vh", center, zoom = 7, places, fetchPlaces, focus, focusApproximate, onDraw, ndviDate, signals, fetchSignals }: LifeMapProps) {
   const el = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const mapRef = useRef<LType.Map | null>(null);
   const drawRef = useRef<{ pts: [number, number][]; layer: LType.Polygon | null; markers: LType.CircleMarker[] }>({ pts: [], layer: null, markers: [] });
 
   useEffect(() => {
     if (!el.current || mapRef.current) return;
     let cancelled = false;
+    let sayTimer: ReturnType<typeof setInterval> | null = null;
     (async () => {
       const L = (await import("leaflet")).default;
       if (cancelled || !el.current) return;
@@ -96,6 +105,34 @@ export default function LifeMap({ height = "70vh", center, zoom = 7, places, fet
         const fl = L.geoJSON(focus as GeoJSON.GeoJsonObject, { style: focusApproximate ? { color: "#ffffff", weight: 3, fillColor: "#ffffff", fillOpacity: 0.12, dashArray: "8 6" } : { color: "#1b1f1a", weight: 3, fillOpacity: 0.05, dashArray: "4 3" } }).addTo(map);
         map.fitBounds(fl.getBounds().pad(focusApproximate ? 0.15 : 0.6));
       }
+      // Life Nodes: a dot with rings that keep widening while the node is being heard, and now and then the name of
+      // the last bird it heard. The point is wherever the API says, which for the public is a blurred one.
+      const talkers: { el: HTMLElement; species: string }[] = [];
+      const addSignals = (list: NodeSignal[]) => {
+        const now = Date.now();
+        for (const s of list) {
+          const status = signalStatus(s.heardAt, now);
+          if (s.radiusM) L.circle([s.lat, s.lon], { radius: s.radiusM, color: "#ffffff", weight: 2, dashArray: "6 5", fillColor: "#2f6b3a", fillOpacity: 0.08, interactive: false }).addTo(map);
+          const icon = L.divIcon({ className: "sig-icon", iconSize: [0, 0], html: `<div class="sig sig-${status}"><i></i><i></i><i></i><b></b><em></em></div>` });
+          const heard = s.heardAt ? agoText(now - new Date(s.heardAt).getTime()) : "never heard";
+          const m = L.marker([s.lat, s.lon], { icon, keyboard: false })
+            .bindTooltip(`<strong>${esc(s.name)}</strong><br/>${status === "live" ? "on, " : status === "stale" ? "quiet, " : "silent, "}last heard ${heard}${s.speciesWeek ? `<br/>${s.speciesWeek} species this week` : ""}${s.lastSpecies ? `<br/>last heard: ${esc(s.lastSpecies)}` : ""}<br/><span style="text-decoration:underline">Open the node</span>`, { direction: "top", offset: [0, -10] })
+            .on("click", () => router.push(s.href))
+            .addTo(map);
+          const el = m.getElement()?.querySelector<HTMLElement>(".sig em");
+          if (el && s.lastSpecies) talkers.push({ el, species: s.lastSpecies });
+        }
+        if (talkers.length && !sayTimer) {
+          let i = 0;
+          const say = () => { const t = talkers[i++ % talkers.length]; t.el.textContent = t.species; t.el.classList.remove("say"); void t.el.offsetWidth; t.el.classList.add("say"); };
+          sayTimer = setInterval(say, 7000);
+          setTimeout(say, 1200);
+        }
+      };
+      if (signals?.length) addSignals(signals);
+      if (fetchSignals) {
+        try { const r = await fetch("/api/v1/nodes"); if (r.ok) { const j = await r.json(); if (!cancelled) addSignals(j.items ?? []); } } catch {}
+      }
       if (onDraw) {
         const d = drawRef.current;
         const redraw = () => {
@@ -111,9 +148,17 @@ export default function LifeMap({ height = "70vh", center, zoom = 7, places, fet
         map.on("contextmenu", () => { d.pts = []; d.markers.forEach((m) => m.remove()); d.markers = []; redraw(); onDraw([]); });
       }
     })();
-    return () => { cancelled = true; mapRef.current?.remove(); mapRef.current = null; };
+    return () => { cancelled = true; if (sayTimer) clearInterval(sayTimer); mapRef.current?.remove(); mapRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <div ref={el} style={{ height, width: "100%" }} className="rounded-lg border border-line overflow-hidden bg-[#dfe6dc]" />;
+}
+
+function agoText(ms: number): string {
+  const m = Math.round(ms / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  return h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`;
 }

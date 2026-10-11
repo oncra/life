@@ -199,7 +199,7 @@ function BoxCard({ box, me, onChange }: { box: Box; me: string; onChange: () => 
               <p className="text-sm mt-1">Card in, power on. The first start takes a few minutes. Then the box sends what it hears and measures by itself.</p>
             </li>
           </ol>
-          {box.live && <Lights live={box.live} />}
+          {box.live && <Lights live={box.live} href={`/places/${box.placeSlug}/node`} />}
           <Place box={box} onChange={onChange} />
         </>
       )}
@@ -239,7 +239,7 @@ function Place({ box, onChange }: { box: Box; onChange: () => void }) {
   if (box.placedAt) {
     return (
       <div className="mt-5 rounded-lg bg-[#f1efe6] p-3 text-sm">
-        <span className="font-medium">In the ground</span>{box.placeName ? ` on ${box.placeName}` : ""} since {new Date(box.placedAt).toLocaleDateString()}. <a className="underline" href={`/places/${box.placeSlug}`}>See what it measures</a>
+        <span className="font-medium">In the ground</span>{box.placeName ? ` on ${box.placeName}` : ""} since {new Date(box.placedAt).toLocaleDateString()}. <a className="underline" href={`/places/${box.placeSlug}/node`}>See what it measures</a> · <a className="underline" href={`/places/${box.placeSlug}`}>the place</a>
       </div>
     );
   }
@@ -310,7 +310,7 @@ function ago(ts: string | null | undefined, now: number): string {
 }
 
 // The builder's test lights: each step of the build guide ends in "this one turns green".
-function Lights({ live }: { live: Live }) {
+function Lights({ live, href }: { live: Live; href: string }) {
   const [now, setNow] = useState(0);
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -332,8 +332,8 @@ function Lights({ live }: { live: Live }) {
   ];
   return (
     <div className="mt-5 rounded-lg border border-line p-3">
-      <div className="font-medium">What the box has sent</div>
-      <p className="text-sm text-muted">On the desk the box wakes once an hour for 15 minutes; this page checks every minute.</p>
+      <div className="font-medium flex items-baseline justify-between gap-3">What the box has sent <a className="text-sm font-normal underline" href={href}>Over time →</a></div>
+      <p className="text-sm text-muted">The box posts every two hours; this page shows the latest post. The dashboard behind the link shows the whole run.</p>
       <ul className="mt-2 grid gap-1.5 text-sm">
         {rows.map((r) => (
           <li key={r.label} className="flex items-start gap-2">
