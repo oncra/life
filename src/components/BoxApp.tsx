@@ -31,10 +31,12 @@ const button = "rounded-lg bg-accent text-white px-4 py-2.5 font-medium disabled
 const quiet = "rounded-lg border border-line bg-white px-4 py-2.5 font-medium hover:border-accent disabled:opacity-50";
 
 type OwnPlace = { id: string; name: string; slug: string };
+/** A node built by hand on one of the person's places: no software from this page, but its lights are here */
+type HandNode = { placeId: string; slug: string; name: string; live: Live };
 
-export function BoxApp({ email, initial, places = [] }: { email: string | null; initial: Box[]; places?: OwnPlace[] }) {
+export function BoxApp({ email, initial, places = [], nodes = [] }: { email: string | null; initial: Box[]; places?: OwnPlace[]; nodes?: HandNode[] }) {
   if (!email) return <SignIn />;
-  return <Boxes email={email} initial={initial} places={places} />;
+  return <Boxes email={email} initial={initial} places={places} initialNodes={nodes} />;
 }
 
 export function SignIn({ title = "The software for your Life Node", intro = "We make a card image for your box with its WiFi already in it. You download it, put it on the memory card, and the box starts sending on its own.", compact = false }: { title?: string; intro?: string; compact?: boolean } = {}) {
@@ -75,23 +77,26 @@ export function SignIn({ title = "The software for your Life Node", intro = "We 
   );
 }
 
-function Boxes({ email, initial, places }: { email: string; initial: Box[]; places: OwnPlace[] }) {
+function Boxes({ email, initial, places, initialNodes }: { email: string; initial: Box[]; places: OwnPlace[]; initialNodes: HandNode[] }) {
   const [boxes, setBoxes] = useState<Box[]>(initial);
-  const [adding, setAdding] = useState(initial.length === 0);
+  const [nodes, setNodes] = useState<HandNode[]>(initialNodes);
+  const [adding, setAdding] = useState(initial.length === 0 && initialNodes.length === 0);
   const building = boxes.some((b) => b.imageStatus === "BUILDING");
+  async function refresh() {
+    const r = await fetch("/api/box/boxes");
+    if (!r.ok) return;
+    const j = await r.json();
+    setBoxes(j.items); setNodes(j.nodes ?? []);
+  }
   useEffect(() => {
-    if (!boxes.length) return;
-    const t = setInterval(async () => {
-      const r = await fetch("/api/box/boxes");
-      if (r.ok) setBoxes((await r.json()).items);
-    }, building ? 3000 : 60000);
+    if (!boxes.length && !nodes.length) return;
+    const t = setInterval(refresh, building ? 3000 : 60000);
     return () => clearInterval(t);
-  }, [building, boxes.length]);
-  async function refresh() { const r = await fetch("/api/box/boxes"); if (r.ok) setBoxes((await r.json()).items); }
+  }, [building, boxes.length, nodes.length]);
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{boxes.length > 1 ? "Your Life Nodes" : "Your Life Node"}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{boxes.length + nodes.length > 1 ? "Your Life Nodes" : "Your Life Node"}</h1>
         <button className="text-sm text-muted underline" onClick={async () => { await post("/api/box/logout", {}); location.reload(); }}>Sign out</button>
       </div>
       <p className="text-sm text-muted mt-1">Signed in as {email}</p>
@@ -101,9 +106,21 @@ function Boxes({ email, initial, places }: { email: string; initial: Box[]; plac
         <button className={`${quiet} mt-6`} onClick={() => setAdding(true)}>Add another box</button>
       )}
       <div className="mt-6 grid gap-5">
+        {nodes.map((n) => <NodeCard key={n.placeId} node={n} />)}
         {boxes.map((b) => <BoxCard key={b.id} box={b} me={email} onChange={refresh} />)}
       </div>
     </div>
+  );
+}
+
+// A node built by hand (the software did not come from this page): the same lights, with the place it stands on.
+function NodeCard({ node }: { node: HandNode }) {
+  return (
+    <section className="rounded-xl border border-line bg-white p-4 sm:p-5">
+      <h2 className="text-xl font-semibold">{node.name}</h2>
+      <p className="text-sm text-muted">Built by hand on this place; its software did not come from this page. <a className="underline" href={`/places/${node.slug}`}>The place</a></p>
+      <Lights live={node.live} href={`/places/${node.slug}/node`} />
+    </section>
   );
 }
 
