@@ -11,7 +11,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### The node on a globe, its posts as light
 
-*Change.* The dashboard was informative but not something you would show anyone. It now opens with a globe: the Earth as rows of dots, every node a glowing point with rings that keep running while it is being heard, and each post a pulse of light that travels along an arc from the node to the oracle in Nuremberg, where this site runs. It turns slowly around the node by itself and can be dragged. Drawn on a canvas in the browser from 4,670 land points taken once from Natural Earth; nothing is loaded while you look at it. The idea came from the globe in a hacking kit a ten-year-old builds with, restyled to this site's colours. [#PR](https://github.com/oncra/life/pull/PR)
+*Change.* The dashboard was informative but not something you would show anyone. It now opens with a globe: the Earth as rows of dots, every node a glowing point with rings that keep running while it is being heard, and each post a pulse of light that travels along an arc from the node to the oracle in Nuremberg, where this site runs. It turns slowly around the node by itself and can be dragged. Drawn on a canvas in the browser from 4,670 land points taken once from Natural Earth; nothing is loaded while you look at it. The idea came from the globe in a hacking kit a ten-year-old builds with, restyled to this site's colours. [#76](https://github.com/oncra/life/pull/76)
 
 ### The battery setting has another name in the app
 
