@@ -8,10 +8,10 @@
 	}
 }
 
-# Short domains for the project: lifenode.eu points at the build guide of the
+# Short domains for the project: lifenodes.org points at the build guide of the
 # Life Node, lifeoracle.org at the Life Oracle itself. Temporary redirects, so
 # either can later serve its own site without browsers having cached a move.
-lifenode.eu, www.lifenode.eu {
+lifenodes.org, www.lifenodes.org {
 	redir https://life.oncra.org/node 302
 }
 
