@@ -11,7 +11,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### The bench node is on the builder's page too
 
-*Change.* The builder's page (`/box`) only knew the boxes whose software was made there. Node 1 was built by hand, so it was not on it, while the box made there for its future home in Scheerwolde sat on the page saying "not heard from yet". Confusing, with one real box and two names for it. A node built by hand on one of your places now has its own card on that page, with the same lights and the link to its measurements over time, and a line saying its software did not come from there. When node 1 moves to Scheerwolde, its three devices move to that place with it. [#PR](https://github.com/oncra/life/pull/PR)
+*Change.* The builder's page (`/box`) only knew the boxes whose software was made there. Node 1 was built by hand, so it was not on it, while the box made there for its future home in Scheerwolde sat on the page saying "not heard from yet". Confusing, with one real box and two names for it. A node built by hand on one of your places now has its own card on that page, with the same lights and the link to its measurements over time, and a line saying its software did not come from there. When node 1 moves to Scheerwolde, its three devices move to that place with it. [#81](https://github.com/oncra/life/pull/81)
 
 ## 11 October 2026
 
