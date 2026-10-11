@@ -7,6 +7,12 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 11 October 2026
+
+### The SIM goes in face down
+
+*Change.* The 4G stick's own page said *SIM card not inserted or not working*. The card was in, with its gold contacts facing up. Turned over, with the contacts down and the cut corner towards the USB plug, the stick found it. The guide said only "slide the SIM into the stick"; it now says which way round, shows a photo of node 1's stick with the card in place, and says what that message means. The stick reads the card only when it starts, so it has to come out of the laptop and go back in after the card is turned.
+
 ## 10 October 2026
 
 ### The box now says how it is doing

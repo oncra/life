@@ -119,8 +119,11 @@ The white stick is the box's own phone line, for the field where there is no WiF
 
 ![The white 4G stick opened with the SIM card in its slot, next to the RS485 adapter, two USB screw terminals, the crimping pliers and the box of ferrules](../../public/img/build/2026-10-01-stick-adapter-ferrules.webp "Node 1: the 4G stick open with its SIM in, the RS485 adapter and the two USB screw terminals in front, ferrules and crimping pliers behind.")
 
-1. Slide the SIM into the stick.
-2. Plug the stick into **your laptop** first. After half a minute, open [192.168.8.1](http://192.168.8.1) in your browser: that is the stick's own page.
+1. Slide the white cover off the stick and put the SIM in **with its gold contacts facing down**, so you look at the blank side, and **its cut corner at the end of the USB plug**, as in the photo below. A small corner pressed into the plastic above the slot shows the same thing. Push the card in until it stops and put the cover back.
+
+![The opened 4G stick held with its USB plug pointing up: the SIM lies in its slot with the blank side up and its cut corner at the top right, next to a small corner mark in the plastic](../../public/img/build/2026-10-11-sim-in-stick.webp "Node 1: the SIM the right way round. Blank side up, gold contacts down, cut corner towards the USB plug.")
+
+2. Plug the stick into **your laptop** first. After half a minute, open [192.168.8.1](http://192.168.8.1) in your browser: that is the stick's own page. If it says *SIM card not inserted or not working*, the card is in upside down or not pushed home. Take the stick out, turn the card over, and plug the stick in again: it only looks for the card when it starts.
 3. Under the mobile network settings (often *Settings*, then *Profile management*), add a profile with the network name (APN) **iot.1nce.net**, save it, and make it the default.
 4. When the stick's light shows it is connected, take it out of the laptop and plug it into the Pi.
 
