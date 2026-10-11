@@ -57,6 +57,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 *Change.* The blue Victron charge controller is set up from a phone, with an app called VictronConnect. The guide named the app and nothing more. In practice the controller's own packaging does not say so clearly, the QR code printed on it does not lead to the app, and Victron's website does not put it in front of you; what worked was searching the App Store by name. Then the app found the controller over Bluetooth and asked for a PIN, which turned out to be on a sticker on the side of the controller. The step now carries two QR codes that open the app in the store, one for iPhone and one for Android, and says where the PIN is. A printed card with the same two things belongs in a kit that ships.
 
+Once paired, the panel and battery went outside for their first real sun. The app read **20 W** off the panel (19.97 V, 1.0 A), the battery at 13.30 V taking 1.40 A and still in **Bulk**, the controller's fastest charging stage. A fifth of the panel's 100 Wp rating, on an October afternoon with the panel not angled for the sun — not a yield measurement, but the first proof, outside any model, that panel, controller and battery work as a chain.
+
+![One of node 1's builders and its youngest, crouched beside a parked bicycle on a paved path, both smiling; the solar panel leans against the bike's back wheel, its lead trailing to the battery case on the ground](../../public/img/build/2026-10-11-panel-in-sun.webp "Node 1's panel, out in real sun for the first time, 11 October.")
+
+![The full chain back on the table afterwards: the panel propped upright, the blue Victron charge controller wired to the battery, the Witty Pi and RS485 adapter in their tangle of coloured wires, and the 4G stick's green light in front](../../public/img/build/2026-10-11-bench-full-chain.webp "Panel, controller, battery, Pi and stick, back on the bench, 11 October.")
+
 ### The SIM goes in face down
 
 *Change.* The 4G stick's own page said *SIM card not inserted or not working*. The card was in, with its gold contacts facing up. Turned over, with the contacts down and the cut corner towards the USB plug, the stick found it. The guide said only "slide the SIM into the stick"; it now says which way round, shows a photo of node 1's stick with the card in place, and says what that message means. The stick reads the card only when it starts, so it has to come out of the laptop and go back in after the card is turned.
