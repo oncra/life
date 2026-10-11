@@ -58,7 +58,7 @@ curl -s https://life.oncra.org/api/v1/places/bench-tolhuisweg/devices | jq '.ite
 
 Gate: `lastSeenAt` is populated on the device you posted as, and only that one.
 
-**0.3 Order what is still missing**, in this order of urgency: the 1NCE SIM (nothing over LTE works without it and the earlier signup was never completed), the [Accuweb panel](https://www.accuweb.nl/zonnepaneel-12-volt-100-watt.html), the generic list from basket G (USB meter, fuse, paint, membrane, tape, plastic sheet, foam and hood), and the post from a builders' merchant. The reichelt battery is available on 8 October and is **not** on the critical path: stages 0 and 1 run off a USB supply.
+**0.3 Order what is still missing**, in this order of urgency: the 1NCE SIM (nothing over LTE works without it and the earlier signup was never completed), the generic list from basket G (USB meter, fuse, paint, membrane, tape, plastic sheet, foam and hood), and the post from a builders' merchant. The panel (Victron 40 W, Dekker Watersport, bought 10 October) and the battery (Green Cell 10 Ah) are in, and neither is on the critical path: stages 0 and 1 run off a USB supply.
 
 **0.4 Build the golden image.** `node/image/build.sh` takes a stock Raspberry Pi OS Lite 64-bit image, the BirdNET-Go arm64 release and the Witty Pi 4 software, and produces a 12 GiB image on any Linux workstation (the arm64 root is entered through `qemu-user-static`). Nothing per-node is inside it. The layout is in `node/image/README.md`; three things have to be right in the image or they are wrong in every node built from it afterwards:
 
@@ -112,7 +112,7 @@ Gate: three unattended cycles completed, and a measured Wh/day in the log.
 
 ## Stage 3. The box
 
-**3.0 Regenerate the drawings first.** All three SVGs still assume a 1010 by 540 panel. The Accuweb panel is **1190 by 540 mm** and 8.8 kg, so the bracket spacing and about a quarter more sail area are both wrong on paper. Fix `kit/draw-low-mount.py`, `kit/draw-wiring.py` and `kit/draw-energy.py` and re-run them. Do not hand-edit an SVG, and do not drill against an out of date drawing.
+**3.0 Regenerate the drawings first.** All three SVGs still assume a 1010 by 540 panel. Node 1's panel is the Victron 40 W, smaller than that, so measure it and put its real size into the scripts: the bracket spacing and the sail area on paper are both wrong until then. Fix `kit/draw-low-mount.py`, `kit/draw-wiring.py` and `kit/draw-energy.py` and re-run them. Do not hand-edit an SVG, and do not drill against an out of date drawing.
 
 **3.1 Paint the enclosure** before anything goes in it. The reichelt box is ABS, which is not UV-stable: outdoors it chalks and goes brittle in two to five years. Matt green outdoor paint for plastic, plastic primer unless the can says it bonds to ABS. UV protection first, camouflage second.
 
