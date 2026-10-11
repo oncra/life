@@ -1,7 +1,8 @@
 [Unit]
-Description=Life node: push BirdNET detections and the hourly heartbeat to the oracle
+Description=Life node: push detections, the heartbeat and the soil queue to the oracle on one connection
 After=network-online.target
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
+Environment=LIFE_SOIL_QUEUE=/var/lib/life-node/queue.jsonl
 ExecStart=/usr/local/bin/life-push
