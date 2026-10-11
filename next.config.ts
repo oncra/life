@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 const lifeboxHost = process.env.LIFEBOX_HOST || "lifebox.oncra.org";
 
 const nextConfig: NextConfig = {
+  // `next dev` would otherwise append its own block to CLAUDE.md, which is this repo's house notes
+  agentRules: false,
   async redirects() {
     return [
       { source: "/lifebox", destination: "/node", permanent: true },

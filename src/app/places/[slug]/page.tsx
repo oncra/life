@@ -82,6 +82,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
             <a className="underline" href={`/api/v1/places/${place.slug}`}>JSON</a>
             <a className="underline" href={`/api/v1/places/${place.slug}/satellite?format=csv`}>NDVI CSV</a>
             <a className="underline" href={`/api/v1/places/${place.slug}/readings`}>Readings JSON</a>
+            {devices.length > 0 && <Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>}
             <Link className="underline" href="/docs/guide-steward">Add a device</Link>
           </div>
         </div>
@@ -133,6 +134,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
       {devices.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold">Devices</h2>
+          <p className="text-sm text-muted"><Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>: soil, sound, battery and heartbeats over time.</p>
           {alerts.length > 0 && (
             <ul className="mt-2 text-sm">
               {alerts.map((a) => <li key={a.id} className="text-falling">{a.kind === "SILENT" ? `${a.device.model}: silent since ${((a.detail as { lastHeartbeatAt?: string } | null)?.lastHeartbeatAt ?? a.createdAt.toISOString()).slice(0, 16).replace("T", " ")} UTC` : a.kind === "LOW_BATTERY" ? `${a.device.model}: battery low, ${(a.detail as { v?: number } | null)?.v ?? "?"} V at ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : a.kind === "TAMPER" ? `${a.device.model}: ${(a.detail as { loop?: string } | null)?.loop ?? "a loop"} opened outside a maintenance window, ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : `${a.device.model}: on another cell than it was installed in, since ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC`}</li>)}
