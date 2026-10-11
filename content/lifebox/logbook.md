@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 11 October 2026
 
+### The charge controller's app is hard to find, and it wants a code
+
+*Change.* The blue Victron charge controller is set up from a phone, with an app called VictronConnect. The guide named the app and nothing more. In practice the controller's own packaging does not say so clearly, the QR code printed on it does not lead to the app, and Victron's website does not put it in front of you; what worked was searching the App Store by name. Then the app found the controller over Bluetooth and asked for a PIN, which turned out to be on a sticker on the side of the controller. The step now carries two QR codes that open the app in the store, one for iPhone and one for Android, and says where the PIN is. A printed card with the same two things belongs in a kit that ships.
+
 ### The SIM goes in face down
 
 *Change.* The 4G stick's own page said *SIM card not inserted or not working*. The card was in, with its gold contacts facing up. Turned over, with the contacts down and the cut corner towards the USB plug, the stick found it. The guide said only "slide the SIM into the stick"; it now says which way round, shows a photo of node 1's stick with the card in place, and says what that message means. The stick reads the card only when it starts, so it has to come out of the laptop and go back in after the card is turned.
