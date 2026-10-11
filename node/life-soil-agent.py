@@ -9,6 +9,8 @@ Config /etc/life-node.env:
     PROBE_ADDRESSES=1,2                      # Modbus slave ids in the same order as the tokens
     PROBE_PROFILE=sen0600                    # sen0600 | generic-thc | seeed-mtec02 | smt100
     LIFE_POST_BATCH=3                        # post once every N runs (3 x 20 min = hourly), to spare the SIM's data budget
+    LIFE_SOIL_VIA_PUSH=1                     # never post from here: life-push sends the queue on its own connection
+                                             # (the Life node's unit sets this, so sound and soil share one TLS handshake)
     PROBE_POWER_GPIO=26                      # BCM pin driving the MOSFET on the 12 V probe rail; unset = rail always on
     PROBE_SETTLE_S=2                         # seconds to wait after powering the rail before the first Modbus query
 Bench modes, for a probe that has never been read before:
@@ -18,7 +20,7 @@ Runs every 20 minutes from a systemd timer. Reads go to /var/lib/life-node/queue
 LIFE_POST_BATCH runs, or at once with --flush (the shutdown unit calls that), so nothing is lost and the
 per-post TLS overhead stays inside a 500 MB / 10 yr SIM.
 """
-import json, os, sys, time, urllib.request
+import fcntl, json, os, sys, time, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 try:
@@ -33,6 +35,7 @@ PROFILE = os.environ.get("PROBE_PROFILE", "generic-thc")
 QUEUE = Path("/var/lib/life-node/queue.jsonl"); QUEUE.parent.mkdir(parents=True, exist_ok=True)
 RUNS = QUEUE.with_name("runs")                      # counts runs since the last post
 BATCH = int(os.environ.get("LIFE_POST_BATCH", "3"))
+VIA_PUSH = os.environ.get("LIFE_SOIL_VIA_PUSH") == "1"
 FLUSH = "--flush" in sys.argv
 SCAN = "--scan" in sys.argv
 
@@ -173,22 +176,24 @@ def main():
                     print(f"probe {addr}: {e}", file=sys.stderr)
         finally:
             rail(False)
-    if QUEUE.exists():
-        pending = [json.loads(l) for l in QUEUE.read_text().splitlines() if l.strip()] + pending
-    runs = int(RUNS.read_text() or 0) + 1 if RUNS.exists() else 1
-    if not FLUSH and runs < BATCH:
-        QUEUE.write_text("".join(json.dumps(x) + "\n" for x in pending)); RUNS.write_text(str(runs))
-        print(f"queued, {len(pending)} rows, run {runs}/{BATCH}"); return
-    RUNS.write_text("0")
-    left = []
-    by_token = {}
-    for p in pending: by_token.setdefault(p["token"], []).append(p["row"])
-    for token, rows in by_token.items():
-        try:
-            out = post(token, rows); print(f"posted {out.get('readings')} rows")
-        except Exception as e:
-            print(f"post failed, queued: {e}", file=sys.stderr); left += [{"token": token, "row": r} for r in rows]
-    QUEUE.write_text("".join(json.dumps(x) + "\n" for x in left))
+    with open(str(QUEUE) + ".lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)           # life-push empties the queue under the same lock
+        if QUEUE.exists():
+            pending = [json.loads(l) for l in QUEUE.read_text().splitlines() if l.strip()] + pending
+        runs = int(RUNS.read_text() or 0) + 1 if RUNS.exists() else 1
+        if not FLUSH and (VIA_PUSH or runs < BATCH):
+            QUEUE.write_text("".join(json.dumps(x) + "\n" for x in pending)); RUNS.write_text(str(runs))
+            print(f"queued, {len(pending)} rows, " + ("life-push posts them" if VIA_PUSH else f"run {runs}/{BATCH}")); return
+        RUNS.write_text("0")
+        left = []
+        by_token = {}
+        for p in pending: by_token.setdefault(p["token"], []).append(p["row"])
+        for token, rows in by_token.items():
+            try:
+                out = post(token, rows); print(f"posted {out.get('readings')} rows")
+            except Exception as e:
+                print(f"post failed, queued: {e}", file=sys.stderr); left += [{"token": token, "row": r} for r in rows]
+        QUEUE.write_text("".join(json.dumps(x) + "\n" for x in left))
 
 if __name__ == "__main__":
     main()

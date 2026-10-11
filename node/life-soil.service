@@ -1,7 +1,8 @@
 [Unit]
-Description=Life node: read RS485 soil probes and post to the oracle
+Description=Life node: read the RS485 soil probes into the queue (life-push posts it)
 After=network-online.target
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
+Environment=LIFE_SOIL_VIA_PUSH=1
 ExecStart=/usr/local/bin/life-soil-agent

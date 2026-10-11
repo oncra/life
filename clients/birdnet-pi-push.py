@@ -16,8 +16,13 @@ Environment:
     LIFE_HEARTBEAT_EVENT optional: boot | hourly | shutdown | manual, passed to that command as --event
     LIFE_HEARTBEAT_APPLY_CMD optional: gets the oracle's heartbeat answer on stdin (the Life node sets
                         `life-guard apply`, which caches the maintenance window and disarms the guard inside it)
+    LIFE_SOIL_QUEUE     optional: the soil agent's queue file (the Life node sets /var/lib/life-node/queue.jsonl).
+                        Its rows are posted to /ingest/soil on the same connection, each under its own token
+
+Everything a run posts goes over one connection. On a SIM the TLS handshake is most of what a post costs
+(about 6.5 kB against 1 to 3 kB of payload), so sound, heartbeat and soil share one.
 """
-import json, os, shlex, sqlite3, subprocess, sys, urllib.request
+import fcntl, http.client, json, os, shlex, sqlite3, subprocess, sys, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,8 +30,50 @@ API = os.environ.get("LIFE_API", "https://life.oncra.org/api/v1").rstrip("/")
 TOKEN = os.environ.get("LIFE_DEVICE_TOKEN")
 MINCONF = float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5"))
 CURSOR = Path(os.environ.get("LIFE_CURSOR", str(Path.home() / ".life-oracle-cursor")))
+SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")
+
+_url = urllib.parse.urlsplit(API)
+_conn = None
+
+def post(path, token, body):
+    """POST JSON to the oracle on the run's one connection and return the decoded answer."""
+    global _conn
+    data = json.dumps(body).encode()
+    headers = {"content-type": "application/json", "authorization": f"Bearer {token}"}
+    while True:
+        reused = _conn is not None
+        if not reused:
+            _conn = (http.client.HTTPSConnection if _url.scheme == "https" else http.client.HTTPConnection)(_url.netloc, timeout=60)
+        try:
+            _conn.request("POST", _url.path + path, body=data, headers=headers)
+            resp = _conn.getresponse(); raw = resp.read()
+            break
+        except (http.client.HTTPException, OSError):
+            _conn.close(); _conn = None
+            if not reused: raise        # a fresh connection failed: the network, not a stale keep-alive
+    if resp.status >= 400:
+        raise RuntimeError(f"{path}: HTTP {resp.status} {raw[:200]!r}")
+    return json.loads(raw)
+
+def post_soil():
+    """Post what the soil agent queued, per device token; what fails stays in the queue for the next run."""
+    queue = Path(SOIL_QUEUE)
+    with open(SOIL_QUEUE + ".lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)           # the soil agent appends under the same lock
+        if not queue.exists(): return
+        by_token = {}
+        for line in queue.read_text().splitlines():
+            if line.strip():
+                p = json.loads(line); by_token.setdefault(p["token"], []).append(p["row"])
+        left = []
+        for token, readings in by_token.items():
+            try:
+                out = post("/ingest/soil", token, {"readings": readings}); print(f"posted {out.get('readings')} soil rows")
+            except Exception as e:  # noqa: BLE001 - one probe's post must not lose the other's rows
+                print(f"soil post failed, kept in the queue: {e}", file=sys.stderr); left += [{"token": token, "row": r} for r in readings]
+        queue.write_text("".join(json.dumps(x) + "\n" for x in left))
 
 candidates = [os.environ.get("BIRDNET_DB"), str(Path.home() / "BirdNET-Pi/scripts/birds.db"), str(Path.home() / "BirdNET-Go/data/birdnet.db"), "/var/lib/birdnet-go/birdnet.db"]
 db = next((c for c in candidates if c and Path(c).exists()), None)
@@ -100,16 +147,14 @@ if os.environ.get("LIFE_HEARTBEAT_CMD"):
         print(f"heartbeat skipped: {e}", file=sys.stderr)
 
 if not rows and not heartbeat:
-    print("nothing new"); sys.exit(0)
+    print("nothing new")
 
-batches = [rows[i:i + 2000] for i in range(0, len(rows), 2000)] or [[]]
+batches = ([rows[i:i + 2000] for i in range(0, len(rows), 2000)] or [[]]) if rows or heartbeat else []
 for n, batch in enumerate(batches):
     body = {"detections": [d for _, d in batch]}
     if heartbeat and n == len(batches) - 1:
         body["heartbeat"] = heartbeat
-    req = urllib.request.Request(f"{API}/ingest/sound", data=json.dumps(body).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        out = json.load(resp)
+    out = post("/ingest/sound", TOKEN, body)
     if batch:
         CURSOR.write_text(batch[-1][0])
         print(f"pushed {out.get('detections')} detections up to {batch[-1][0]}")
@@ -120,3 +165,8 @@ for n, batch in enumerate(batches):
                 subprocess.run(shlex.split(os.environ["LIFE_HEARTBEAT_APPLY_CMD"]), input=json.dumps(out.get("heartbeat") or {}), text=True, timeout=30, check=False)
             except Exception as e:  # noqa: BLE001
                 print(f"heartbeat apply skipped: {e}", file=sys.stderr)
+
+if SOIL_QUEUE:
+    post_soil()
+if _conn is not None:
+    _conn.close()

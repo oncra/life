@@ -7,8 +7,10 @@ After=network-online.target
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
 Environment=LIFE_HEARTBEAT_EVENT=shutdown
+Environment=LIFE_SOIL_QUEUE=/var/lib/life-node/queue.jsonl
+# life-push carries the soil queue on its one connection; the soil agent then only posts what that left behind
+ExecStart=-/usr/local/bin/life-push
 ExecStart=/usr/local/bin/life-soil-agent --flush
-ExecStart=/usr/local/bin/life-push
 TimeoutStartSec=90
 [Install]
 WantedBy=shutdown.target
