@@ -17,7 +17,7 @@ The schedule now has a core and extra hours. The core is the same at every box a
 
 *Learning.* Two checks chose these hours. First, a year of four Dutch BirdNET stations that listen around the clock, replayed against every schedule: 4 hours from civil dawn keep 88 to 93% of the species those stations hear on three days or more, and below 3 hours the share drops quickly. The fifth and sixth hour are worth about the same in every month, so the longer core in midsummer is there because the sun is cheap then, not because there are more birds. Second, the battery simulated hour by hour on the weather of 2005 to 2023 with a 40 W panel: with the panel at half its output all year, or at 30% from June to September as under a crop, the core lost no listening on average and at most 3% in the worst month, on a 20 Ah battery. On the 10 Ah battery of node 1 it lost up to 3% of the core in October on average, and up to 14% in the worst month.
 
-*Change.* So the 20 Ah battery is standard again (€90.63 at reichelt, price of 17 September; the node is now about €798). Node 1 keeps its 10 Ah on the bench.
+*Change.* So the 20 Ah battery is standard again (€90.63 at reichelt, price of 17 September; the node is now about €798). Node 1 keeps its 10 Ah on the bench. ([#90](https://github.com/oncra/life/pull/90))
 
 ### The desk detections are kept, as tests
 
