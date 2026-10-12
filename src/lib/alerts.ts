@@ -124,10 +124,10 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   const d = await placeOf(deviceId);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
   const where = `${d.place.name} (${d.model})`;
-  if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}`, `life-moved-${deviceId}`);
-  else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}`, `life-tamper-${deviceId}`);
-  else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${String(detail.v)} V${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. It will go quiet when the controller cuts the load, and come back with the sun.`, `${site}/places/${d.place.slug}`, `life-battery-${deviceId}`);
-  else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}`, `life-silent-${deviceId}`);
+  if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}/node`, `life-moved-${deviceId}`);
+  else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}/node`, `life-tamper-${deviceId}`);
+  else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${String(detail.v)} V${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. It will go quiet when the controller cuts the load, and come back with the sun.`, `${site}/places/${d.place.slug}/node`, `life-battery-${deviceId}`);
+  else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}/node`, `life-silent-${deviceId}`);
   return alert;
 }
 
