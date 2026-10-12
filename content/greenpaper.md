@@ -105,7 +105,7 @@ The oracle works the same way.
 
 **A sound recorder.** A box the size of a paperback, one per roughly twenty hectares, installed once. It hears birds, singing insects, bats, frogs, and also tractors and pumps. Bird calls are identified automatically by software that exists today. Birds and bats eat insects, so their numbers and breeding track the insect supply without catching a single insect. Machine noise tells you how much management a place needs.
 
-**A soil probe.** A stick in the ground per field, installed once. Moisture and temperature, and from those the rate at which the soil is breathing.
+**A soil probe.** A stick in the ground per field, installed once. Moisture and temperature, which take the weather out of the soil measurements: a yearly lab sample of how fast the soil breathes and how much active carbon it holds.
 
 In the standard kit the last two are one device: the probes are wired into the listening box on the short leads they ship with, and that box carries both streams out over its own cellular link. There is no farm WiFi, no gateway and no monthly subscription in the design, because species recognition happens inside the box and only detections leave the field.
 
@@ -127,7 +127,7 @@ So the kit is part of the standard, not an accessory to it. About €687 in part
 | Diversity | differentiating into many forms | species heard per year |
 | Structure | building trophic levels and habitat complexity | acoustic indices (soundscape balance) |
 | Renewal | reproducing and recruiting | breeding-season song |
-| Cycling | closing water and nutrient loops | soil breathing from moisture and temperature |
+| Cycling | closing water and nutrient loops | soil breathing (yearly lab sample or flux probe), corrected for moisture and temperature |
 | Resilience | recovering after disturbance | drought years in the satellite archive |
 | Autonomy | holding its state with little external input | machine noise, inputs per hectare |
 

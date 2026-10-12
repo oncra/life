@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### Cycling took the weather for the soil
+
+*Learning.* The Cycling reading compared a yearly mean of a moisture-and-temperature index. That index says how hard soil life could work in a given week, not how much soil life there is. Run on two made-up years with the same soil, one 4 °C warmer and a little wetter, it read the soil as 34% more active, "rising", with nothing in the ground changed. A warm year would have counted as better soil, a dry one as worse.
+
+*Change.* Cycling now takes its direction only from a measurement of the soil's own life: a yearly lab sample filed with a visit (the CO2 a dried soil breathes out in 24 hours after rewetting, and the active carbon that permanganate can oxidise, both standard soil-health tests), or a CO2 flux probe, whose readings the oracle divides by what the weather of that moment allows. Moisture and temperature from the probe do that correcting; they no longer decide. Moisture is now read as the share of the pore space filled with water, with the soil's density from SoilGrids, because that is where the literature puts the peak (about 60%). Until a place has two samples a year apart in the same season, Cycling says unknown, and says why. The method and its sources are in the [specification](../spec.md), section 3.5.
+
 ### Listening hours: a fixed core, and extra hours the battery decides
 
 *Change.* The box listened ten hours a day from March to October (eight from civil dawn, two from sunset) and one hour from 07:00 from November to February. Two things were wrong with that. In December and January that hour ended before civil dawn, so the box listened in the dark. And ten hours left the battery no room for a dull October or a panel that gets overgrown, while the hours can never change once a place has a year of readings behind it.

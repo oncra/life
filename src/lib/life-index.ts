@@ -4,7 +4,7 @@
 // and soil lanes are daily counts and means of the rows the node posted.
 import type { Place } from "@/generated/prisma/client";
 import { prisma } from "./db";
-import { verdict, type Verdict } from "./readings";
+import { soilActivity, verdict, type Verdict } from "./readings";
 import { moistureOptimum } from "./context";
 import { DISPLAY_ZONE, dayStart } from "./clock";
 import { coreWindowArrays } from "./listening";
@@ -40,7 +40,7 @@ export type LifeIndexOut = {
   seasons: [number, number][];
   /** per local day: species heard (confidence 70% or more, in the core listening hours, as the diversity reading counts them) and all detections */
   sound: { t: number; species: number; detections: number }[];
-  /** per local day, the shallowest probe: mean moisture, mean temperature, and the soil-breathing index the cycling reading uses */
+  /** per local day, the shallowest probe: mean moisture, mean temperature, and the weather-expected soil activity (`soilActivity` in readings.ts) */
   soil: { t: number; vwc: number | null; tempC: number | null; activity: number | null }[];
   soilDepthCm: number | null;
   optimumVwc: number;
@@ -49,13 +49,6 @@ export type LifeIndexOut = {
 };
 
 const iso = (t: number) => new Date(t).toISOString();
-
-/** The same formula as `cycling()` in readings.ts (Q10 = 2 temperature response times a moisture hump); keep them equal. */
-function soilActivity(tempC: number, vwc: number, optimumVwc: number): number {
-  const q10 = Math.pow(2, (tempC - 10) / 10);
-  const moist = Math.max(0, 1 - Math.pow((vwc / 100 - optimumVwc / 100) / 0.25, 2));
-  return q10 * moist;
-}
 
 function periodBounds(period: string): [number, number] | null {
   const m = /^(\d{4})-Q([1-4])$/.exec(period);
@@ -78,6 +71,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
   const shallow = soilDevices[0] ?? null;
   const clay = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
   const optimumVwc = moistureOptimum(clay);
+  const frame = { bulkDensity: (place.context as { soil?: { bulkDensity?: number } } | null)?.soil?.bulkDensity ?? null, optimumVwc };
   // species per day as the diversity reading counts them: confidence 0.7 or more, inside the core listening windows
   // (content/spec.md 2.2); the detections count beside it is everything the node heard
   const cw = coreWindowArrays(from, to, place.centroidLat, place.centroidLon);
@@ -138,7 +132,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
     satTotal, satSince: firstSat?.date.getTime() ?? null,
     seasons,
     sound: soundRows.map((r) => ({ t: dayT(r.day), species: r.species, detections: r.detections })),
-    soil: soilRows.map((r) => ({ t: dayT(r.day), vwc: r.vwc, tempC: r.tempC, activity: r.vwc !== null && r.tempC !== null ? soilActivity(r.tempC, r.vwc, optimumVwc) : null })),
+    soil: soilRows.map((r) => ({ t: dayT(r.day), vwc: r.vwc, tempC: r.tempC, activity: r.vwc !== null && r.tempC !== null ? soilActivity(r.tempC, r.vwc, frame) : null })),
     soilDepthCm: shallow?.depthCm ?? null,
     optimumVwc,
     nodeSince: firsts.length ? Math.min(...firsts) : null,

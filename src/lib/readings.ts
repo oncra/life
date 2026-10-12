@@ -148,28 +148,113 @@ export function autonomy(idx: IdxPoint[], dets: DetPoint[]): ReadingOut {
   return { dimension: "AUTONOMY", direction: rel < -0.15 ? "RISING" : rel > 0.15 ? "FALLING" : "HOLDING", confidence: 0.3, maturity: 1, evidence: { machineByYear: Object.fromEntries(byYear) } };
 }
 
+export interface FluxPoint { ts: Date; fluxUmol: number; vwc: number | null; tempC: number | null }
+/** A soil sample from a visit, analysed in a lab under standard conditions (dried, rewetted, 24 h at a fixed temperature). */
+export interface SoilSample { date: Date; depthCm: number | null; co2Burst: number | null; poxc: number | null }
+/** What the Cycling model needs to know about the soil: from SoilGrids, else a clay-only fallback. */
+export interface SoilFrame { bulkDensity?: number | null; optimumVwc: number }
+
 /**
- * Soil breathing proxy. Heterotrophic respiration scales with temperature (Q10 ~ 2)
- * and is limited by moisture (a simple hump around field capacity). We report a
- * relative activity index per year; direction compares the last two years.
+ * Weather-expected soil activity (dimensionless, 1 at 10 °C and optimal moisture). It says how hard soil life
+ * could work in this weather; it does not say how much soil life there is.
+ * Temperature: Q10 = 2 at 10 °C (van 't Hoff; field Q10 of soil respiration has a median near 2.4, Raich and
+ * Schlesinger 1992; it falls with warming, Lloyd and Taylor 1994, so 2 is a central value, not a constant of nature).
+ * Moisture: aerobic activity peaks near 60% water-filled pore space and falls on both sides, water-limited below
+ * and oxygen-limited above (Linn and Doran 1984; Skopp et al. 1990). WFPS = VWC / porosity, porosity = 1 - BD / 2.65.
+ * The hump is zero at WFPS 0 and leaves about half the activity at saturation. Without bulk density the older hump in
+ * VWC around a clay-based optimum is used. Empirical moisture curves are approximations (Moyano et al. 2013).
  */
-export function cycling(soil: SoilPoint[], optimumVwc = 30): ReadingOut {
+export function soilActivity(tempC: number, vwc: number, frame: SoilFrame): number {
+  const q10 = Math.pow(2, (tempC - 10) / 10);
+  const bd = frame.bulkDensity;
+  if (bd && bd > 0.2 && bd < 2.2) {
+    const wfps = vwc / 100 / (1 - bd / 2.65);
+    return q10 * Math.max(0, 1 - Math.pow((wfps - 0.6) / 0.6, 2));
+  }
+  return q10 * Math.max(0, 1 - Math.pow((vwc / 100 - frame.optimumVwc / 100) / 0.25, 2));
+}
+
+const DAY = 864e5;
+const doy = (d: Date) => Math.floor((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / DAY);
+const relChange = (a: number, b: number) => (b - a) / Math.max(1e-6, Math.abs(a));
+
+/**
+ * Cycling: is the soil's own life changing, with the weather taken out?
+ * Moisture and temperature alone cannot answer that: a warm, moist year raises the expected activity without any
+ * change in the soil. So the direction comes only from a measured soil-life signal, in this order of weight:
+ *   1. lab samples from visits, same depth and season each year: 24 h CO2 burst after rewetting (Franzluebbers et al.
+ *      2000; Haney et al. 2008) and permanganate-oxidisable carbon, POXC (Weil et al. 2003). Both are run under
+ *      standard lab conditions, so the weather of the day does not enter, and both respond to management within a few
+ *      years (Hurisso et al. 2016).
+ *   2. measured CO2 flux from the soil (chamber or gradient method), divided by the weather-expected activity at the
+ *      same moments: the basal rate at 10 °C and optimal moisture, which is the part that belongs to the soil.
+ * Without either, the reading is UNKNOWN; the weather-expected activity stays in the evidence as context.
+ */
+export function cycling(soil: SoilPoint[], frame: SoilFrame, samples: SoilSample[] = [], flux: FluxPoint[] = []): ReadingOut {
+  const method = "cycling-v0.2";
   const ok = soil.filter((s) => s.tempC !== null && s.vwc !== null);
-  if (ok.length === 0) return { dimension: "CYCLING", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "no soil stream yet: install a moisture and temperature probe" } };
-  const activity = (t: number, vwc: number) => {
-    const q10 = Math.pow(2, (t - 10) / 10);
-    const m = vwc / 100; // vwc given in percent
-    const opt = optimumVwc / 100;
-    const moist = Math.max(0, 1 - Math.pow((m - opt) / 0.25, 2)); // hump peaking at the texture-dependent optimum, zero 25 points either side
-    return q10 * moist;
-  };
-  const byYear = new Map<number, number[]>();
-  for (const s of ok) byYear.set(s.ts.getUTCFullYear(), [...(byYear.get(s.ts.getUTCFullYear()) ?? []), activity(s.tempC!, s.vwc!)]);
-  const idx = Object.fromEntries([...byYear].map(([y, v]) => [y, v.reduce((a, b) => a + b, 0) / v.length]));
-  const years = Object.keys(idx).map(Number).sort();
-  if (years.length < 2) return { dimension: "CYCLING", direction: "UNKNOWN", confidence: 0.1, maturity: 0, evidence: { note: "one year of soil data; need a second", activityIndexByYear: idx } };
-  const rel = (idx[years[years.length - 1]] - idx[years[years.length - 2]]) / Math.max(1e-6, idx[years[years.length - 2]]);
-  return { dimension: "CYCLING", direction: rel > 0.1 ? "RISING" : rel < -0.1 ? "FALLING" : "HOLDING", confidence: 0.3, maturity: 1, evidence: { activityIndexByYear: idx, model: `Q10=2 temperature response x moisture hump (peak ${optimumVwc}% VWC, from soil texture)` } };
+  const condByYear = new Map<number, number[]>();
+  for (const s of ok) condByYear.set(s.ts.getUTCFullYear(), [...(condByYear.get(s.ts.getUTCFullYear()) ?? []), soilActivity(s.tempC!, s.vwc!, frame)]);
+  const conditionsIndexByYear = Object.fromEntries([...condByYear].map(([y, v]) => [y, Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 1000) / 1000]));
+  const context = { method, conditionsIndexByYear, conditionsNote: "weather-expected activity from moisture and temperature; context, not a direction" };
+
+  // 1. lab samples: the latest against the most recent earlier one taken in the same season (within 45 days of the
+  // same day of the year, at least 300 days before), at the same depth when both give one
+  const labs = samples.filter((s) => s.co2Burst !== null || s.poxc !== null).sort((a, b) => a.date.getTime() - b.date.getTime());
+  const changes: Record<string, number> = {};
+  let pair: [SoilSample, SoilSample] | null = null;
+  if (labs.length >= 2) {
+    const last = labs[labs.length - 1];
+    for (let i = labs.length - 2; i >= 0; i--) {
+      const prev = labs[i];
+      const gap = last.date.getTime() - prev.date.getTime();
+      const dd = Math.abs(doy(last.date) - doy(prev.date));
+      const sameSeason = Math.min(dd, 365 - dd) <= 45;
+      const sameDepth = last.depthCm === null || prev.depthCm === null || last.depthCm === prev.depthCm;
+      if (gap >= 300 * DAY && sameSeason && sameDepth) { pair = [prev, last]; break; }
+    }
+    if (pair) {
+      const [a, b] = pair;
+      if (a.co2Burst !== null && b.co2Burst !== null && a.co2Burst > 0) changes.co2Burst = relChange(a.co2Burst, b.co2Burst);
+      if (a.poxc !== null && b.poxc !== null && a.poxc > 0) changes.poxc = relChange(a.poxc, b.poxc);
+    }
+  }
+  const lab = Object.values(changes);
+  if (lab.length) {
+    const rel = lab.reduce((x, y) => x + y, 0) / lab.length;
+    const agree = lab.length === 2 && Math.sign(lab[0]) === Math.sign(lab[1]);
+    return {
+      dimension: "CYCLING", direction: rel > 0.15 ? "RISING" : rel < -0.15 ? "FALLING" : "HOLDING", confidence: agree ? 0.5 : 0.35, maturity: 1,
+      evidence: { ...context, source: "lab samples", from: pair![0].date.toISOString().slice(0, 10), to: pair![1].date.toISOString().slice(0, 10), relativeChange: changes, threshold: 0.15 },
+    };
+  }
+
+  // 2. measured flux, normalised to 10 °C and optimal moisture
+  const fx = flux.filter((f) => f.tempC !== null && f.vwc !== null && Number.isFinite(f.fluxUmol));
+  const refByYear = new Map<number, { f: number; a: number; n: number }>();
+  for (const f of fx) {
+    const a = soilActivity(f.tempC!, f.vwc!, frame);
+    if (a < 0.05) continue; // frozen or bone-dry: the ratio is noise
+    const y = f.ts.getUTCFullYear();
+    const cur = refByYear.get(y) ?? { f: 0, a: 0, n: 0 };
+    refByYear.set(y, { f: cur.f + f.fluxUmol, a: cur.a + a, n: cur.n + 1 });
+  }
+  const basal = Object.fromEntries([...refByYear].filter(([, v]) => v.n >= 30).map(([y, v]) => [y, Math.round((v.f / v.a) * 1000) / 1000]));
+  const fy = Object.keys(basal).map(Number).sort();
+  if (fy.length >= 2) {
+    const rel = relChange(basal[fy[fy.length - 2]], basal[fy[fy.length - 1]]);
+    return {
+      dimension: "CYCLING", direction: rel > 0.1 ? "RISING" : rel < -0.1 ? "FALLING" : "HOLDING", confidence: 0.45, maturity: 1,
+      evidence: { ...context, source: "soil CO2 flux", basalRateByYear: basal, unit: "µmol CO2 m-2 s-1 at 10 °C and optimal moisture", threshold: 0.1 },
+    };
+  }
+
+  const note = labs.length || fy.length
+    ? "one measurement period so far; the direction needs a second in the same season"
+    : ok.length
+      ? "moisture and temperature show the weather, not the soil's life; a yearly lab sample (24 h CO2 burst and POXC, same month and depth) or a CO2 flux probe gives the direction"
+      : "no soil stream yet: install a moisture and temperature probe and take a yearly lab sample";
+  return { dimension: "CYCLING", direction: "UNKNOWN", confidence: ok.length ? 0.1 : 0, maturity: 0, evidence: { ...context, note, basalRateByYear: Object.keys(basal).length ? basal : undefined } };
 }
 
 export type Verdict = "thriving" | "holding" | "declining" | "insufficient";

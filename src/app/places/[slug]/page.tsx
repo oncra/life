@@ -13,7 +13,7 @@ const DIM_TEXT: Record<string, [string, string]> = {
   DIVERSITY: ["Diversity", "differentiating into many forms (species heard per year)"],
   STRUCTURE: ["Structure", "trophic levels and habitat complexity (acoustic indices)"],
   RENEWAL: ["Renewal", "reproducing and recruiting (breeding-season song)"],
-  CYCLING: ["Cycling", "closing water and nutrient loops (soil breathing from moisture and temperature)"],
+  CYCLING: ["Cycling", "closing water and nutrient loops (soil breathing from lab samples or a flux probe, corrected for moisture and temperature)"],
   RESILIENCE: ["Resilience", "recovering after shocks (drought years in the satellite archive)"],
   AUTONOMY: ["Autonomy", "holding its state with little management (machine noise)"],
 };
