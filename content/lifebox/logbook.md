@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### The oracle's disk filled up with old builds
+
+*Learning.* The first deploy of the bird pictures stopped halfway with "no space left on device", while the site kept running the previous build as if nothing had happened. The disk is 38 GB; 19 GB of it was Docker's build cache, one layer set per deploy since the site began, never cleared. Pruning it by hand gave 22 GB back and the second deploy went through. The deploy script now keeps the most recent 3 GB of layers after every build and drops the rest, so rebuilds stay fast and the disk stays free. [#86](https://github.com/oncra/life/pull/86)
+
 ### The last five birds, cut out and standing on the page
 
 *Change.* Under the title of the dashboard stand the five species the microphone heard most recently, newest first, each as a cut-out photo on the page's own ground, with when it was heard and how sure the box was. The photos are the lead pictures of the species' Wikipedia articles, taken from Wikimedia Commons with their authors and licences (credited under the row), and the background is removed once per species by the worker with U²-Net, an open salient-object model, run through onnxruntime on the oracle; the result is a small WebP with transparency, 16 to 55 kB, stored next to the credits. Nothing runs while you look at the page. Of the 27 species heard so far, all 27 got a picture on the first pass; the one thing to check by eye is whether an article's lead photo shows the bird itself and not its eggs. The first pass also taught a sharp lesson about the image library: it handed the scaled mask back with three channels, which read as one gave five striped ghosts before it gave birds. [#85](https://github.com/oncra/life/pull/85)
