@@ -121,7 +121,7 @@ export default async function NodePage({ params, searchParams }: Props) {
               ))}
             </div>
           )}
-          <p className="mt-3 text-xs text-muted">Satellite: {index.satTotal} clear Sentinel-2 scenes{satSinceYear ? ` since ${satSinceYear}` : ""}, computed here from Copernicus data. Sound: species recognised in the box (BirdNET-Go); only names leave the field. Soil: moisture and temperature from the probe at {index.soilDepthCm ?? "?"} cm; the breathing index in the readout is the cycling reading&apos;s own formula (Q10 of 2, moisture optimum {index.optimumVwc.toFixed(0)}% from the soil texture). Method: <Link className="underline" href="/docs/spec">the spec</Link>.</p>
+          <p className="mt-3 text-xs text-muted">Satellite: {index.satTotal} clear Sentinel-2 scenes{satSinceYear ? ` since ${satSinceYear}` : ""}, computed here from Copernicus data. Sound: species recognised in the box (BirdNET-Go); only names leave the field. Soil: moisture and temperature from the probe at {index.soilDepthCm ?? "?"} cm; the activity in the readout is what the weather allows soil life to do (Q10 of 2, moisture from water-filled pore space or an optimum of {index.optimumVwc.toFixed(0)}% from the soil texture); the cycling reading takes its direction from lab samples or a flux probe, not from this. Method: <Link className="underline" href="/docs/spec">the spec</Link>.</p>
         </div>
       </section>
 

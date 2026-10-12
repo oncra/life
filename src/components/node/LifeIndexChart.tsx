@@ -89,7 +89,7 @@ export default function LifeIndexChart({ data }: { data: LifeIndexOut }) {
     hPeriod ? `verdict ${hPeriod.verdict}` : "verdict not computed",
     hSat ? `greenness ${hSat[1].toFixed(2)} (${fmtTime(hSat[0], zone).slice(0, 10)})` : "no clear scene within 12 days",
     hSound ? `${hSound.species} species, ${hSound.detections} detections` : data.sound.length ? "nothing heard" : "no recorder",
-    hSoil && hSoil.vwc !== null ? `soil ${hSoil.vwc.toFixed(0)}% · ${hSoil.tempC?.toFixed(1) ?? "?"} °C · breathing index ${hSoil.activity?.toFixed(2) ?? "?"}` : data.soil.length ? "no soil reading" : "no probe",
+    hSoil && hSoil.vwc !== null ? `soil ${hSoil.vwc.toFixed(0)}% · ${hSoil.tempC?.toFixed(1) ?? "?"} °C · weather-expected activity ${hSoil.activity?.toFixed(2) ?? "?"}` : data.soil.length ? "no soil reading" : "no probe",
   ].join(" · ");
 
   const laneHead = (lane: { y: number; h: number }, title: string, sub: string) => (

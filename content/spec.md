@@ -58,7 +58,7 @@ At registration and yearly, each place is enriched from open global layers, stor
 
 ### 2.4 Visits (built: storage; specified: scheduler)
 
-A **visit** is `{date, kind BASELINE|RANDOM|TRIGGERED, verifier, findings, notes}`. Specified: 5% of places per year drawn by a public random beacon (drand or the NIST beacon), plus a visit for every place whose streams disagree (see 4.2). Findings carry soil cores, eDNA results, insect counts and photos.
+A **visit** is `{date, kind BASELINE|RANDOM|TRIGGERED, verifier, findings, notes}`. Specified: 5% of places per year drawn by a public random beacon (drand or the NIST beacon), plus a visit for every place whose streams disagree (see 4.2). Findings carry soil cores, eDNA results, insect counts and photos; lab results for Cycling go in `findings.soil` (3.5).
 
 ## 3. The seven readings
 
@@ -80,9 +80,21 @@ Median NDSI (biophony minus anthrophony, normalised) per year from delivered ind
 
 Count of detections in the breeding window (April to June north, October to December south) per year, inside the core listening windows (2.2). Needs two years. Relative change ±15%. Specified: restrict to song rather than calls where the detector distinguishes them; add seedling and juvenile observations from visits.
 
-### 3.5 Cycling (built)
+### 3.5 Cycling (built, method cycling-v0.2)
 
-Soil breathing index per reading: Q10 temperature response with Q10 = 2 referenced at 10 °C, multiplied by a moisture hump peaking at 30% VWC and reaching zero at 5% and 55%. Annual mean of the index; needs two years; relative change ±10%. Specified: replace the hump with a soil-texture-specific curve once texture is known; use EC trend as a nutrient-leakage signal; use Sentinel-1 soil moisture as a second witness.
+The question is whether the soil's own life is changing, with the weather taken out. Moisture and temperature cannot answer it on their own: they say how hard soil life *could* work in this weather, not how much soil life there is. Version 0.1 compared a yearly mean of a moisture-and-temperature index and so reported a warm, moist year as rising and a cold, dry one as falling with no change in the soil. Version 0.2 takes the direction only from a measured soil-life signal and uses moisture and temperature to remove the weather from it.
+
+**Weather-expected activity** (`soilActivity`, dimensionless, 1 at 10 °C and optimal moisture) = temperature term × moisture term.
+- Temperature: Q10 = 2 referenced at 10 °C. Field Q10 of soil respiration has a global median near 2.4 (Raich and Schlesinger 1992, doi 10.1034/j.1600-0889.1992.t01-1-00001.x) and falls as soils warm (Lloyd and Taylor 1994, doi 10.2307/2389824; Davidson and Janssens 2006, doi 10.1038/nature04514), so 2 is a central value for temperate soils, not a constant.
+- Moisture: aerobic microbial activity peaks near 60% water-filled pore space (WFPS) and declines on both sides, limited by water and substrate diffusion below and by oxygen above (Linn and Doran 1984, doi 10.2136/sssaj1984.03615995004800060013x; Skopp, Jawson and Doran 1990, doi 10.2136/sssaj1990.03615995005400060018x). WFPS = VWC / porosity, porosity = 1 − bulk density / 2.65, with bulk density from SoilGrids (2.5). The term is 1 − ((WFPS − 0.6) / 0.6)², floored at 0: zero in dry soil, about half at saturation. Without bulk density the v0.1 hump in VWC around a clay-based optimum is used. Empirical moisture curves are useful approximations with limited predictive power (Moyano, Manzoni and Chenu 2013, doi 10.1016/j.soilbio.2013.01.002); that is why this term only normalises a measurement and never stands in for one.
+
+**Measured signal, in order of weight.**
+1. *Lab samples from visits* (`findings.soil`: `{depthCm, co2Burst, poxc}`, one object or a list). `co2Burst` is the CO2 released in 24 h after drying and rewetting, mg CO2-C per kg (Franzluebbers et al. 2000, doi 10.2136/sssaj2000.642613x; Solvita or titration, Haney, Brinton and Evans 2008, doi 10.1017/s174217050800224x). `poxc` is permanganate-oxidisable carbon, mg per kg (Weil et al. 2003, doi 10.1079/ajaa200228). Both run under standard lab conditions, so the weather of the sampling day does not enter, and both track management within a few years (Hurisso et al. 2016, doi 10.2136/sssaj2016.04.0106). Sampling: 0 to 10 cm, a composite of at least ten cores, same month every year. The latest sample is compared with the most recent earlier one at least 300 days before, within 45 days of the same day of the year and at the same depth; the mean relative change of the two indicators gives the direction at ±15% (provisional: to be set from replicate samples of the first places). Confidence 0.5 when both indicators agree in sign, 0.35 otherwise.
+2. *Soil CO2 flux* (`fluxUmol`, µmol CO2 m⁻² s⁻¹, from a chamber or from buried CO2 sensors by the gradient method; a low-cost gradient system: Nguyen et al. 2025, doi 10.5194/soil-11-639-2025). Each flux is divided by the weather-expected activity at the same moment; the yearly mean ratio is the basal rate at 10 °C and optimal moisture, which is the part that belongs to the soil. Readings with expected activity below 0.05 (frozen or dry) are left out; a year needs 30 pairs. Direction from the last two years at ±10%, confidence 0.45. Heterotrophic and root respiration are not separated, so a change in plant cover moves this rate too; that is one reason lab samples weigh more.
+
+**Without a measured signal the reading is UNKNOWN** and says so, with the weather-expected activity per year in the evidence as context (also drawn on the node dashboard).
+
+Specified: compute flux from `co2Ppm` at two depths (gradient method) on the oracle; EC trend as a nutrient-leakage signal; Sentinel-1 soil moisture as a second witness. Considered and not adopted: the Tea Bag Index (Keuskamp et al. 2013, doi 10.1111/2041-210x.12097) measures decomposition directly and cheaply, but its decomposition rate k is disputed (Mori 2025, doi 10.1111/ele.70010; reply Sarneel et al. 2025, doi 10.1111/ele.70117) and the original Lipton bags changed material (Middelanis et al. 2023, doi 10.1111/1440-1703.12409); revisit when the protocol settles.
 
 ### 3.6 Resilience (built, single-place form)
 
