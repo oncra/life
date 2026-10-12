@@ -1,6 +1,7 @@
 import { prisma } from "./db";
 import { autonomy, cycling, diversity, periodLabel, productivity, renewal, resilience, structure, verdict, type ReadingOut } from "./readings";
 import { moistureOptimum } from "./context";
+import { inCore } from "./listening";
 
 export async function computeReadings(placeId: string) {
   const place = await prisma.place.findUniqueOrThrow({ where: { id: placeId } });
@@ -11,15 +12,18 @@ export async function computeReadings(placeId: string) {
     prisma.soilReading.findMany({ where: { device: { placeId } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
   ]);
   const pts = sat.map((s) => ({ date: s.date, ndvi: s.ndviMean }));
+  // the readings count only the core listening hours (content/spec.md 2.2): extra hours and all-day recorders are kept
+  // and shown, never counted, so every place is read on the same hours of the day
+  const core = dets.filter((d) => inCore(d.ts.getTime(), place.centroidLat, place.centroidLon));
   const year = new Date().getUTCFullYear();
   const out: ReadingOut[] = [
     productivity(pts, place.centroidLat, year),
-    diversity(dets, year),
+    diversity(core, year),
     structure(idx),
-    renewal(dets, place.centroidLat),
+    renewal(core, place.centroidLat),
     cycling(soil, moistureOptimum(((place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct))),
     resilience(pts, place.centroidLat),
-    autonomy(idx, dets),
+    autonomy(idx, core),
   ];
   const period = periodLabel();
   for (const r of out) {

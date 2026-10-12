@@ -28,6 +28,8 @@ Environment:
     WITTYPI_BUS         default 1; set empty to skip the Witty Pi
     VEDIRECT_PORT       default: the first /dev/serial/by-id/*VE_Direct*; set "none" to skip; a /dev/ttyUSB0 for a
                         home-made cable
+    LIFE_STATE          default /var/lib/life-node; its extra.json says which window the node woke for and whether its
+                        extra hours run (`window`, `extra`, `extraV` in the metrics)
 """
 import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -224,7 +226,21 @@ def metrics():
         except Exception:  # noqa: BLE001
             pass
     m.update(power())
+    m.update(listening())
     return m
+
+
+def listening():
+    """The window the node woke for and whether its extra hours run (life-extra writes the decision at boot)."""
+    p = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node")) / "extra.json"
+    try:
+        d = json.loads(p.read_text())
+    except Exception:  # noqa: BLE001 - no schedule (desk) or no decision yet
+        return {}
+    out = {"window": d.get("window"), "extra": d.get("extra")}
+    if d.get("v") is not None:
+        out["extraV"] = d["v"]
+    return out
 
 
 def guard():

@@ -4,7 +4,10 @@ canopy=lambda i: 0.20 if 3<=i<=8 else 1.0
 s100=[h100[i]*canopy(i) for i in range(12)]
 s50=[v*0.5 for v in s100]
 winter=lambda i: i in (0,1,10,11)
-load=[9.6 if winter(i) else 54.6 for i in range(12)]
+# node load per month from the listening schedule (spec 2.2) at the draw measured on node 1's bench (step 1.5):
+# the full day with its extra hours, and the core alone (6 h dawn core in May-Jul), both on a 4.6 Wh/day floor
+load=[11.3 if winter(i) else 37.2 for i in range(12)]
+core=[11.3 if winter(i) else (31.9 if 4<=i<=6 else 25.2) for i in range(12)]
 W,H=880,520; L,R,T,B=64,138,62,116
 pw,ph=W-L-R,H-T-B; ymax=420
 X=lambda i: L+pw*i/11
@@ -14,7 +17,7 @@ INK,INK2,MUT="#111111","#52514e","#b9b8b2"
 p=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">',
    f'<rect width="{W}" height="{H}" fill="#fcfcfb"/>',
    f'<text x="{L}" y="26" font-size="15" font-weight="600" fill="{INK}">Where the panel size is actually decided</text>',
-   f'<text x="{L}" y="45" font-size="12" fill="{INK2}">Wh/day. Harvest shaded to 20% Apr-Sep for a crop canopy. Load steps down to one waking hour Nov-Feb.</text>']
+   f'<text x="{L}" y="45" font-size="12" fill="{INK2}">Wh/day. Harvest shaded to 20% Apr-Sep for a crop canopy. Load: the full day with extra hours, and the core alone.</text>']
 for gv in range(0,401,100):
     y=Y(gv); p.append(f'<line x1="{L}" y1="{y:.1f}" x2="{L+pw}" y2="{y:.1f}" stroke="{MUT}" stroke-width="1" opacity="0.45"/>')
     p.append(f'<text x="{L-10}" y="{y+4:.1f}" font-size="11" fill="{INK2}" text-anchor="end">{gv}</text>')
@@ -28,6 +31,10 @@ pts=[]
 for i in range(12):
     pts.append((X(i)-(pw/22 if i>0 else 0),Y(load[i]))); pts.append((X(i)+pw/22,Y(load[i])))
 p.append('<polyline points="'+" ".join(f"{x:.1f},{y:.1f}" for x,y in pts)+f'" fill="none" stroke="{LOADC}" stroke-width="2.4" stroke-dasharray="6 5" stroke-linejoin="round"/>')
+pts=[]
+for i in range(12):
+    pts.append((X(i)-(pw/22 if i>0 else 0),Y(core[i]))); pts.append((X(i)+pw/22,Y(core[i])))
+p.append('<polyline points="'+" ".join(f"{x:.1f},{y:.1f}" for x,y in pts)+f'" fill="none" stroke="{LOADC}" stroke-width="1.6" stroke-dasharray="2 4" stroke-linejoin="round"/>')
 def path(v): return "M "+" L ".join(f"{X(i):.1f} {Y(x):.1f}" for i,x in enumerate(v))
 p.append(f'<path d="{path(s100)}" fill="none" stroke="{S1}" stroke-width="2.2" stroke-linejoin="round"/>')
 p.append(f'<path d="{path(s50)}" fill="none" stroke="{S2}" stroke-width="2.2" stroke-linejoin="round"/>')
@@ -36,16 +43,17 @@ for i in range(12):
     p.append(f'<circle cx="{X(i):.1f}" cy="{Y(s50[i]):.1f}" r="4" fill="{S2}" stroke="#fcfcfb" stroke-width="2"/>')
 p.append(f'<text x="{L+pw+9}" y="{Y(s100[-1])+4:.1f}" font-size="12" font-weight="600" fill="{S1}">100 Wp</text>')
 p.append(f'<text x="{L+pw+9}" y="{Y(s50[-1])+16:.1f}" font-size="12" font-weight="600" fill="{S2}">50 Wp</text>')
-p.append(f'<text x="{L+pw+9}" y="{Y(load[-1])-8:.1f}" font-size="12" font-weight="600" fill="{LOADC}">load</text>')
+p.append(f'<text x="{X(2):.1f}" y="{Y(load[2])-7:.1f}" font-size="11.5" font-weight="600" fill="{LOADC}" text-anchor="middle">full day</text>')
+p.append(f'<text x="{X(9):.1f}" y="{Y(core[9])+15:.1f}" font-size="11.5" font-weight="600" fill="{LOADC}" text-anchor="middle">core</text>')
 p.append(f'<g transform="translate({L},{H-74})" font-size="11.5">'
          f'<rect x="0" y="-9" width="11" height="3" rx="1.5" fill="{S1}"/><text x="18" y="-4" fill="{INK2}">100 Wp, shaded</text>'
          f'<rect x="122" y="-9" width="11" height="3" rx="1.5" fill="{S2}"/><text x="140" y="-4" fill="{INK2}">50 Wp, shaded</text>'
-         f'<rect x="240" y="-9" width="11" height="3" rx="1.5" fill="{LOADC}"/><text x="258" y="-4" fill="{INK2}">node load, incl. a 4.6 Wh/day parasitic floor</text></g>')
-for k,t in enumerate(["Winter is not the problem. With one waking hour from November to February the node eats",
- "9.6 Wh/day, and even a 50 Wp panel harvests 40 to 60 in those months.",
- "The 50 Wp line fails in summer instead, by 15 to 23 Wh/day, and no winter schedule fixes that.",
+         f'<rect x="240" y="-9" width="11" height="3" rx="1.5" fill="{LOADC}"/><text x="258" y="-4" fill="{INK2}">node load (dashed: full day, dotted: core), incl. a 4.6 Wh/day floor</text></g>')
+for k,t in enumerate(["Winter is not the problem. With two waking hours from November to February the node eats",
+ "11 Wh/day, and even a 50 Wp panel harvests 40 to 60 in those months.",
+ "Under a canopy the 50 Wp line falls short of the full day in late summer but carries the core: the extra hours go first.",
  "The panel is sized by the crop that shades it, not by December."]):
     p.append(f'<text x="{L}" y="{H-56+k*15}" font-size="11.5" fill="{INK}">{t}</text>')
 p.append("</svg>")
-open('/home/sven/uploads/life-node-energy-balance.svg','w').write("\n".join(p))
+open(__import__('os').path.join(__import__('os').path.dirname(__file__),'..','public','img','life-node-energy-balance.svg'),'w').write("\n".join(p))
 print("ok")
