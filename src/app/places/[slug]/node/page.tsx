@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { canSeeExact, publicPlace } from "@/lib/privacy";
-import { asRange, nodeData, nodeSignals, RANGES, signalPoint } from "@/lib/node";
+import { asRange, lastHeard, nodeData, nodeSignals, RANGES, signalPoint } from "@/lib/node";
+import LastHeard from "@/components/node/LastHeard";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
 import { ago, fmtTime } from "@/lib/clock";
@@ -43,7 +44,7 @@ export default async function NodePage({ params, searchParams }: Props) {
   if (!stored) notFound();
   const [exact, data] = await Promise.all([canSeeExact(stored), nodeData(stored, range)]);
   if (!data) notFound();
-  const index = await lifeIndexData(stored, indexRange, data.now);
+  const [index, heard] = await Promise.all([lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5)]);
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
   const status = signalStatus(data.last.heardAt, data.now);
@@ -87,6 +88,8 @@ export default async function NodePage({ params, searchParams }: Props) {
           {RANGES.map((r) => <Link key={r.key} href={q(r.key)} className={`rounded-full px-3 py-1 border ${r.key === range ? "bg-foreground text-white border-foreground" : "border-line bg-white hover:border-accent"}`}>{r.label}</Link>)}
         </div>
       </div>
+
+      <LastHeard items={heard} now={data.now} zone={data.zone} />
 
       <section className="mt-6">
         <div className="flex flex-wrap items-end justify-between gap-3">

@@ -171,6 +171,29 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
   };
 }
 
+/** The most recently heard species on a place, each with its latest detection and its cut-out picture when the
+ * worker has made one (src/lib/species-image.ts). */
+export type HeardRow = {
+  species: string; scientific: string | null; t: number; confidence: number; status: string | null;
+  image: { id: string; width: number; height: number; author: string | null; license: string | null; licenseUrl: string | null; sourceUrl: string | null; title: string | null } | null;
+};
+export async function lastHeard(placeId: string, n = 5): Promise<HeardRow[]> {
+  const rows = await prisma.$queryRaw<{ species: string; scientific: string | null; ts: Date; confidence: number }[]>`
+    select species, scientific, ts, confidence from (
+      select distinct on (species) species, scientific, ts, confidence from "SoundDetection"
+      where "deviceId" in (select id from "Device" where "placeId" = ${placeId}) order by species, ts desc) x
+    order by ts desc limit ${n}`;
+  if (rows.length === 0) return [];
+  const imgs = await prisma.speciesImage.findMany({ where: { species: { in: rows.map((r) => r.species) } }, select: { id: true, species: true, status: true, width: true, height: true, author: true, license: true, licenseUrl: true, sourceUrl: true, title: true } });
+  return rows.map((r) => {
+    const i = imgs.find((x) => x.species === r.species);
+    return {
+      species: r.species, scientific: r.scientific, t: r.ts.getTime(), confidence: r.confidence, status: i?.status ?? null,
+      image: i && i.status === "ready" ? { id: i.id, width: i.width ?? 0, height: i.height ?? 0, author: i.author, license: i.license, licenseUrl: i.licenseUrl, sourceUrl: i.sourceUrl, title: i.title } : null,
+    };
+  });
+}
+
 /** Species heard, with counts for today (local), the past seven days and all time. */
 async function speciesTable(ids: string[], zone: string, now: number): Promise<SpeciesRow[]> {
   if (ids.length === 0) return [];

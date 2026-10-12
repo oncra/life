@@ -386,6 +386,31 @@ model PlaceAccess {
   @@index([placeId])
 }
 
+/// A cut-out picture of a species the recorders heard, made once by the worker from the lead photo of its Wikipedia
+/// article (Wikimedia Commons; author and licence travel with it) with the background removed, for the node dashboard.
+model SpeciesImage {
+  id         String   @id @default(cuid())
+  /// the name as the detector reports it (common or scientific)
+  species    String   @unique
+  scientific String?
+  /// the Wikipedia article the photo came from
+  title      String?
+  /// the Commons file page, for the credit line
+  sourceUrl  String?
+  author     String?
+  license    String?
+  licenseUrl String?
+  /// pending | ready | failed (a failure is tried again after thirty days)
+  status     String   @default("pending")
+  error      String?
+  /// the cut-out, WebP with alpha, longest side 720 px
+  image      Bytes?
+  width      Int?
+  height     Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 enum BacklogLane {
   BACKLOG
   NEXT
