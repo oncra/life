@@ -7,6 +7,7 @@ import { prisma } from "./db";
 import { verdict, type Verdict } from "./readings";
 import { moistureOptimum } from "./context";
 import { DISPLAY_ZONE, dayStart } from "./clock";
+import { coreWindowArrays } from "./listening";
 
 export type IndexRange = "30d" | "1y" | "archive";
 export const INDEX_RANGES: { key: IndexRange; label: string }[] = [
@@ -37,7 +38,7 @@ export type LifeIndexOut = {
   satSince: number | null;
   /** growing seasons inside the span, [from, to] */
   seasons: [number, number][];
-  /** per local day: species heard (confidence 70% or more, as the diversity reading counts them) and all detections */
+  /** per local day: species heard (confidence 70% or more, in the core listening hours, as the diversity reading counts them) and all detections */
   sound: { t: number; species: number; detections: number }[];
   /** per local day, the shallowest probe: mean moisture, mean temperature, and the soil-breathing index the cycling reading uses */
   soil: { t: number; vwc: number | null; tempC: number | null; activity: number | null }[];
@@ -63,7 +64,7 @@ function periodBounds(period: string): [number, number] | null {
   return [Date.UTC(y, (q - 1) * 3, 1), Date.UTC(y, q * 3, 1)];
 }
 
-export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "context">, range: IndexRange, now = Date.now()): Promise<LifeIndexOut> {
+export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "centroidLon" | "context">, range: IndexRange, now = Date.now()): Promise<LifeIndexOut> {
   const zone = DISPLAY_ZONE;
   const to = now;
   const [firstSat, satTotal, devices] = await Promise.all([
@@ -77,6 +78,9 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
   const shallow = soilDevices[0] ?? null;
   const clay = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
   const optimumVwc = moistureOptimum(clay);
+  // species per day as the diversity reading counts them: confidence 0.7 or more, inside the core listening windows
+  // (content/spec.md 2.2); the detections count beside it is everything the node heard
+  const cw = coreWindowArrays(from, to, place.centroidLat, place.centroidLon);
 
   const [sat, readings, soundRows, soilRows, firstSound, firstSoil] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId: place.id, date: { gte: new Date(from), lte: new Date(to) } }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true } }),
@@ -84,8 +88,14 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
     soundIds.length
       ? prisma.$queryRaw<{ day: string; detections: number; species: number }[]>`
         select to_char((ts at time zone 'UTC') at time zone ${zone}, 'YYYY-MM-DD') as day, count(*)::int as detections,
-          (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7))::int as species
-        from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
+          (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7 and (
+            (ts >= (w.s1[k.i] at time zone 'UTC') and ts < (w.e1[k.i] at time zone 'UTC')) or
+            (ts >= (w.s2[k.i] at time zone 'UTC') and ts < (w.e2[k.i] at time zone 'UTC')) or
+            (ts >= (w.s2[k.i - 1] at time zone 'UTC') and ts < (w.e2[k.i - 1] at time zone 'UTC')))))::int as species
+        from "SoundDetection"
+          cross join (select ${cw.s1}::timestamptz[] as s1, ${cw.e1}::timestamptz[] as e1, ${cw.s2}::timestamptz[] as s2, ${cw.e2}::timestamptz[] as e2) as w
+          cross join lateral (select (floor(extract(epoch from ts) / 86400) - ${cw.day0})::int + 1 as i) as k
+        where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
         group by 1 order by 1`
       : [],
     shallow

@@ -28,7 +28,9 @@ install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
 install -m 0755 "$HERE/image/life-schedule-wpi.py" /usr/local/sbin/life-schedule-wpi
+install -m 0755 "$HERE/image/life-extra.py" /usr/local/sbin/life-extra
 life-schedule-wpi --now 2026-06-21T05:00 | grep -q "^ON" || { echo "life-schedule-wpi does not run"; exit 1; }
+LIFE_EXTRA_VIN=13.5 LIFE_STATE=/tmp life-extra decide --dry-run --now 2026-08-15T06:00 | grep -q '"extra": true' || { echo "life-extra does not run"; exit 1; }
 install -m 0755 "$HERE/image/life-wittypi.sh" /usr/local/sbin/life-wittypi
 # the Witty Pi daemon drives its pins with wiringPi's gpio tool and exits without it; it is the daemon that sends
 # SYS_UP on GPIO-17, and only after SYS_UP does the board watch TXD and cut power once the Pi has shut down

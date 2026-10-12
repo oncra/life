@@ -9,6 +9,16 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### Listening hours: a fixed core, and extra hours the battery decides
+
+*Change.* The box listened ten hours a day from March to October (eight from civil dawn, two from sunset) and one hour from 07:00 from November to February. Two things were wrong with that. In December and January that hour ended before civil dawn, so the box listened in the dark. And ten hours left the battery no room for a dull October or a panel that gets overgrown, while the hours can never change once a place has a year of readings behind it.
+
+The schedule now has a core and extra hours. The core is the same at every box and in every year, and it is the only part of the day the readings count: from March to October 4 hours from civil dawn (6 in May, June and July) and 1 hour from sunset, from November to February 2 hours from sunrise. From March to October the box may listen on, to 6 hours after civil dawn and 2 after sunset, but only when the battery reads 13.1 V or more when it wakes; otherwise it switches itself off at the end of the core and wakes at its next window as usual. An overgrown panel costs extra hours, never the core. Every heartbeat now says which window the box woke for and whether its extra hours ran.
+
+*Learning.* Two checks chose these hours. First, a year of four Dutch BirdNET stations that listen around the clock, replayed against every schedule: 4 hours from civil dawn keep 88 to 93% of the species those stations hear on three days or more, and below 3 hours the share drops quickly. The fifth and sixth hour are worth about the same in every month, so the longer core in midsummer is there because the sun is cheap then, not because there are more birds. Second, the battery simulated hour by hour on the weather of 2005 to 2023 with a 40 W panel: with the panel at half its output all year, or at 30% from June to September as under a crop, the core lost no listening on average and at most 3% in the worst month, on a 20 Ah battery. On the 10 Ah battery of node 1 it lost up to 3% of the core in October on average, and up to 14% in the worst month.
+
+*Change.* So the 20 Ah battery is standard again (€90.63 at reichelt, price of 17 September; the node is now about €798). Node 1 keeps its 10 Ah on the bench.
+
 ### The desk detections are kept, as tests
 
 *Change.* Everything node 1 heard before 12 October was a test, made on the desk while the box was being built, much of it birdsong played from a phone next to the microphone. Those 46 detections (19 September to 11 October) are not deleted but marked `test`. They still show that the box listened, recognised and sent from its first evening, and the box's light on `/box` still sees them, but they count nowhere as life: not in the diversity reading, the life index, the species table, the dawn-chorus grid or the open birds feed. The dashboard says under the species table how many test detections it is leaving out. [#89](https://github.com/oncra/life/pull/89)
