@@ -16,7 +16,7 @@ export interface ReadingOut {
 }
 
 export interface SatPoint { date: Date; ndvi: number }
-export interface DetPoint { ts: Date; species: string; confidence: number }
+export interface DetPoint { ts: Date; species: string; scientific?: string | null; confidence: number }
 export interface IdxPoint { ts: Date; ndsi: number | null; anthrophony: number | null; biophony: number | null; adi: number | null }
 export interface SoilPoint { ts: Date; depthCm: number; vwc: number | null; tempC: number | null }
 
@@ -98,7 +98,8 @@ export function resilience(points: SatPoint[], lat: number): ReadingOut {
 export function diversity(dets: DetPoint[], currentYear: number): ReadingOut {
   if (dets.length === 0) return { dimension: "DIVERSITY", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "no sound stream yet: install a recorder and deliver detections" } };
   const byYear = new Map<number, Set<string>>();
-  for (const d of dets) if (d.confidence >= 0.7) byYear.set(d.ts.getUTCFullYear(), (byYear.get(d.ts.getUTCFullYear()) ?? new Set()).add(d.species));
+  // a species is its scientific name: the same bird can arrive under its common and its scientific name
+  for (const d of dets) if (d.confidence >= 0.7) byYear.set(d.ts.getUTCFullYear(), (byYear.get(d.ts.getUTCFullYear()) ?? new Set()).add(d.scientific ?? d.species));
   const years = [...byYear.keys()].sort();
   if (years.length < 2) return { dimension: "DIVERSITY", direction: "UNKNOWN", confidence: 0.1, maturity: 0, evidence: { note: "one year of detections; need a second year to read a direction", richness: Object.fromEntries([...byYear].map(([y, s]) => [y, s.size])) } };
   const last = byYear.get(years[years.length - 1])!.size, prev = byYear.get(years[years.length - 2])!.size;

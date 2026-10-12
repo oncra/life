@@ -2,11 +2,14 @@
 // species up on Wikipedia (by scientific name, then by the name the detector gave), takes the article's lead photo
 // from Wikimedia Commons together with its author and licence, removes the background with U²-Net (Qin et al. 2020,
 // Apache-2.0; the ONNX file published by the rembg project) run through onnxruntime, and stores the PNG with its
-// credits in `SpeciesImage`. Nothing runs while someone looks at the page: it serves the stored PNG.
+// credits in `SpeciesImage`. Nothing runs while someone looks at the page: it serves the stored PNG. The same sweep
+// keeps the species' common names in the languages the sites show (Wikidata), so a Dutch page can name the bird in
+// Dutch.
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "./db";
 
 const UA = "LifeOracle/0.1 (https://life.oncra.org; life@oncra.org)";
@@ -17,7 +20,7 @@ const SIZE = 320;
 /** longest side of the stored cut-out */
 const OUT_MAX = 720;
 
-export type Photo = { title: string; file: string; fileUrl: string; imageUrl: string; author: string | null; license: string | null; licenseUrl: string | null };
+export type Photo = { title: string; file: string; fileUrl: string; imageUrl: string; author: string | null; license: string | null; licenseUrl: string | null; wikidata: string | null };
 
 async function getJson(url: string): Promise<Record<string, unknown>> {
   const r = await fetch(url, { headers: { "user-agent": UA, accept: "application/json" } });
@@ -49,9 +52,82 @@ export async function findPhoto(scientific: string | null, species: string): Pro
     return {
       title: String(s.title ?? name), file, fileUrl: info.descriptionurl ?? `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`, imageUrl: info.thumburl ?? info.url,
       author: stripHtml(ext.Artist?.value), license: stripHtml(ext.LicenseShortName?.value), licenseUrl: ext.LicenseUrl?.value ?? null,
+      wikidata: typeof s.wikibase_item === "string" ? s.wikibase_item : null,
     };
   }
   return null;
+}
+
+/** The languages the sites that show the birds are written in. */
+export const NAME_LANGS = ["en", "nl", "de", "fr", "es", "zh"] as const;
+
+type WdClaim = { rank?: string; mainsnak?: { datavalue?: { value?: { text?: string; language?: string } } } };
+
+/** Common names of a species from its Wikidata item: the "taxon common name" statements (P1843), else the item's label
+ * when that is a real name and not the scientific one (Wikidata labels many species by their Latin name). Several
+ * spellings often stand side by side ("Witte Kwikstaart", "witte kwikstaart"): Dutch, French and Spanish field guides
+ * write a name in sentence case, so for those the variant with the fewest capitals wins; English takes the preferred
+ * statement, which follows the IOC list ("White Wagtail"). A name that is a list ("great bittern, bittern") is not one. */
+export async function wikidataNames(qid: string, scientific: string | null): Promise<Record<string, string>> {
+  const langs = NAME_LANGS.join("%7C");
+  const [claims, ent] = await Promise.all([
+    getJson(`https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&entity=${encodeURIComponent(qid)}&property=P1843`),
+    getJson(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=${encodeURIComponent(qid)}&props=labels&languages=${langs}`),
+  ]);
+  const sci = (scientific ?? "").trim().toLowerCase();
+  const real = (t: string) => t.length > 0 && t.toLowerCase() !== sci && !/[,;/()]/.test(t);
+  const byLang = new Map<string, { text: string; preferred: boolean }[]>();
+  for (const c of ((claims.claims as Record<string, WdClaim[]> | undefined)?.P1843 ?? [])) {
+    if (c.rank === "deprecated") continue;
+    const v = c.mainsnak?.datavalue?.value;
+    const lang = v?.language === "zh-hans" || v?.language === "zh-cn" ? "zh" : v?.language;
+    const text = v?.text?.trim() ?? "";
+    if (!lang || !(NAME_LANGS as readonly string[]).includes(lang) || !real(text)) continue;
+    byLang.set(lang, [...(byLang.get(lang) ?? []), { text, preferred: c.rank === "preferred" }]);
+  }
+  const labels = ((ent.entities as Record<string, { labels?: Record<string, { value?: string }> }> | undefined)?.[qid]?.labels) ?? {};
+  const capsAfterFirst = (t: string) => (t.slice(1).match(/\p{Lu}/gu) ?? []).length;
+  const out: Record<string, string> = {};
+  for (const lang of NAME_LANGS) {
+    const label = labels[lang]?.value?.trim() ?? "";
+    const c = byLang.get(lang) ?? (real(label) ? [{ text: label, preferred: false }] : []);
+    if (c.length === 0) continue;
+    const pick = [...c].sort((a, b) =>
+      lang === "nl" || lang === "fr" || lang === "es"
+        ? capsAfterFirst(a.text) - capsAfterFirst(b.text) || Number(b.preferred) - Number(a.preferred)
+        : Number(b.preferred) - Number(a.preferred))[0];
+    out[lang] = pick.text.charAt(0).toLocaleUpperCase(lang) + pick.text.slice(1);
+  }
+  return out;
+}
+
+/** The Wikidata item of a species, from the summary of its English Wikipedia article (scientific name first). */
+async function wikidataItem(scientific: string | null, species: string): Promise<string | null> {
+  for (const name of [...new Set([scientific, species].map((s) => s?.trim()).filter((s): s is string => !!s))]) {
+    try {
+      const s = await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g, "_"))}`);
+      if (s.type !== "disambiguation" && typeof s.wikibase_item === "string") return s.wikibase_item;
+    } catch { /* next name */ }
+  }
+  return null;
+}
+
+/** Names for the species that have none yet (pictures made before names were kept, or a lookup that failed); {} is
+ * stored when Wikidata has none, so a species is looked up once. */
+export async function speciesNameSweep(log: (s: string) => void = () => {}, limit = 40): Promise<number> {
+  const todo = await prisma.speciesImage.findMany({ where: { names: { equals: Prisma.DbNull } }, select: { id: true, species: true, scientific: true }, orderBy: { updatedAt: "desc" }, take: limit });
+  let named = 0;
+  for (const t of todo) {
+    try {
+      const qid = await wikidataItem(t.scientific, t.species);
+      const names = qid ? await wikidataNames(qid, t.scientific) : {};
+      await prisma.speciesImage.update({ where: { id: t.id }, data: { names } });
+      if (Object.keys(names).length) named++;
+    } catch (e) {
+      log(`species names: ${t.species} failed: ${String((e as Error).message ?? e).slice(0, 160)}`);
+    }
+  }
+  return named;
 }
 
 function modelPath() {
@@ -141,7 +217,9 @@ export async function makeSpeciesImage(species: string, scientific: string | nul
     if (!r.ok) throw new Error(`photo download: ${r.status}`);
     const cut = await cutOut(Buffer.from(await r.arrayBuffer()), log);
     if (cut.coverage < 0.015) throw new Error(`subject too small to cut out (${(cut.coverage * 100).toFixed(1)}% of the photo)`);
-    await prisma.speciesImage.update({ where: { id: row.id }, data: { status: "ready", scientific: scientific ?? row.scientific, title: photo.title, sourceUrl: photo.fileUrl, author: photo.author, license: photo.license, licenseUrl: photo.licenseUrl, image: new Uint8Array(cut.webp), width: cut.width, height: cut.height, error: null } });
+    // names are a bonus: a Wikidata hiccup leaves them null for the name sweep, never the picture unmade
+    const names = photo.wikidata ? await wikidataNames(photo.wikidata, scientific ?? row.scientific).catch(() => null) : null;
+    await prisma.speciesImage.update({ where: { id: row.id }, data: { status: "ready", scientific: scientific ?? row.scientific, title: photo.title, sourceUrl: photo.fileUrl, author: photo.author, license: photo.license, licenseUrl: photo.licenseUrl, image: new Uint8Array(cut.webp), width: cut.width, height: cut.height, error: null, ...(names ? { names } : {}) } });
     log(`species image: ${species} from ${photo.file} (${photo.license ?? "licence unknown"}), ${Math.round(cut.webp.length / 1024)} kB`);
     return true;
   } catch (e) {

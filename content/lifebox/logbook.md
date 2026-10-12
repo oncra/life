@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### One bird, one name, and the birds for other sites
+
+*Learning.* Node 1 had heard 35 species by name but only 30 by scientific name: five birds arrived under both. The jackdaw came in as "Eurasian Jackdaw" and as "Coloeus monedula", and the carrion crow, the magpie, the tree pipit and the common redstart did the same. BirdNET-Go's own database keeps only the scientific name; the box asks BirdNET-Go for the common one, and when it has none to hand it sends the Latin rather than make a detection wait. So the dashboard showed the crow twice among its last five, and the diversity reading counted those five species twice, where the spec says distinct species. A species is now its scientific name everywhere it is counted (the diversity reading, the life index, the dashboard's species table and its last five), and the row takes a common name if any detection or picture of that bird carries one.
+
+*Change.* The last birds heard are open data: `/api/v1/heard` gives the newest species, one per species, each with its cut-out, the photo's credits and its common names in six languages from Wikidata, so a Dutch page can say "Zwarte kraai" where the box says "Carrion Crow", plus whether each node is listening or asleep. It says what was heard and when, never where. Climate Cleanup's home page uses it to show the birds as they come in. [#87](https://github.com/oncra/life/pull/87)
+
 ### The oracle's disk filled up with old builds
 
 *Learning.* The first deploy of the bird pictures stopped halfway with "no space left on device", while the site kept running the previous build as if nothing had happened. The disk is 38 GB; 19 GB of it was Docker's build cache, one layer set per deploy since the site began, never cleared. Pruning it by hand gave 22 GB back and the second deploy went through. The deploy script now keeps the most recent 3 GB of layers after every build and drops the rest, so rebuilds stay fast and the disk stays free. [#86](https://github.com/oncra/life/pull/86)
