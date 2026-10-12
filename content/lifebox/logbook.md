@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### The desk detections are kept, as tests
+
+*Change.* Everything node 1 heard before 12 October was a test, made on the desk while the box was being built, much of it birdsong played from a phone next to the microphone. Those 46 detections (19 September to 11 October) are not deleted but marked `test`. They still show that the box listened, recognised and sent from its first evening, and the box's light on `/box` still sees them, but they count nowhere as life: not in the diversity reading, the life index, the species table, the dawn-chorus grid or the open birds feed. The dashboard says under the species table how many test detections it is leaving out. [#89](https://github.com/oncra/life/pull/89)
+
 ### Every ordinary pause showed as a missed post
 
 *Learning.* Since the box went over to one message every three hours (11 October), the dashboard still expected one every two. So each ordinary pause was drawn as a red band, a post gone missing: today the box reported at 07:28, 10:28 and 13:28, exactly three hours apart, and both pauses in between showed as missed. A box that was fine also read as "quiet" for the last hour before each message. The rhythm is now three hours in one place in the code, and a silence counts as missed only after three and three-quarter hours, the same margin as before. [#88](https://github.com/oncra/life/pull/88)

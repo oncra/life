@@ -234,7 +234,7 @@ export async function speciesImageSweep(log: (s: string) => void = () => {}, lim
   const todo = await prisma.$queryRaw<{ species: string; scientific: string | null }[]>`
     select d.species, max(d.scientific) as scientific from "SoundDetection" d
     left join "SpeciesImage" i on i.species = d.species
-    where i.id is null or (i.status = 'failed' and i."updatedAt" < now() - interval '30 days')
+    where not d.test and (i.id is null or (i.status = 'failed' and i."updatedAt" < now() - interval '30 days'))
     group by d.species order by max(d.ts) desc limit ${limit}`;
   let made = 0;
   for (const t of todo) if (await makeSpeciesImage(t.species, t.scientific, log)) made++;

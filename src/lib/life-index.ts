@@ -85,7 +85,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
       ? prisma.$queryRaw<{ day: string; detections: number; species: number }[]>`
         select to_char((ts at time zone 'UTC') at time zone ${zone}, 'YYYY-MM-DD') as day, count(*)::int as detections,
           (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7))::int as species
-        from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
+        from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
         group by 1 order by 1`
       : [],
     shallow
@@ -94,7 +94,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
         from "SoilReading" where "deviceId" = ${shallow.id} and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
         group by 1 order by 1`
       : [],
-    soundIds.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: soundIds } }, orderBy: { ts: "asc" }, select: { ts: true } }) : null,
+    soundIds.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: soundIds }, test: false }, orderBy: { ts: "asc" }, select: { ts: true } }) : null,
     shallow ? prisma.soilReading.findFirst({ where: { deviceId: { in: soilDevices.map((d) => d.id) } }, orderBy: { ts: "asc" }, select: { ts: true } }) : null,
   ]);
 
