@@ -3,6 +3,8 @@ FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
+# onnxruntime-node ships binaries for every platform (about 290 MB); the image needs the Linux ones only
+RUN find node_modules/onnxruntime-node/bin -mindepth 2 -maxdepth 2 -type d ! -name linux -exec rm -rf {} +
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
