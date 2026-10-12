@@ -73,6 +73,7 @@ export async function boxLive(placeId: string, hostname?: string, handBuilt = fa
   const hb = await prisma.heartbeat.findFirst({ where: { deviceId: { in: ids } }, orderBy: { ts: "desc" }, select: { ts: true, cell: true, event: true, metrics: true } });
   // a week of battery, for the low point: the boot heartbeat after a night is the one that counts
   const week = await prisma.heartbeat.findMany({ where: { deviceId: { in: ids }, ts: { gte: new Date(Date.now() - 7 * 864e5) } }, select: { ts: true, metrics: true }, orderBy: { ts: "asc" } });
+  // test detections count here: this light says the microphone works, not what lives at the place
   const det = sound ? await prisma.soundDetection.findFirst({ where: { deviceId: sound.id }, orderBy: { ts: "desc" }, select: { ts: true, species: true, confidence: true } }) : null;
   const soil = await Promise.all(devices.filter((d) => d.kind === "SOIL").sort((a, b) => (a.depthCm ?? 0) - (b.depthCm ?? 0)).map(async (d) => {
     const r = await prisma.soilReading.findFirst({ where: { deviceId: d.id }, orderBy: { ts: "desc" }, select: { ts: true, vwc: true, tempC: true } });

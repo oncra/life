@@ -160,6 +160,9 @@ model SoundDetection {
   confidence Float
   detector   String
   durationS  Float?
+  /// a detection made while the node was being built or tested (playback on a desk, a phone held to the mic): kept as
+  /// proof the box worked, never counted as life (species, readings, life index, open data)
+  test       Boolean  @default(false)
 
   @@index([deviceId, ts])
   @@index([species])

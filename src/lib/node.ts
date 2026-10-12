@@ -65,6 +65,8 @@ export type NodeOut = {
   heardToday: number;
   heardWeek: number;
   detectionsToday: number;
+  /** detections marked as test (made while the node was built): shown as proof the box worked, counted nowhere */
+  tests: { n: number; first: number; last: number } | null;
   /** detections per local hour over the last fortnight: days newest last, cells keyed `${dayIndex}:${hour}` */
   chorus: { days: { t: number; label: string }[]; cells: Record<string, number>; max: number };
 };
@@ -101,13 +103,14 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
   }
   const to = now;
 
-  const [hbs, soil, species, chorus, todayCount] = await Promise.all([
+  const [hbs, soil, species, chorus, todayCount, tests] = await Promise.all([
     // a day before the span too, so a silence that began before it still shows
     prisma.heartbeat.findMany({ where: { deviceId: { in: ids }, ts: { gte: new Date(from - 864e5), lte: new Date(to) } }, orderBy: { ts: "asc" }, select: { ts: true, event: true, cell: true, metrics: true } }),
     soilIds.length ? prisma.soilReading.findMany({ where: { deviceId: { in: soilIds }, ts: { gte: new Date(from), lte: new Date(to) } }, orderBy: { ts: "asc" }, select: { deviceId: true, ts: true, depthCm: true, vwc: true, tempC: true } }) : [],
     speciesTable(soundIds, zone, now),
     chorusGrid(soundIds, zone, now),
-    soundIds.length ? prisma.soundDetection.count({ where: { deviceId: { in: soundIds }, ts: { gte: new Date(dayStart(now, zone)) } } }) : 0,
+    soundIds.length ? prisma.soundDetection.count({ where: { deviceId: { in: soundIds }, test: false, ts: { gte: new Date(dayStart(now, zone)) } } }) : 0,
+    soundIds.length ? prisma.soundDetection.aggregate({ where: { deviceId: { in: soundIds }, test: true }, _count: true, _min: { ts: true }, _max: { ts: true } }) : null,
   ]);
 
   // heartbeats: the strip, the silences, and the box's own series
@@ -167,6 +170,7 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
     heardToday: species.filter((s) => s.today > 0).length,
     heardWeek: species.filter((s) => s.week > 0).length,
     detectionsToday: todayCount,
+    tests: tests && tests._count && tests._min.ts && tests._max.ts ? { n: tests._count, first: tests._min.ts.getTime(), last: tests._max.ts.getTime() } : null,
     chorus,
   };
 }
@@ -195,7 +199,7 @@ export async function heard(opts: { placeId?: string; limit?: number; minConfide
       select distinct on (coalesce(d.scientific, d.species)) coalesce(d.scientific, d.species) as key,
         d.species, d.scientific, d.ts, d.confidence, v."placeId"
       from "SoundDetection" d join "Device" v on v.id = d."deviceId"
-      where (${placeId}::text is null or v."placeId" = ${placeId}::text) and d.confidence >= ${opts.minConfidence ?? 0}
+      where not d.test and (${placeId}::text is null or v."placeId" = ${placeId}::text) and d.confidence >= ${opts.minConfidence ?? 0}
       order by coalesce(d.scientific, d.species), d.ts desc) x
     order by ts desc limit ${opts.withImage ? 200 : n}`;
   if (rows.length === 0) return [];
@@ -255,7 +259,7 @@ async function speciesTable(ids: string[], zone: string, now: number): Promise<S
       (count(*) filter (where ts >= ${iso(dayStart(now, zone))}::timestamptz at time zone 'UTC'))::int as today,
       (count(*) filter (where ts >= ${iso(now - 7 * 864e5)}::timestamptz at time zone 'UTC'))::int as week,
       count(*)::int as total, max(confidence)::float as conf, max(ts) as last
-    from "SoundDetection" where "deviceId" = any(${ids}::text[])
+    from "SoundDetection" where "deviceId" = any(${ids}::text[]) and not test
     group by coalesce(scientific, species) order by week desc, total desc, last desc limit 80`;
   return rows.map((r) => ({ ...r, last: r.last.getTime() }));
 }
@@ -269,7 +273,7 @@ async function chorusGrid(ids: string[], zone: string, now: number): Promise<Nod
   if (ids.length && starts.length) {
     const rows = await prisma.$queryRaw<{ day: string; hour: number; n: number }[]>`
       select to_char(l, 'YYYY-MM-DD') as day, extract(hour from l)::int as hour, count(*)::int as n
-      from (select (ts at time zone 'UTC') at time zone ${zone} as l from "SoundDetection" where "deviceId" = any(${ids}::text[]) and ts >= ${iso(starts[0])}::timestamptz at time zone 'UTC') x
+      from (select (ts at time zone 'UTC') at time zone ${zone} as l from "SoundDetection" where "deviceId" = any(${ids}::text[]) and not test and ts >= ${iso(starts[0])}::timestamptz at time zone 'UTC') x
       group by 1, 2`;
     const index = new Map(starts.map((t, i) => [isoDay(t, zone), i]));
     for (const r of rows) {
@@ -309,8 +313,8 @@ export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
   for (const p of places) {
     const sound = p.devices.filter((d) => d.kind === "SOUND").map((d) => d.id);
     const [det, week] = await Promise.all([
-      sound.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: sound } }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
-      sound.length ? prisma.soundDetection.groupBy({ by: ["species", "scientific"], where: { deviceId: { in: sound }, ts: { gte: new Date(now - 7 * 864e5) } } }) : [],
+      sound.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: sound }, test: false }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
+      sound.length ? prisma.soundDetection.groupBy({ by: ["species", "scientific"], where: { deviceId: { in: sound }, test: false, ts: { gte: new Date(now - 7 * 864e5) } } }) : [],
     ]);
     const pt = signalPoint(p, false);
     const hb = Math.max(0, ...p.devices.map((d) => ms(d.lastHeartbeatAt) ?? 0));

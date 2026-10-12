@@ -7,7 +7,7 @@ import { asRange, lastHeard, nodeData, nodeSignals, RANGES, signalPoint } from "
 import LastHeard from "@/components/node/LastHeard";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
-import { ago, fmtTime } from "@/lib/clock";
+import { ago, dayLabel, fmtTime } from "@/lib/clock";
 import LifeMap from "@/components/LifeMap";
 import Globe from "@/components/node/Globe";
 import LifeIndexChart from "@/components/node/LifeIndexChart";
@@ -209,6 +209,7 @@ export default async function NodePage({ params, searchParams }: Props) {
                 </tbody>
               </table>
             )}
+            {data.tests ? <p className="mt-2 text-xs text-muted">Not counted: {data.tests.n} test detection{data.tests.n === 1 ? "" : "s"} from {dayLabel(data.tests.first, data.zone)} to {dayLabel(data.tests.last, data.zone)}, made while the node was built. They show the box worked; they say nothing about the place.</p> : null}
           </div>
         </div>
       </section>
