@@ -5,9 +5,12 @@ import { prisma } from "@/lib/db";
 import { canSeeExact, publicPlace } from "@/lib/privacy";
 import { asRange, nodeData, nodeSignals, RANGES, signalPoint } from "@/lib/node";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
+import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
 import { ago, fmtTime } from "@/lib/clock";
 import LifeMap from "@/components/LifeMap";
 import Globe from "@/components/node/Globe";
+import LifeIndexChart from "@/components/node/LifeIndexChart";
+import Collapsible from "@/components/node/Collapsible";
 import SeriesChart from "@/components/node/SeriesChart";
 import HeartbeatStrip from "@/components/node/HeartbeatStrip";
 import DawnChorus from "@/components/node/DawnChorus";
@@ -17,25 +20,30 @@ export const dynamic = "force-dynamic";
 // box measured and how it is doing, never where it stands. The map point goes through `signalPoint`, which blurs it
 // for everyone who may not see the place exactly, and the cell id in the heartbeat is never shown.
 
-type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ range?: string | string[] }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ range?: string | string[]; index?: string | string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const p = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] }, select: { name: true } });
-  return { title: p ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: soil, sound, battery and heartbeats." };
+  return { title: p ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: the life index, soil, sound, battery and heartbeats." };
 }
 
 const STATUS_TEXT = { live: "on", stale: "quiet", silent: "silent" } as const;
 const STATUS_BG = { live: "bg-accent", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
-const STATUS_DOT = { live: "bg-[#8be28f]", stale: "bg-amber-400", silent: "bg-[#8a8f86]" } as const;
+const DIM_LABEL: Record<string, string> = { PRODUCTIVITY: "Productivity", DIVERSITY: "Diversity", STRUCTURE: "Structure", RENEWAL: "Renewal", CYCLING: "Cycling", RESILIENCE: "Resilience", AUTONOMY: "Autonomy" };
+const DIR_CLASS: Record<string, string> = { RISING: "text-green-800 bg-green-50 border-green-200", HOLDING: "text-lime-800 bg-lime-50 border-lime-200", FALLING: "text-red-800 bg-red-50 border-red-200", UNKNOWN: "text-gray-600 bg-gray-50 border-gray-200" };
+const VERDICT_BG: Record<string, string> = { thriving: "bg-green-700", holding: "bg-lime-600", declining: "bg-red-700", insufficient: "bg-gray-500" };
 
 export default async function NodePage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const range = asRange((await searchParams).range);
+  const sp = await searchParams;
+  const range = asRange(sp.range);
+  const indexRange = asIndexRange(sp.index);
   const stored = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
   if (!stored) notFound();
   const [exact, data] = await Promise.all([canSeeExact(stored), nodeData(stored, range)]);
   if (!data) notFound();
+  const index = await lifeIndexData(stored, indexRange, data.now);
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
   const status = signalStatus(data.last.heardAt, data.now);
@@ -58,9 +66,12 @@ export default async function NodePage({ params, searchParams }: Props) {
     { label: "Mobile network", value: last.network ? last.network.name : "no 4G seen", sub: last.network ? [last.network.rsrp !== null ? `${last.network.rsrp} dBm` : last.network.rssi !== null ? `${last.network.rssi} dBm` : "", last.unsent ? `${last.unsent} posts still queued` : ""].filter(Boolean).join(" · ") : "the stick had no network at the last post" },
     { label: "Heard today", value: `${data.heardToday} species`, sub: `${data.detectionsToday} detection${data.detectionsToday === 1 ? "" : "s"} · ${data.heardWeek} species this week` },
   ];
-  const q = (r: string) => `/places/${stored.slug}/node?range=${r}`;
+  const q = (r: string, i: string = indexRange) => `/places/${stored.slug}/node?range=${r}&index=${i}`;
   const soilProbes = data.soil.filter((p) => p.vwc.length || p.tempC.length || p.last);
   const chartProps = { from: data.from, to: data.to, zone: data.zone, night: data.night };
+  const latest = index.latest;
+  const unknownCount = latest ? latest.readings.filter((r) => r.direction === "UNKNOWN").length : 7;
+  const satSinceYear = index.satSince ? new Date(index.satSince).getUTCFullYear() : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -77,20 +88,60 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl bg-[#0f1611] text-white p-3 md:p-4 grid lg:grid-cols-5 gap-4 overflow-hidden">
+      <section className="mt-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Life index</h2>
+            <p className="text-sm text-muted max-w-3xl">One verdict for this place, read from three streams on one timeline. The seven readings are never summed: the weakest decides, and a stream that has not spoken yet makes the verdict <em>insufficient</em>, on purpose. The satellite has watched since {satSinceYear ?? "the archive began"}; sound and soil began when the node arrived.</p>
+          </div>
+          <div className="flex gap-1 text-sm">
+            {INDEX_RANGES.map((r) => <Link key={r.key} href={q(range, r.key)} className={`rounded-full px-3 py-1 border ${r.key === indexRange ? "bg-foreground text-white border-foreground" : "border-line bg-white hover:border-accent"}`}>{r.label}</Link>)}
+          </div>
+        </div>
+        <div className="mt-3 rounded-lg border border-line bg-white p-3">
+          <div className="flex flex-wrap items-center gap-3 mb-2">
+            <div className={`rounded-md text-white px-3 py-1.5 ${VERDICT_BG[latest?.verdict ?? "insufficient"]}`}>
+              <span className="text-xs uppercase tracking-wide opacity-80 mr-2">Verdict{latest ? ` · ${latest.period}` : ""}</span>
+              <span className="font-semibold capitalize">{latest ? (latest.verdict === "insufficient" ? "Insufficient data" : latest.verdict) : "Not yet computed"}</span>
+            </div>
+            <div className="text-xs text-muted">{latest ? (unknownCount ? `${unknownCount} of 7 readings still unknown: ${latest.reason.replace(/^unknown: /, "")}` : latest.reason) : "the worker computes the readings once the streams have arrived"}</div>
+          </div>
+          <LifeIndexChart data={index} />
+          {latest && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {latest.readings.map((r) => (
+                <span key={r.dimension} title={r.note ?? undefined} className={`inline-flex items-baseline gap-1 rounded-full border px-2.5 py-0.5 text-xs ${DIR_CLASS[r.direction] ?? DIR_CLASS.UNKNOWN}`}>
+                  <span className="font-medium">{DIM_LABEL[r.dimension] ?? r.dimension}</span>
+                  <span>{r.direction.toLowerCase()}</span>
+                  {r.direction !== "UNKNOWN" && <span className="opacity-70">· {Math.round(r.confidence * 100)}%</span>}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-muted">Satellite: {index.satTotal} clear Sentinel-2 scenes{satSinceYear ? ` since ${satSinceYear}` : ""}, computed here from Copernicus data. Sound: species recognised in the box (BirdNET-Go); only names leave the field. Soil: moisture and temperature from the probe at {index.soilDepthCm ?? "?"} cm; the breathing index in the readout is the cycling reading&apos;s own formula (Q10 of 2, moisture optimum {index.optimumVwc.toFixed(0)}% from the soil texture). Method: <Link className="underline" href="/docs/spec">the spec</Link>.</p>
+        </div>
+      </section>
+
+      <div className="mt-6 rounded-xl border border-line bg-white p-3 md:p-4 grid lg:grid-cols-5 gap-4 overflow-hidden">
         <div className="lg:col-span-3 relative">
           <Globe signals={allSignals} focus={{ lat: point.lat, lon: point.lon, name: stored.name }} height={420} now={data.now} />
-          <div className="absolute bottom-0 left-1 right-1 text-[11px] leading-snug text-white/45">Every post travels from the node to the oracle in Nuremberg; the rings run while the node is being heard. Drag to turn. Land from Natural Earth.</div>
+          <div className="absolute bottom-0 left-1 right-1 text-[11px] leading-snug text-muted">Every post travels from the node to the oracle in Nuremberg; the rings run while the node is being heard. Drag to turn. Land from Natural Earth.</div>
         </div>
         <div className="lg:col-span-2 grid grid-cols-2 gap-3 content-start">
           {tiles.map((t) => (
-            <div key={t.label} className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
-              <div className="text-xs text-white/55">{t.label}</div>
-              <div className="text-lg font-semibold mt-0.5 flex items-center gap-2">{t.dot && <span className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_DOT[t.dot]}`} />}{t.value}</div>
-              {t.sub && <div className="text-xs text-white/55 mt-0.5">{t.sub}</div>}
+            <div key={t.label} className="rounded-lg border border-line bg-background p-3">
+              <div className="text-xs text-muted">{t.label}</div>
+              <div className="text-lg font-semibold mt-0.5 flex items-center gap-2">{t.dot && <span className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_BG[t.dot]}`} />}{t.value}</div>
+              {t.sub && <div className="text-xs text-muted mt-0.5">{t.sub}</div>}
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mt-4">
+        <Collapsible summary={<><span className="font-semibold">Where it stands</span> <span className="text-muted">· {point.radiusM ? `somewhere in a circle of ${(point.radiusM / 1000).toFixed(0)} km; the exact spot is for the place's owner` : exact && stored.locationHidden ? "the exact spot, because this is your place" : "the exact spot"}</span></>}>
+          <LifeMap height="360px" center={[point.lat, point.lon]} zoom={point.radiusM ? (point.radiusM > 3000 ? 8 : 10) : 13} signals={[signal]} focus={exact ? (place.geometry as unknown as GeoJSON.Geometry) : null} />
+        </Collapsible>
       </div>
 
       <section className="mt-8">
@@ -157,12 +208,6 @@ export default async function NodePage({ params, searchParams }: Props) {
             )}
           </div>
         </div>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Where it stands</h2>
-        <p className="text-sm text-muted">{point.radiusM ? `Somewhere in this circle. The exact spot is for the place's owner.` : exact && stored.locationHidden ? "You see the exact spot because this is your place; everyone else sees a circle." : "The rings run while the box is being heard."}{lastSpecies ? ` Now and then the dot says what it last heard.` : ""}</p>
-        <div className="mt-3"><LifeMap height="340px" center={[point.lat, point.lon]} zoom={point.radiusM ? (point.radiusM > 3000 ? 10 : 12) : 15} signals={[signal]} focus={exact ? (place.geometry as unknown as GeoJSON.Geometry) : null} /></div>
       </section>
 
       <section className="mt-8 text-sm text-muted">
