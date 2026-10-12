@@ -11,7 +11,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### Every ordinary pause showed as a missed post
 
-*Learning.* Since the box went over to one message every three hours (11 October), the dashboard still expected one every two. So each ordinary pause was drawn as a red band, a post gone missing: today the box reported at 07:28, 10:28 and 13:28, exactly three hours apart, and both pauses in between showed as missed. A box that was fine also read as "quiet" for the last hour before each message. The rhythm is now three hours in one place in the code, and a silence counts as missed only after three and three-quarter hours, the same margin as before.
+*Learning.* Since the box went over to one message every three hours (11 October), the dashboard still expected one every two. So each ordinary pause was drawn as a red band, a post gone missing: today the box reported at 07:28, 10:28 and 13:28, exactly three hours apart, and both pauses in between showed as missed. A box that was fine also read as "quiet" for the last hour before each message. The rhythm is now three hours in one place in the code, and a silence counts as missed only after three and three-quarter hours, the same margin as before. [#88](https://github.com/oncra/life/pull/88)
 
 ### One bird, one name, and the birds for other sites
 
