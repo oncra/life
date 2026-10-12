@@ -407,6 +407,9 @@ model SpeciesImage {
   image      Bytes?
   width      Int?
   height     Int?
+  /// common names by language (en, nl, de, fr, es, zh) from Wikidata, for sites that show the birds in their own
+  /// language; {} when Wikidata had none, null until the worker has looked
+  names      Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

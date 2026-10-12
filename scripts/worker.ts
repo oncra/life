@@ -10,7 +10,7 @@ import { computeReadings } from "../src/lib/compute";
 import type { PlaceGeometry } from "../src/lib/geo";
 import { pollBirdWeather } from "../src/lib/birdweather";
 import { enrichPlaceContext } from "../src/lib/context";
-import { speciesImageSweep } from "../src/lib/species-image";
+import { speciesImageSweep, speciesNameSweep } from "../src/lib/species-image";
 
 const CONCURRENCY = Number(process.env.SAT_CONCURRENCY ?? 4);
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
@@ -83,6 +83,8 @@ async function schedule() {
     }
     // a cut-out picture for every species heard that has none yet (the node dashboard shows the last five heard)
     try { const made = await speciesImageSweep(log); if (made) log(`species images: ${made} made`); } catch (e) { log("species images:", String(e).slice(0, 200)); }
+    // and their common names in the languages the sites show, for the ones that have none yet
+    try { const named = await speciesNameSweep(log); if (named) log(`species names: ${named} named`); } catch (e) { log("species names:", String(e).slice(0, 200)); }
   }
   if (now - lastSchedule < 6 * 3600e3) return;
   lastSchedule = now;

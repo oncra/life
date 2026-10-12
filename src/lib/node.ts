@@ -7,7 +7,7 @@ import { batteryOf } from "./battery";
 import { DEFAULT_BLUR_M } from "./privacy";
 import { DISPLAY_ZONE, dayLabel, dayStart, dayStarts } from "./clock";
 import { nights } from "./sun";
-import { type NodeSignal } from "./node-signal";
+import { POST_EVERY_H, type NodeSignal } from "./node-signal";
 export { POST_EVERY_H, signalStatus, type NodeSignal } from "./node-signal";
 
 export type Range = "24h" | "7d" | "30d" | "all";
@@ -171,39 +171,92 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
   };
 }
 
-/** The most recently heard species on a place, each with its latest detection and its cut-out picture when the
- * worker has made one (src/lib/species-image.ts). */
+/** The most recently heard species, newest first, each with its latest detection and its cut-out picture when the
+ * worker has made one (src/lib/species-image.ts). One row per species, whatever name it came under: BirdNET-Go's own
+ * database keeps only the scientific name, and clients/birdnet-pi-push.py falls back to it when BirdNET-Go has no
+ * common name to hand, so the node may send "Corvus corone" an hour after "Carrion Crow". They are one bird. A species
+ * is its scientific name; the row is named by a common name if any detection or picture of that species carries one. */
 export type HeardRow = {
-  species: string; scientific: string | null; t: number; confidence: number; status: string | null;
+  /** the species as one thing: its scientific name, or the detector's name when it gave no scientific one */
+  key: string;
+  /** the common name (the detector's, else Wikidata's English one), else the scientific name */
+  species: string; scientific: string | null;
+  /** common names by language from Wikidata (en, nl, de, fr, es, zh), when the worker has looked them up */
+  names: Record<string, string> | null;
+  t: number; confidence: number; status: string | null; placeId: string;
   image: { id: string; width: number; height: number; author: string | null; license: string | null; licenseUrl: string | null; sourceUrl: string | null; title: string | null } | null;
 };
-export async function lastHeard(placeId: string, n = 5): Promise<HeardRow[]> {
-  const rows = await prisma.$queryRaw<{ species: string; scientific: string | null; ts: Date; confidence: number }[]>`
-    select species, scientific, ts, confidence from (
-      select distinct on (species) species, scientific, ts, confidence from "SoundDetection"
-      where "deviceId" in (select id from "Device" where "placeId" = ${placeId}) order by species, ts desc) x
-    order by ts desc limit ${n}`;
+export async function heard(opts: { placeId?: string; limit?: number; minConfidence?: number; withImage?: boolean } = {}): Promise<HeardRow[]> {
+  const n = Math.max(1, Math.min(opts.limit ?? 5, 50));
+  const placeId = opts.placeId ?? null;
+  // with pictures only, read further down the list: a species heard for the first time waits up to an hour for its own
+  const rows = await prisma.$queryRaw<{ key: string; species: string; scientific: string | null; ts: Date; confidence: number; placeId: string }[]>`
+    select key, species, scientific, ts, confidence, "placeId" from (
+      select distinct on (coalesce(d.scientific, d.species)) coalesce(d.scientific, d.species) as key,
+        d.species, d.scientific, d.ts, d.confidence, v."placeId"
+      from "SoundDetection" d join "Device" v on v.id = d."deviceId"
+      where (${placeId}::text is null or v."placeId" = ${placeId}::text) and d.confidence >= ${opts.minConfidence ?? 0}
+      order by coalesce(d.scientific, d.species), d.ts desc) x
+    order by ts desc limit ${opts.withImage ? 200 : n}`;
   if (rows.length === 0) return [];
-  const imgs = await prisma.speciesImage.findMany({ where: { species: { in: rows.map((r) => r.species) } }, select: { id: true, species: true, status: true, width: true, height: true, author: true, license: true, licenseUrl: true, sourceUrl: true, title: true } });
-  return rows.map((r) => {
-    const i = imgs.find((x) => x.species === r.species);
-    return {
-      species: r.species, scientific: r.scientific, t: r.ts.getTime(), confidence: r.confidence, status: i?.status ?? null,
-      image: i && i.status === "ready" ? { id: i.id, width: i.width ?? 0, height: i.height ?? 0, author: i.author, license: i.license, licenseUrl: i.licenseUrl, sourceUrl: i.sourceUrl, title: i.title } : null,
-    };
+  const keys = rows.map((r) => r.key);
+  const imgs = await prisma.speciesImage.findMany({
+    where: { OR: [{ species: { in: [...new Set([...keys, ...rows.map((r) => r.species)])] } }, { scientific: { in: keys } }] },
+    select: { id: true, species: true, scientific: true, status: true, width: true, height: true, author: true, license: true, licenseUrl: true, sourceUrl: true, title: true, names: true },
   });
+  const out: HeardRow[] = [];
+  for (const r of rows) {
+    const mine = imgs.filter((i) => i.species === r.species || i.species === r.key || i.scientific === r.key);
+    const common = r.species !== r.key ? r.species : (mine.find((i) => i.species !== r.key)?.species ?? null);
+    const ready = mine.filter((i) => i.status === "ready");
+    const img = ready.find((i) => i.species === common) ?? ready.find((i) => i.species === r.species) ?? ready[0] ?? null;
+    if (opts.withImage && !img) continue;
+    const named = [img, ...mine].find((i) => i?.names && typeof i.names === "object" && Object.keys(i.names).length)?.names as Record<string, string> | undefined;
+    out.push({
+      key: r.key, species: common ?? named?.en ?? r.species, scientific: r.scientific ?? img?.scientific ?? null, names: named ?? null,
+      t: r.ts.getTime(), confidence: r.confidence, status: img?.status ?? mine[0]?.status ?? null, placeId: r.placeId,
+      image: img ? { id: img.id, width: img.width ?? 0, height: img.height ?? 0, author: img.author, license: img.license, licenseUrl: img.licenseUrl, sourceUrl: img.sourceUrl, title: img.title } : null,
+    });
+    if (out.length >= n) break;
+  }
+  return out;
+}
+/** The node dashboard's row: the last species heard on one place, every confidence. */
+export function lastHeard(placeId: string, n = 5): Promise<HeardRow[]> {
+  return heard({ placeId, limit: n });
 }
 
-/** Species heard, with counts for today (local), the past seven days and all time. */
+/** Whether a node is listening, for a page that shows what it hears: `asleep` after a planned shutdown (the field
+ * schedule switches it off part of the day to spare the battery), `listening` while it posts in its rhythm, `quiet`
+ * when a post is late, `silent` when the SILENT alert would be open. */
+export type NodeState = { placeId: string; slug: string; status: "listening" | "asleep" | "quiet" | "silent"; heardAt: number | null; lastEvent: string | null };
+export async function nodeStates(now = Date.now(), placeId?: string): Promise<NodeState[]> {
+  const places = await prisma.place.findMany({
+    where: { ...(placeId ? { id: placeId } : {}), devices: { some: { OR: [{ lastHeartbeatAt: { not: null } }, { lastSeenAt: { not: null } }] } } },
+    select: { id: true, slug: true, devices: { select: { id: true, lastHeartbeatAt: true, lastSeenAt: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  return Promise.all(places.map(async (p) => {
+    const seen = Math.max(0, ...p.devices.map((d) => ms(d.lastSeenAt) ?? 0), ...p.devices.map((d) => ms(d.lastHeartbeatAt) ?? 0)) || null;
+    const beat = await prisma.heartbeat.findFirst({ where: { deviceId: { in: p.devices.map((d) => d.id) } }, orderBy: { ts: "desc" }, select: { ts: true, event: true } });
+    const age = seen ? now - seen : Infinity;
+    const status: NodeState["status"] = beat?.event === "shutdown" && age < 36 * 3600e3 ? "asleep"
+      : age < (POST_EVERY_H + 1) * 3600e3 ? "listening" : age < 36 * 3600e3 ? "quiet" : "silent";
+    return { placeId: p.id, slug: p.slug, status, heardAt: seen, lastEvent: beat?.event ?? null };
+  }));
+}
+
+/** Species heard, with counts for today (local), the past seven days and all time: one row per species, named by its
+ * common name when any detection carries one (see `HeardRow`). */
 async function speciesTable(ids: string[], zone: string, now: number): Promise<SpeciesRow[]> {
   if (ids.length === 0) return [];
   const rows = await prisma.$queryRaw<{ species: string; scientific: string | null; today: number; week: number; total: number; conf: number; last: Date }[]>`
-    select species, max(scientific) as scientific,
+    select coalesce(max(species) filter (where scientific is null or species <> scientific), max(species)) as species, max(scientific) as scientific,
       (count(*) filter (where ts >= ${iso(dayStart(now, zone))}::timestamptz at time zone 'UTC'))::int as today,
       (count(*) filter (where ts >= ${iso(now - 7 * 864e5)}::timestamptz at time zone 'UTC'))::int as week,
       count(*)::int as total, max(confidence)::float as conf, max(ts) as last
     from "SoundDetection" where "deviceId" = any(${ids}::text[])
-    group by species order by week desc, total desc, last desc limit 80`;
+    group by coalesce(scientific, species) order by week desc, total desc, last desc limit 80`;
   return rows.map((r) => ({ ...r, last: r.last.getTime() }));
 }
 
@@ -257,7 +310,7 @@ export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
     const sound = p.devices.filter((d) => d.kind === "SOUND").map((d) => d.id);
     const [det, week] = await Promise.all([
       sound.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: sound } }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
-      sound.length ? prisma.soundDetection.groupBy({ by: ["species"], where: { deviceId: { in: sound }, ts: { gte: new Date(now - 7 * 864e5) } } }) : [],
+      sound.length ? prisma.soundDetection.groupBy({ by: ["species", "scientific"], where: { deviceId: { in: sound }, ts: { gte: new Date(now - 7 * 864e5) } } }) : [],
     ]);
     const pt = signalPoint(p, false);
     const hb = Math.max(0, ...p.devices.map((d) => ms(d.lastHeartbeatAt) ?? 0));
@@ -265,7 +318,7 @@ export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
     out.push({
       slug: p.slug, name: p.name, lat: pt.lat, lon: pt.lon, radiusM: pt.radiusM,
       heardAt: seen ? new Date(seen).toISOString() : null, heartbeatAt: hb ? new Date(hb).toISOString() : null,
-      lastSpecies: det?.species ?? null, lastSpeciesAt: det?.ts.toISOString() ?? null, speciesWeek: week.length, href: `/places/${p.slug}/node`,
+      lastSpecies: det?.species ?? null, lastSpeciesAt: det?.ts.toISOString() ?? null, speciesWeek: new Set(week.map((w) => w.scientific ?? w.species)).size, href: `/places/${p.slug}/node`,
     });
   }
   return out;

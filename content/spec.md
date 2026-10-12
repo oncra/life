@@ -30,7 +30,7 @@ Backfill covers seven years on registration (enough to contain the 2018, 2020 an
 
 A **device** of kind SOUND delivers either or both of:
 
-- **detections**: `{ts, species, scientific?, confidence 0..1, detector, durationS?}`. Species strings follow the detector's label set (BirdNET common names for birds; BattyBirdNET or BatDetect2 for bats; your own labels for insects, frogs, machines). Machine classes (engine, vehicle, siren, chainsaw, tractor) are recognised by name for the Autonomy reading.
+- **detections**: `{ts, species, scientific?, confidence 0..1, detector, durationS?}`. Species strings follow the detector's label set (BirdNET common names for birds; BattyBirdNET or BatDetect2 for bats; your own labels for insects, frogs, machines). Where `scientific` is given it is the species' identity: two detections with the same scientific name are the same species, whatever their `species` string. Machine classes (engine, vehicle, siren, chainsaw, tractor) are recognised by name for the Autonomy reading.
 - **acoustic indices** over a window: `{ts, windowS, aci, adi, aei, bio, ndsi, biophony, anthrophony, spl}` as defined in scikit-maad.
 
 Raw audio is never uploaded to the oracle. Processing happens at the edge (the standard node runs BirdNET-Go on its own computer; a BirdWeather PUC runs BirdNET in firmware) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Edge inference is what keeps a node inside a 500 MB ten-year SIM. Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
@@ -57,7 +57,7 @@ Growing-season mean NDVI per year (April to September in the north, October to M
 
 ### 3.2 Diversity (built)
 
-Distinct species with detection confidence ≥ 0.7 per calendar year. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied).
+Distinct species with detection confidence ≥ 0.7 per calendar year. A species is its scientific name where the detector gives one, so a bird that arrives under both its common and its scientific name (BirdNET-Go's database keeps only the latter) counts once. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied).
 
 ### 3.3 Structure (built)
 

@@ -84,7 +84,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
     soundIds.length
       ? prisma.$queryRaw<{ day: string; detections: number; species: number }[]>`
         select to_char((ts at time zone 'UTC') at time zone ${zone}, 'YYYY-MM-DD') as day, count(*)::int as detections,
-          (count(distinct species) filter (where confidence >= 0.7))::int as species
+          (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7))::int as species
         from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and ts >= ${iso(from)}::timestamptz at time zone 'UTC' and ts <= ${iso(to)}::timestamptz at time zone 'UTC'
         group by 1 order by 1`
       : [],

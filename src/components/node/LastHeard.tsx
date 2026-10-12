@@ -17,7 +17,7 @@ export default function LastHeard({ items, now, zone }: { items: HeardRow[]; now
         {items.map((it, i) => {
           const sci = it.scientific && it.scientific !== it.species ? it.scientific : null;
           return (
-            <figure key={it.species} className="rounded-xl border border-line bg-white px-3 pt-4 pb-3 text-center">
+            <figure key={it.key} className="rounded-xl border border-line bg-white px-3 pt-4 pb-3 text-center">
               <div className="h-36 flex items-end justify-center">
                 {it.image ? (
                   <Image src={`/api/species-image/${it.image.id}.webp`} alt={it.species} width={it.image.width || 400} height={it.image.height || 300} unoptimized priority={i < 3} className="max-h-36 w-auto max-w-full object-contain drop-shadow-[0_12px_12px_rgba(27,31,26,0.22)]" />
@@ -37,7 +37,7 @@ export default function LastHeard({ items, now, zone }: { items: HeardRow[]; now
       {credits.length > 0 && (
         <p className="mt-2 text-[11px] text-muted leading-snug">
           Photos from Wikimedia Commons, cut out here: {credits.map((c, i) => (
-            <span key={c.species}>{i > 0 ? " · " : ""}{c.species}{c.image!.sourceUrl ? <> by <a className="underline" href={c.image!.sourceUrl}>{c.image!.author ?? "unknown"}</a></> : c.image!.author ? ` by ${c.image!.author}` : ""}{c.image!.license ? <> ({c.image!.licenseUrl ? <a className="underline" href={c.image!.licenseUrl}>{c.image!.license}</a> : c.image!.license})</> : ""}</span>
+            <span key={c.key}>{i > 0 ? " · " : ""}{c.species}{c.image!.sourceUrl ? <> by <a className="underline" href={c.image!.sourceUrl}>{c.image!.author ?? "unknown"}</a></> : c.image!.author ? ` by ${c.image!.author}` : ""}{c.image!.license ? <> ({c.image!.licenseUrl ? <a className="underline" href={c.image!.licenseUrl}>{c.image!.license}</a> : c.image!.license})</> : ""}</span>
           ))}
         </p>
       )}

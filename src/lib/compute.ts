@@ -6,7 +6,7 @@ export async function computeReadings(placeId: string) {
   const place = await prisma.place.findUniqueOrThrow({ where: { id: placeId } });
   const [sat, dets, idx, soil] = await Promise.all([
     prisma.satelliteObs.findMany({ where: { placeId }, orderBy: { date: "asc" } }),
-    prisma.soundDetection.findMany({ where: { device: { placeId } }, select: { ts: true, species: true, confidence: true } }),
+    prisma.soundDetection.findMany({ where: { device: { placeId } }, select: { ts: true, species: true, scientific: true, confidence: true } }),
     prisma.acousticIndex.findMany({ where: { device: { placeId } }, select: { ts: true, ndsi: true, anthrophony: true, biophony: true, adi: true } }),
     prisma.soilReading.findMany({ where: { device: { placeId } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
   ]);
