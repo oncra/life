@@ -22,8 +22,8 @@ export function asRange(s: string | string[] | undefined): Range {
   return RANGES.some((r) => r.key === k) ? (k as Range) : "7d";
 }
 
-/** Longer than the two-hour posting rhythm (POST_EVERY_H) plus the margin a slow post needs: a silence. */
-const MISSED_MS = 2.75 * 3600e3;
+/** Longer than the posting rhythm (POST_EVERY_H) plus the margin a slow post needs: a silence. */
+const MISSED_MS = (POST_EVERY_H + 0.75) * 3600e3;
 /** A heartbeat this soon after the box came up is its first after a start. */
 const STARTED_S = 900;
 

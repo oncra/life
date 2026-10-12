@@ -350,7 +350,7 @@ function Lights({ live, href }: { live: Live; href: string }) {
   return (
     <div className="mt-5 rounded-lg border border-line p-3">
       <div className="font-medium flex items-baseline justify-between gap-3">What the box has sent <a className="text-sm font-normal underline" href={href}>Over time →</a></div>
-      <p className="text-sm text-muted">The box posts every two hours; this page shows the latest post. The dashboard behind the link shows the whole run.</p>
+      <p className="text-sm text-muted">The box posts every three hours; this page shows the latest post. The dashboard behind the link shows the whole run.</p>
       <ul className="mt-2 grid gap-1.5 text-sm">
         {rows.map((r) => (
           <li key={r.label} className="flex items-start gap-2">
