@@ -149,7 +149,7 @@ export default async function NodePage({ params, searchParams }: Props) {
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold">Heartbeats</h2>
-        <p className="text-sm text-muted">Every post the box made. It posts three minutes after a start, every two hours after that, and once more when it switches itself off. A silence after a shutdown is sleep; a silence without one means a post went missing.</p>
+        <p className="text-sm text-muted">Every post the box made. It posts three minutes after a start, every three hours after that, and once more when it switches itself off. A silence after a shutdown is sleep; a silence without one means a post went missing.</p>
         <div className="mt-3 rounded-lg border border-line bg-white p-3"><HeartbeatStrip beats={data.beats} gaps={data.gaps} now={data.now} {...chartProps} /></div>
       </section>
 

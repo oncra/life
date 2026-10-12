@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 12 October 2026
 
+### Every ordinary pause showed as a missed post
+
+*Learning.* Since the box went over to one message every three hours (11 October), the dashboard still expected one every two. So each ordinary pause was drawn as a red band, a post gone missing: today the box reported at 07:28, 10:28 and 13:28, exactly three hours apart, and both pauses in between showed as missed. A box that was fine also read as "quiet" for the last hour before each message. The rhythm is now three hours in one place in the code, and a silence counts as missed only after three and three-quarter hours, the same margin as before. [#88](https://github.com/oncra/life/pull/88)
+
 ### One bird, one name, and the birds for other sites
 
 *Learning.* Node 1 had heard 35 species by name but only 30 by scientific name: five birds arrived under both. The jackdaw came in as "Eurasian Jackdaw" and as "Coloeus monedula", and the carrion crow, the magpie, the tree pipit and the common redstart did the same. BirdNET-Go's own database keeps only the scientific name; the box asks BirdNET-Go for the common one, and when it has none to hand it sends the Latin rather than make a detection wait. So the dashboard showed the crow twice among its last five, and the diversity reading counted those five species twice, where the spec says distinct species. A species is now its scientific name everywhere it is counted (the diversity reading, the life index, the dashboard's species table and its last five), and the row takes a common name if any detection or picture of that bird carries one.
