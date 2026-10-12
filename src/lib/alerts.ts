@@ -19,7 +19,8 @@ import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
  * bearer, when those are set. Any endpoint that takes that shape will do; there is no mail from here.
  *
  * A second, quieter hook is for a status line somewhere a steward already looks: CHECKIN_WEBHOOK_URL gets one
- * short line per heartbeat ("checked in, battery 12.9 V, 14 °C in the box") and one per opened alert, as
+ * short line per heartbeat ("checked in, battery 12.9 V, 14 °C in the box", linked to the node dashboard) and one per
+ * opened alert (linked to the place page), as
  * {who, text, url, tag, tone} with tone "close" for a check-in and "urgent" for an alert, CHECKIN_WEBHOOK_TOKEN
  * as bearer. It never holds a heartbeat up for more than a few seconds and never fails one.
  */
@@ -178,7 +179,9 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   if (process.env.CHECKIN_WEBHOOK_URL) {
     const d = await placeOf(deviceId);
     const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
-    await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
+    // the node dashboard, not the place page: it is public also for a private place, so the link opens for
+    // whoever reads the line, signed in or not (a private place page answers 404 to a reader without a session)
+    await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}/node`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
   }
   return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
 }
