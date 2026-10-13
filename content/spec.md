@@ -34,17 +34,16 @@ A **device** of kind SOUND delivers either or both of:
 - **test detections**: a detection marked `test` was made while the node was built or tested (birdsong played from a phone, a recording held to the microphone). It stays in the database as proof the microphone and the pipeline worked, and it counts nowhere as life: not in any reading, not in the life index, not in the species lists, not in the open data. Only the node's own liveness light on `/box` sees it.
 - **acoustic indices** over a window: `{ts, windowS, aci, adi, aei, bio, ndsi, biophony, anthrophony, spl}` as defined in scikit-maad.
 
-**Listening hours (built, 2026-10-12).** The readings count detections only inside the **core** listening windows, computed by the oracle for the place's centroid, the same at every place and in every year:
+**Listening hours (built 2026-10-12, one window length since 2026-10-13).** The readings count detections only inside the listening windows, computed by the oracle for the place's centroid, the same at every place, on every day of a season and in every year:
 
-| Months | Core | Extra hours a node may add |
-| :-- | :-- | :-- |
-| May, June, July | 6 h from civil dawn and 1 h from sunset | the second hour after sunset |
-| March, April, August, September, October | 4 h from civil dawn and 1 h from sunset | the dawn window to 6 h after civil dawn, and the second hour after sunset |
-| November to February | 2 h from sunrise | none |
+| Months | Listening windows |
+| :-- | :-- |
+| March to October | 4 h from civil dawn and 1 h from sunset |
+| November to February | 2 h from sunrise |
 
-South of the equator the months are six on. The standard node listens to the full windows when its battery allows and to the core alone when it does not (it reads its battery at wake-up and ends a window with its core below `EXTRA_MIN_V`, 13.1 V by default; `node/image/life-extra.py`). Extra hours, and every hour of a recorder that never sleeps, are kept and shown on the node dashboard but never counted, so a node on a weak panel, a station that listens all day and a node in a sunny year are read on the same hours. Every heartbeat says which window the node woke for and whether its extra hours ran (`window`, `extra`, `extraV`). The core can change only with a new version of this method; the extra hours can change without breaking any series.
+South of the equator the months are six on. The standard node listens to exactly these windows (`node/image/life-schedule-wpi.py`), so its effort is the same on every day it is compared over: a species count per day, per month or per season means the same number of listening hours. Hours outside the windows, from a recorder that never sleeps or a node on a bench, are kept and shown on the node dashboard but never counted, so a node and a station that listens all day are read on the same hours. A window the node misses because its battery guard has stopped it (below 12.6 V at its scheduler's input, back above 13.2 V; `node/image/life-wittypi.sh`) is a gap in the heartbeats, not a shorter window. The windows can change only with a new version of this method. Until 13 October 2026, before any node had listened to them, the dawn window was 6 h in May, June and July and a node added extra hours when its battery allowed; one length all season was chosen because it is easier to read and leaves the battery more slack, at the small cost shown below.
 
-Why these hours, from two checks run before the first baseline year. A year (2025) of four Dutch BirdWeather stations that record 24 hours a day (small-scale farmland, rural, a wetland reserve and urban green; every second day, confidence 0.7 or more) was replayed against each schedule: listening to 4 h from civil dawn keeps 88 to 93% of the species those stations hear on three or more days of the full day, and the curve bends there (3 h: 87 to 91%, 2 h: 86% on average); the fifth and sixth hour add about the same in every month from March to October, so the case for longer windows in midsummer is energy, not birds; and the sampling noise of a yearly species count is 2 to 3% at every window length, so shorter windows shorten the list without making it noisier. The battery was simulated hour by hour on PVGIS output for 2005 to 2023 (40 Wp at 45 degrees facing south, 20 Ah LiFePO4, no charging below 0 C): with the panel at half its output all year, or at 30% from June to September as under a crop or a hedge, the core lost no listening on average and at most 3% in the worst month of those 19 years, while the extra hours ran on 79 to 100% of days; with the panel at 30% all year the core loses 10 to 12% in October, December and January, a site that needs the 100 W panel. A calendar alone could not do this: overgrowth comes in exactly the months a calendar would lengthen, and the battery is the only thing on the node that knows.
+Why these hours, from two checks run before the first baseline year. A year (2025) of four Dutch BirdWeather stations that record 24 hours a day (small-scale farmland, rural, a wetland reserve and urban green; every second day, confidence 0.7 or more) was replayed against each schedule. These windows hear 85 to 93% of the species those stations hear on at least three days of the full day, and 68 to 81% of them on three days or more; the curve bends at 3 to 4 hours of dawn listening, and the fifth and sixth hour add about the same in every month from March to October. A 6-hour dawn window in May to July would add 1 to 2 points to the first figure, up to 2 to the second and 3 to 6 points to the days a daytime farm bird is heard (a swallow, a wagtail, a lapwing), against a summer day that costs a quarter more energy. The sampling noise of a yearly species count is 2 to 3% at every window length, so shorter windows shorten the list without making it noisier. The battery was simulated hour by hour on PVGIS output for 2005 to 2023 (40 Wp at 45 degrees facing south, 20 Ah LiFePO4, no charging below 0 C): with the panel at half its output all year, or at 30% from June to September as under a crop or a hedge, the node lost no listening from March to October, and at most 3% in the worst winter month of those 19 years, and the battery stayed above half full on all but 0.3% of the days from March to October (with the extra hours of 12 October, 3 to 6%). With the panel at 30% all year it loses 2% in October and 7 to 9% in December and January, a site that needs the 100 W panel.
 
 Raw audio is never uploaded to the oracle. Processing happens at the edge (the standard node runs BirdNET-Go on its own computer; a BirdWeather PUC runs BirdNET in firmware) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Edge inference is what keeps a node inside a 500 MB ten-year SIM. Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
 
@@ -70,7 +69,7 @@ Growing-season mean NDVI per year (April to September in the north, October to M
 
 ### 3.2 Diversity (built)
 
-Distinct species with detection confidence ≥ 0.7 per calendar year, counted from detections inside the core listening windows (2.2). A species is its scientific name where the detector gives one, so a bird that arrives under both its common and its scientific name (BirdNET-Go's database keeps only the latter) counts once. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied).
+Distinct species with detection confidence ≥ 0.7 per calendar year, counted from detections inside the listening windows (2.2). A species is its scientific name where the detector gives one, so a bird that arrives under both its common and its scientific name (BirdNET-Go's database keeps only the latter) counts once. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied).
 
 ### 3.3 Structure (built)
 
@@ -78,7 +77,7 @@ Median NDSI (biophony minus anthrophony, normalised) per year from delivered ind
 
 ### 3.4 Renewal (built)
 
-Count of detections in the breeding window (April to June north, October to December south) per year, inside the core listening windows (2.2). Needs two years. Relative change ±15%. Specified: restrict to song rather than calls where the detector distinguishes them; add seedling and juvenile observations from visits.
+Count of detections in the breeding window (April to June north, October to December south) per year, inside the listening windows (2.2). Needs two years. Relative change ±15%. Specified: restrict to song rather than calls where the detector distinguishes them; add seedling and juvenile observations from visits.
 
 ### 3.5 Cycling (built, method cycling-v0.2)
 
@@ -102,7 +101,7 @@ From the satellite archive: a shock is a growing season more than 15% below the 
 
 ### 3.7 Autonomy (built)
 
-Machine-noise signal per year: summed anthrophony from indices plus count of machine-class detections inside the core listening windows (2.2). Needs two years. Less machine noise is rising (±15%). Specified: inputs and subsidies per hectare from steward declarations, cross-checked against satellite-detected field operations.
+Machine-noise signal per year: summed anthrophony from indices plus count of machine-class detections inside the listening windows (2.2). Needs two years. Less machine noise is rising (±15%). Specified: inputs and subsidies per hectare from steward declarations, cross-checked against satellite-detected field operations.
 
 ### 3.8 Humans in the place (specified)
 

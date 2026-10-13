@@ -21,7 +21,7 @@ This applies to the standard [Life node](kit.md), where the microphone sits in t
 
 ## Schedule
 
-- **Node**: the network's listening schedule ([spec](spec.md), 2.2): March to October from civil dawn (a core of 4 hours, 6 in May to July, and up to 6 hours when the battery allows) and from sunset (a core of 1 hour, up to 2), November to February 2 hours from sunrise. The readings count only the core, so every node is read on the same hours. The node computes the windows itself for its place at every boot; nothing is set in the field. Acoustic-index variance stabilises after about 120 recording hours, so a schedule reads the same directions as a continuous stream.
+- **Node**: the network's listening hours ([spec](spec.md), 2.2): March to October 4 hours from civil dawn and 1 hour from sunset, November to February 2 hours from sunrise, the same windows on every day of a season. The readings count only these hours, so every node is read on the same hours. The node computes the windows itself for its place at every boot; nothing is set in the field. Acoustic-index variance stabilises after about 120 recording hours, so a schedule reads the same directions as a continuous stream.
 - **Offline recorders**: birds 1 h before sunrise to 3 h after, plus 1 h around sunset, at 48 kHz. Summer addition for crickets and frogs 22:00 to 02:00. Bats sunset −30 min to sunrise +30 min, trigger-based, 256 to 384 kHz. The AudioMoth configuration app computes battery life for the schedule; a dawn/dusk schedule runs 6 to 8 weeks on three lithium AA cells.
 - **A PUC on mains or a large panel** runs continuously.
 

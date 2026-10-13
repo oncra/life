@@ -1,6 +1,7 @@
-# Life node, March to October, fallback only: the dawn window from 05:00 for 6 hours and the dusk window from 20:00 for
-# 2 hours, at fixed local clock time. life-schedule writes the schedule computed for the node's place instead, and uses
-# this file only if that computation fails
+# Life node, March to October, fallback only: from 05:00 for 6 hours and from 20:00 for 2 hours, at fixed local clock
+# time. A fixed clock cannot follow the sun, so it is wider than the windows (4 h from civil dawn and 1 h from sunset)
+# to hold them on most days; the readings count only the windows themselves. life-schedule writes the schedule computed
+# for the node's place instead, and uses this file only if that computation fails
 BEGIN	2026-03-01 05:00:00
 END	2035-12-31 23:59:59
 ON	H6

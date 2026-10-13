@@ -23,5 +23,29 @@ want=${WITTYPI_DEFAULT_ON:-1}
 if [ "$(r 17)" != "$want" ]; then
   i2cset -y $BUS $ADDR 17 "$want" && echo "life-wittypi: default ON set to $want"
 fi
-echo "life-wittypi: Witty Pi (id $id) in the supply path, input ${vin}.$(printf %02d $vind) V, default ON $(r 17)"
+# The battery guard. Below WITTYPI_LOW_V at its input the board shuts the Pi down cleanly, and after such a stop it
+# switches the Pi on again once its input is above WITTYPI_RECOVERY_V, which on a node means the panel is charging.
+# Both are needed: with only the low level the board skips a scheduled start that comes while the battery is still
+# low, and the alarm does not come round again for a month. The charge controller's own load disconnect sits lower
+# and cuts hard; on node 1's first battery test it let a LiFePO4 run down into its BMS (12 October 2026). life-window
+# sends a node the board woke outside its windows back to sleep. The board keeps both levels (registers 19 and 22, in
+# tenths of a volt, 255 = off); they are written only when they change. WITTYPI_LOW_V=0 switches the guard off, for a
+# node on a mains adapter, whose 12 V would sit below the low level; the recovery level then goes off with it, because
+# on its own it switches the Pi on whenever the input is above it, so the node could never sleep.
+lowv=${WITTYPI_LOW_V:-12.6}; recv=${WITTYPI_RECOVERY_V:-13.2}
+tenths() { awk -v v="$1" 'BEGIN { if (v + 0 == 0) print 255; else if (v >= 2 && v <= 25) printf "%d\n", v * 10 + 0.5; else print "bad" }'; }
+lo=$(tenths "$lowv"); re=$(tenths "$recv")
+[ "$lo" = 255 ] && re=255
+if [ "$lo" = bad ] || [ "$re" = bad ]; then
+  echo "life-wittypi: WARNING battery guard out of range (2.0 to 25.0 V, or 0 for off): low $lowv, recovery $recv; left as it is"
+elif [ "$lo" != 255 ] && [ "$re" != 255 ] && [ "$re" -le "$lo" ]; then
+  echo "life-wittypi: WARNING recovery $recv V must be above the low-voltage stop $lowv V; left as it is"
+else
+  [ "$(r 19)" != "$lo" ] && i2cset -y $BUS $ADDR 19 "$lo" && echo "life-wittypi: low-voltage stop set to $lowv V"
+  [ "$(r 22)" != "$re" ] && i2cset -y $BUS $ADDR 22 "$re" && echo "life-wittypi: recovery set to $recv V"
+  [ "$lo" != 255 ] && [ "$re" = 255 ] && echo "life-wittypi: WARNING a low-voltage stop without a recovery level can leave the node asleep until someone presses the button"
+  [ "$lo" != 255 ] && [ $((vin * 10 + vind / 10)) -lt "$lo" ] && echo "life-wittypi: WARNING input ${vin}.$(printf %02d $vind) V is below the low-voltage stop; the board will shut the Pi down (a mains adapter wants WITTYPI_LOW_V=0)"
+fi
+lvl() { local x; x=$(r "$1"); [ "$x" = 255 ] && echo off || awk -v t="$x" 'BEGIN { printf "%.1f V\n", t / 10 }'; }
+echo "life-wittypi: Witty Pi (id $id) in the supply path, input ${vin}.$(printf %02d $vind) V, default ON $(r 17), stop below $(lvl 19), on again above $(lvl 22)"
 exit 0

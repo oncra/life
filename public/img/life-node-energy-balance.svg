@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="520" viewBox="0 0 880 520" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
 <rect width="880" height="520" fill="#fcfcfb"/>
 <text x="64" y="26" font-size="15" font-weight="600" fill="#111111">Where the panel size is actually decided</text>
-<text x="64" y="45" font-size="12" fill="#52514e">Wh/day. Harvest shaded to 20% Apr-Sep for a crop canopy. Load: the full day with extra hours, and the core alone.</text>
+<text x="64" y="45" font-size="12" fill="#52514e">Wh/day. Harvest shaded to 20% Apr-Sep for a crop canopy. Load: the listening hours on a 4.6 Wh/day floor.</text>
 <line x1="64" y1="404.0" x2="742" y2="404.0" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
 <text x="54" y="408.0" font-size="11" fill="#52514e" text-anchor="end">0</text>
 <line x1="64" y1="322.6" x2="742" y2="322.6" stroke="#b9b8b2" stroke-width="1" opacity="0.45"/>
@@ -26,8 +26,7 @@
 <text x="742.0" y="424" font-size="11" fill="#52514e" text-anchor="middle">Dec</text>
 <rect x="234.9" y="62" width="336.2" height="342" fill="#eb6834" opacity="0.08"/>
 <text x="403.0" y="77" font-size="11" fill="#eb6834" text-anchor="middle" font-weight="600">under a summer canopy: this is what sizes the panel</text>
-<polyline points="64.0,394.8 94.8,394.8 94.8,394.8 156.5,394.8 156.5,373.7 218.1,373.7 218.1,373.7 279.7,373.7 279.7,373.7 341.4,373.7 341.4,373.7 403.0,373.7 403.0,373.7 464.6,373.7 464.6,373.7 526.3,373.7 526.3,373.7 587.9,373.7 587.9,373.7 649.5,373.7 649.5,394.8 711.2,394.8 711.2,394.8 772.8,394.8" fill="none" stroke="#111111" stroke-width="2.4" stroke-dasharray="6 5" stroke-linejoin="round"/>
-<polyline points="64.0,394.8 94.8,394.8 94.8,394.8 156.5,394.8 156.5,383.5 218.1,383.5 218.1,383.5 279.7,383.5 279.7,378.0 341.4,378.0 341.4,378.0 403.0,378.0 403.0,378.0 464.6,378.0 464.6,383.5 526.3,383.5 526.3,383.5 587.9,383.5 587.9,383.5 649.5,383.5 649.5,394.8 711.2,394.8 711.2,394.8 772.8,394.8" fill="none" stroke="#111111" stroke-width="1.6" stroke-dasharray="2 4" stroke-linejoin="round"/>
+<polyline points="64.0,394.8 94.8,394.8 94.8,394.8 156.5,394.8 156.5,383.5 218.1,383.5 218.1,383.5 279.7,383.5 279.7,383.5 341.4,383.5 341.4,383.5 403.0,383.5 403.0,383.5 464.6,383.5 464.6,383.5 526.3,383.5 526.3,383.5 587.9,383.5 587.9,383.5 649.5,383.5 649.5,394.8 711.2,394.8 711.2,394.8 772.8,394.8" fill="none" stroke="#111111" stroke-width="2.4" stroke-dasharray="6 5" stroke-linejoin="round"/>
 <path d="M 64.0 306.3 L 125.6 257.4 L 187.3 159.7 L 248.9 338.9 L 310.5 338.9 L 372.2 338.9 L 433.8 338.9 L 495.5 345.4 L 557.1 351.9 L 618.7 208.6 L 680.4 290.0 L 742.0 322.6" fill="none" stroke="#2a78d6" stroke-width="2.2" stroke-linejoin="round"/>
 <path d="M 64.0 355.1 L 125.6 330.7 L 187.3 281.9 L 248.9 371.4 L 310.5 371.4 L 372.2 371.4 L 433.8 371.4 L 495.5 374.7 L 557.1 377.9 L 618.7 306.3 L 680.4 347.0 L 742.0 363.3" fill="none" stroke="#eb6834" stroke-width="2.2" stroke-linejoin="round"/>
 <circle cx="64.0" cy="306.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
@@ -56,11 +55,10 @@
 <circle cx="742.0" cy="363.3" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
 <text x="751" y="326.6" font-size="12" font-weight="600" fill="#2a78d6">100 Wp</text>
 <text x="751" y="379.3" font-size="12" font-weight="600" fill="#eb6834">50 Wp</text>
-<text x="187.3" y="366.7" font-size="11.5" font-weight="600" fill="#111111" text-anchor="middle">full day</text>
-<text x="618.7" y="398.5" font-size="11.5" font-weight="600" fill="#111111" text-anchor="middle">core</text>
-<g transform="translate(64,446)" font-size="11.5"><rect x="0" y="-9" width="11" height="3" rx="1.5" fill="#2a78d6"/><text x="18" y="-4" fill="#52514e">100 Wp, shaded</text><rect x="122" y="-9" width="11" height="3" rx="1.5" fill="#eb6834"/><text x="140" y="-4" fill="#52514e">50 Wp, shaded</text><rect x="240" y="-9" width="11" height="3" rx="1.5" fill="#111111"/><text x="258" y="-4" fill="#52514e">node load (dashed: full day, dotted: core), incl. a 4.6 Wh/day floor</text></g>
+<text x="187.3" y="376.5" font-size="11.5" font-weight="600" fill="#111111" text-anchor="middle">node load</text>
+<g transform="translate(64,446)" font-size="11.5"><rect x="0" y="-9" width="11" height="3" rx="1.5" fill="#2a78d6"/><text x="18" y="-4" fill="#52514e">100 Wp, shaded</text><rect x="122" y="-9" width="11" height="3" rx="1.5" fill="#eb6834"/><text x="140" y="-4" fill="#52514e">50 Wp, shaded</text><rect x="240" y="-9" width="11" height="3" rx="1.5" fill="#111111"/><text x="258" y="-4" fill="#52514e">node load, incl. a 4.6 Wh/day floor</text></g>
 <text x="64" y="464" font-size="11.5" fill="#111111">Winter is not the problem. With two waking hours from November to February the node eats</text>
 <text x="64" y="479" font-size="11.5" fill="#111111">11 Wh/day, and even a 50 Wp panel harvests 40 to 60 in those months.</text>
-<text x="64" y="494" font-size="11.5" fill="#111111">Under a canopy the 50 Wp line falls short of the full day in late summer but carries the core: the extra hours go first.</text>
+<text x="64" y="494" font-size="11.5" fill="#111111">Under a canopy the 50 Wp line still clears the load in every month, by 7 to 15 Wh/day; a dull week eats that margin.</text>
 <text x="64" y="509" font-size="11.5" fill="#111111">The panel is sized by the crop that shades it, not by December.</text>
 </svg>
