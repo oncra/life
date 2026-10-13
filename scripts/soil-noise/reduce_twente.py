@@ -1,8 +1,12 @@
-# Download each Twente station's calibrated data + quality flags, keep 10/20/40 cm moisture, 10 cm temperature,
-# per-probe quality and setup flags; write one compact gzipped CSV per station (UTC timestamps); delete nothing raw
-# because nothing raw is stored (streamed).
-import csv, gzip, io, json, sys, urllib.request, datetime as dt
-d = json.load(open('/home/sven/scratch/twente/ds.json'))['data']['latestVersion']
+# Streams each Twente station's calibrated readings and quality flags from DANS (doi 10.17026/dans-znj-wyg5,
+# CC BY 4.0) and keeps 10, 20 and 40 cm moisture, 10 cm temperature and the per-probe quality and setup flags: one
+# gzipped CSV per station in DATA/red, timestamps in UTC. Nothing raw is stored.
+#   python3 scripts/soil-noise/reduce_twente.py [DATA]     (DATA defaults to ~/scratch/twente)
+import gzip, io, json, os, sys, urllib.request, datetime as dt
+DATA = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser('~/scratch/twente')
+os.makedirs(os.path.join(DATA, 'red'), exist_ok=True)
+API = 'https://phys-techsciences.datastations.nl/api'
+d = json.load(urllib.request.urlopen(f'{API}/datasets/:persistentId/?persistentId=doi:10.17026/dans-znj-wyg5', timeout=120))['data']['latestVersion']
 files = {}
 for f in d['files']:
     df = f['dataFile']; name = df['filename']
@@ -10,11 +14,11 @@ for f in d['files']:
         files[name] = df['id']
 stations = sorted({n[:-7] for n in files})
 def lines(fid):
-    r = urllib.request.urlopen(f'https://phys-techsciences.datastations.nl/api/access/datafile/{fid}', timeout=600)
+    r = urllib.request.urlopen(f'{API}/access/datafile/{fid}', timeout=600)
     for raw in io.TextIOWrapper(r, encoding='latin-1'):
         yield raw.rstrip('\n')
 for st in stations:
-    out = f'/home/sven/scratch/twente/red/{st}.csv.gz'
+    out = os.path.join(DATA, 'red', f'{st}.csv.gz')
     try:
         open(out); print(st, 'exists', flush=True); continue
     except FileNotFoundError: pass
@@ -64,5 +68,5 @@ for st in stations:
             if not any(vals): continue
             w.write(t.strftime('%Y-%m-%dT%H:%M') + ',' + ','.join(vals) + ',' + st10 + ',' + ','.join(q) + ',' + ','.join(ms) + '\n')
             n += 1
-    import os; os.rename(out + '.tmp', out)
+    os.rename(out + '.tmp', out)
     print(st, 'depths', depths, 'rows', n, flush=True)
