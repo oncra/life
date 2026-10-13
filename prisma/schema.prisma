@@ -86,6 +86,7 @@ model Place {
   jobs      Job[]
   boxes     Box[]
   access    PlaceAccess[]
+  weather   WeatherDay[]
 }
 
 model Device {
@@ -200,6 +201,20 @@ model SoilReading {
   raw      Json?
 
   @@index([deviceId, ts])
+}
+
+/// One UTC day of weather at a place, for the Cycling water loop (src/lib/soilwater.ts): rain per UTC hour (24 values
+/// in mm, index 0 is 00:00 to 01:00, null where the station has none) and Makkink reference evaporation (mm), from the
+/// nearest KNMI station (src/lib/weather.ts). Only places with a soil probe get rows.
+model WeatherDay {
+  placeId    String
+  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  day        DateTime @db.Date
+  rainHourly Json
+  et0        Float?
+  source     String
+
+  @@id([placeId, day])
 }
 
 model SatelliteObs {
