@@ -14,7 +14,8 @@
  *   npx tsx scripts/soil-noise/run.ts ~/scratch/twente        # prints the result as JSON
  *
  * explore.ts and explore-uptake.ts run the same data through other choices (ratio of sums, wet days only, the dry-day
- * rule, season, layer); they are the record of how the method was chosen and are not run by the oracle.
+ * rule, season, layer, a fixed wetness), green-fetch.ts and green.ts test the number per unit of green cover from
+ * Sentinel-2; they are the record of how the method was chosen and are not run by the oracle.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { gunzipSync } from "node:zlib";

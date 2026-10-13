@@ -48,7 +48,7 @@ The change between seasons at stations whose land use stayed the same, with no p
 | The last two seasons against the two before | 25 | 0.19 | 0.29 |
 | Three against three | 5 | 0.15 | 0.20 |
 
-A field where nothing changed moves from one year to the next about as much as grass differs from maize. Mowing dates, the droughts of 2018 and 2019, a shower the KNMI station did not catch and the farmer's own choices all move it. The thresholds are the 90th percentiles: a place where nothing changed reads holding in nine comparisons out of ten.
+A field where nothing changed moves from one year to the next about as much as grass differs from maize. Mowing dates, the droughts of 2018 and 2019, a shower the KNMI station did not catch and the farmer's own choices all move it. Within one season the daily share runs from about zero, when a heat wave has dried out the top 40 cm and the roots draw from deeper down, to above one in April, when wet soil is still draining; the season's median depends on how its dry days fall between those two. The thresholds are the 90th percentiles: a place where nothing changed reads holding in nine comparisons out of ten.
 
 ## What did not work
 
@@ -56,6 +56,8 @@ A field where nothing changed moves from one year to the next about as much as g
 - **Comparing with the neighbours.** Taking off the median of the other stations with the same land use in the same year did not make the number any stiller (standard deviation 0.23 against 0.22). The movement belongs to the field, not to the weather the fields share, so for this number more nodes in a region do not sharpen the reading at one place.
 - **Other choices of rule** (a dry day at all three KNMI stations, 24 or 72 hours dry, May to August only, evaporation of 2 mm or more, wet days only, the ratio of the sums, 10 cm only, 20 to 40 cm only, twenty days or more) were none clearly better: `scripts/soil-noise/explore-uptake.ts` and `explore.ts`. The lower layer alone did a little better on signal against noise (1.15 against 1.01), well within what chance gives on 72 pairs, so the rule fixed before the test stays.
 - **How fast the soil dries out after rain** is the same number once it is divided by the day's evaporation; it is not a third one.
+- **Per unit of green** (tested 13 October 2026). Each dry day's share divided by the green cover that day: Sentinel-2 NDVI over an 80 m square around the station, through the oracle's own satellite path, scaled between bare soil (0.15) and full cover (0.85), interpolated between clear scenes at most 20 days apart. Earth Search has Sentinel-2 L2A for these stations from 2018, so the test covers 2018 to 2020. On the same 18 pairs of seasons the divided number moved more, not less (standard deviation 0.22 against 0.19 undivided), and the stations stood apart from each other no more clearly (the share of the variance between stations was 0.46 against 0.48). Mowing and the stage of the crop are not where the noise comes from. Left out: `scripts/soil-noise/green-fetch.ts` and `green.ts`.
+- **At a fixed wetness.** Fitting each season's daily shares against the water in the top 40 cm (a Theil-Sen line) and reading the line at the station's usual wetness, to take out how wet the dry days happened to be, made the number noisier (standard deviation 0.31 against 0.22). Left out (`explore-uptake.ts`).
 
 ## What follows for the reading
 
@@ -68,5 +70,7 @@ A field where nothing changed moves from one year to the next about as much as g
 
 ## What comes next
 
-1. **Per unit of green.** Divide uptake by the place's Sentinel-2 greenness on the same days, so that mowing and the stage of the crop drop out and what remains is how much water the roots get per unit of green canopy. Testable on the Twente stations for 2016 to 2020.
-2. **Calibration places.** At a few places per soil type, a lab sample (24 h CO2 burst and POXC) and an earthworm count once a year for a few years, to see whether uptake follows soil life within the same land use. Once, to fix the method; not a yearly visit everywhere.
+Three ways of making the number stiller have now been tried on the same data (the neighbours, the green cover, a fixed wetness) and none worked: the movement is the field's own. What is left to try lies outside the water loop.
+
+1. **Calibration places.** At a few places per soil type, a lab sample (24 h CO2 burst and POXC) and an earthworm count once a year for a few years, to see whether uptake follows soil life within the same land use. Once, to fix the method; not a yearly visit everywhere.
+2. **Listening to the soil.** A contact microphone 10 cm into the ground on node 1, recorded in the same windows as the bird microphone. Restoration studies found the complexity of soil sound tracks the number and richness of soil animals (Robinson et al. 2024, doi 10.1111/1365-2664.14738); a critical review warns that the field is young and easy to overread (Stroud et al. 2025, doi 10.1111/ejss.70229). A witness next to the reading until it has been compared with counts, not part of it.
