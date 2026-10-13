@@ -172,11 +172,11 @@ export default async function NodePage({ params, searchParams }: Props) {
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold">The box itself</h2>
-        <p className="text-sm text-muted">From the heartbeat: the battery it runs on, how warm it is inside, and what it draws. The battery is a 12.8 V LiFePO4; under 12.0 V at rest the last tenth of the charge is left, and at 12.8 V it is comfortably back.</p>
+        <p className="text-sm text-muted">From the heartbeat: the battery it runs on, how warm it is inside, and what it draws. The battery is a 12.8 V LiFePO4; under 12.8 V the last tenth of the charge is left, at 12.6 V the node switches itself off to keep it, and above 13.2 V, with the panel charging, it starts again.</p>
         <div className="mt-3 grid lg:grid-cols-3 gap-4">
           <div className="rounded-lg border border-line bg-white p-3">
             <div className="text-sm font-medium mb-1">Battery, V</div>
-            <SeriesChart {...chartProps} decimals={2} series={[{ name: "battery", color: "#2f6b3a", points: data.box.battV, unit: " V" }]} guides={[{ y: 12.0, label: "low, 12.0 V" }, { y: 12.8, label: "back, 12.8 V", color: "#2f6b3a" }]} empty="No battery reading yet: on the desk the box runs on USB." />
+            <SeriesChart {...chartProps} decimals={2} series={[{ name: "battery", color: "#2f6b3a", points: data.box.battV, unit: " V" }]} guides={[{ y: 12.6, label: "off, 12.6 V" }, { y: 13.2, label: "on again, 13.2 V", color: "#2f6b3a" }]} empty="No battery reading yet: on the desk the box runs on USB." />
           </div>
           <div className="rounded-lg border border-line bg-white p-3">
             <div className="text-sm font-medium mb-1">Temperature, °C</div>

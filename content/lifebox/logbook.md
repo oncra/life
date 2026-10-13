@@ -9,6 +9,18 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 13 October 2026
 
+### The battery ran flat, and the box now guards it itself
+
+*Learning.* Node 1's first run on its battery alone, without a panel, ended in the evening window of 12 October. Its last message came at 18:55 with the battery at 12.45 V. The next morning a meter read 0.2 V on the battery's own terminals, which means the battery's own protection (its BMS) had switched it off: the cells had run down to their limit. The box never knew it was coming. Its only guard was the charge controller's load disconnect, and whatever that did, it did not stop the battery from running down that far. It also cuts the power hard, in the middle of whatever the box is doing.
+
+*Change.* The box now stops itself first. Its scheduler board, the Witty Pi, measures the battery anyway, and at every boot the box now gives it two levels: below 12.6 V it shuts the computer down cleanly, and after such a stop it switches it on again once the panel lifts the battery above 13.2 V. Both levels are needed. With only the first, a scheduled start that falls while the battery is still low is skipped, and the board would not try again for a month. A box that wakes this way outside its listening hours, or because the power came back, sends its message and goes back to sleep until its next window. Until now the board's own software kept it on until the end of the next window, hours on a battery that had only just come back. The battery chart on the dashboard shows both levels. The *low battery* alert now comes at 12.8 V, while the box can still report, and also when the box says on its way down that it stopped for its battery. [#94](https://github.com/oncra/life/pull/94)
+
+### One listening window, the same every day of the season
+
+*Change.* Yesterday's schedule had a core of 4 hours from civil dawn (6 in May, June and July), and on top of it extra hours when the battery allowed. From today the box listens to the same hours on every day from March to October: 4 hours from civil dawn and 1 hour from sunset, with no extra hours. November to February stays at 2 hours from sunrise. A day in June and a day in September now stand for the same listening effort, so a count per day or per month can be compared without correcting for hours, and the dashboard's charts show the birds, not the schedule. It also removes the most intricate part of the box's software before any box had run it.
+
+*Learning.* The cost is small. Replayed on the same four Dutch stations that listen around the clock, the six-hour dawn of May to July would have added 1 to 2 points to the share of regular species heard, and 3 to 6 points to the days a farm bird such as a swallow or a lapwing is heard. The battery gains more. On the weather of 2005 to 2023, with the panel at half output or overgrown in summer, the 20 Ah battery stays above half full on all but 0.3% of the days from March to October; with the old schedule it went below half on 3 to 6% of them. No box had listened to the old core yet, so no series breaks. [#94](https://github.com/oncra/life/pull/94)
+
 ### Cycling now runs on the node's own probes, and we measured how far to trust it
 
 *Change.* Cycling no longer waits for a lab sample. It now reads how much water living roots draw from the top 40 cm on a dry day, from one morning to the next, as a share of that day's evaporation from the nearest KNMI weather station. The node's two probes, at 10 and 30 cm, are both needed for it, so the second probe is no longer the part of the kit that is safe to leave out. Lab samples and a soil CO2 probe stay possible as stronger extra sources; nobody has to visit.

@@ -14,7 +14,9 @@ hardware, and nothing for a thief to notice. On a bench without the stick the ce
 Power and box health ride along, from what is already in the box:
 - the Witty Pi 4 over I2C (no extra hardware): its input voltage, which on a node is the charge controller's load
   output and so the battery less a few tenths; what the Pi draws (output volts x amps); the board's own temperature
-  sensor, i.e. the air inside the box; and why it last switched the Pi on (schedule, low voltage, power back, ...).
+  sensor, i.e. the air inside the box; why it last acted (`wake`: the schedule, the button, power back; on the way
+  down `low-voltage` when the board stopped the Pi for its battery); the battery guard's two levels (`lowV`,
+  `recoveryV`, life-wittypi sets them) and whether the last stop was the guard's (`lvOff`).
 - the Victron charge controller over VE.Direct, when a VE.Direct-to-USB cable is plugged in (v1.1): battery volts and
   amps, panel volts and watts, charge state, error code, and today's and yesterday's yield.
 All of it is a dozen numbers, about 250 bytes on a post that is sent anyway: no extra TLS handshake, under 2% of the
@@ -28,8 +30,8 @@ Environment:
     WITTYPI_BUS         default 1; set empty to skip the Witty Pi
     VEDIRECT_PORT       default: the first /dev/serial/by-id/*VE_Direct*; set "none" to skip; a /dev/ttyUSB0 for a
                         home-made cable
-    LIFE_STATE          default /var/lib/life-node; its extra.json says which window the node woke for and whether its
-                        extra hours run (`window`, `extra`, `extraV` in the metrics)
+    LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
+                        outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept)
 """
 import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -121,6 +123,13 @@ def wittypi():
         print(f"wittypi temp: {e}", file=sys.stderr)
     try:
         m["wake"] = WAKE.get(i2c(bus, 11), "unknown")
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        for key, reg in (("lowV", 19), ("recoveryV", 22)):
+            t = i2c(bus, reg)
+            m[key] = None if t == 255 else round(t / 10, 1)
+        m["lvOff"] = i2c(bus, 8) == 1
     except Exception:  # noqa: BLE001
         pass
     return m
@@ -231,15 +240,15 @@ def metrics():
 
 
 def listening():
-    """The window the node woke for and whether its extra hours run (life-extra writes the decision at boot)."""
-    p = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node")) / "extra.json"
+    """The window the node woke for, or what it does outside one (life-window writes it at boot)."""
+    p = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node")) / "window.json"
     try:
         d = json.loads(p.read_text())
     except Exception:  # noqa: BLE001 - no schedule (desk) or no decision yet
         return {}
-    out = {"window": d.get("window"), "extra": d.get("extra")}
-    if d.get("v") is not None:
-        out["extraV"] = d["v"]
+    out = {"window": d.get("window")}
+    if d.get("offWindow"):
+        out["offWindow"] = d["offWindow"]
     return out
 
 

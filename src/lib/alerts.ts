@@ -126,7 +126,7 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   const where = `${d.place.name} (${d.model})`;
   if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}/node`, `life-moved-${deviceId}`);
   else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}/node`, `life-tamper-${deviceId}`);
-  else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${String(detail.v)} V${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. It will go quiet when the controller cuts the load, and come back with the sun.`, `${site}/places/${d.place.slug}/node`, `life-battery-${deviceId}`);
+  else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${detail.v == null ? "unknown" : `${String(detail.v)} V`}${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. ${detail.guard ? "It switched itself off to keep the battery" : "Below 12.6 V it switches itself off to keep the battery"}, and starts again when the panel charges.`, `${site}/places/${d.place.slug}/node`, `life-battery-${deviceId}`);
   else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}/node`, `life-silent-${deviceId}`);
   return alert;
 }
@@ -173,8 +173,10 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   // a tamper inside an active window is the steward at work: recorded in the heartbeat, no alert, no push
   if (hb.event === "alarm" && !(maintenance && maintenance.active)) tamper = await openAlert(deviceId, "TAMPER", { loop: hb.tamper?.loop ?? "unknown", state: hb.tamper?.state, cell: hb.cell, cellChanged, maintenance: false, at: ts.toISOString() });
   const batt = batteryOf(hb.metrics);
+  // the node's battery guard stopped it: the Witty Pi gives low voltage as the reason on the way down
+  const guard = hb.event === "shutdown" && hb.metrics?.wake === "low-voltage";
   let lowBattery = null;
-  if (batt && batt.v < LOW_BATTERY_V) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt.v, src: batt.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, at: ts.toISOString() });
+  if (guard || (batt && batt.v < LOW_BATTERY_V)) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt?.v ?? null, src: batt?.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, guard: guard || undefined, at: ts.toISOString() });
   else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
   if (process.env.CHECKIN_WEBHOOK_URL) {
     const d = await placeOf(deviceId);

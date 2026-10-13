@@ -9,9 +9,9 @@
 # good; otherwise no shutdown is scheduled, the node stays on, and systemd runs this again in five minutes.
 #
 # Then the schedule (content/spec.md, section 2.2), computed by life-schedule-wpi for the node's own place: March to
-# October a dawn window of 6 h from civil dawn and a dusk window of 2 h from sunset, of which the core is 4 h from
-# civil dawn (6 h in May to July) and 1 h from sunset; November to February 2 h from sunrise. The Witty Pi gets the
-# full windows and life-extra, run at the end of this script, ends a window at its core when the battery is low.
+# October 4 h from civil dawn and 1 h from sunset, November to February 2 h from sunrise, the same windows every day.
+# life-window, run at the end of this script, sends a node the Witty Pi woke by itself outside its windows (battery
+# back after a low-voltage stop, power back on the load output) back to sleep until the next window.
 # SCHEDULE=bench: 15 minutes in every hour. SCHEDULE=none: no schedule, the node stays on (desk work).
 set -u
 W=/data/wittypi; STATE=/data/life-node
@@ -37,8 +37,8 @@ else
   exit 1
 fi
 
-# the last extra-hours decision belongs to the last boot; life-extra writes a new one below
-rm -f $STATE/extra.json
+# the last boot's window belongs to the last boot; life-window writes this one's below
+rm -f $STATE/window.json $STATE/extra.json
 
 # SCHEDULE=none: no schedule at all, for work on the desk. The clock above is still set; the node stays on until
 # someone shuts it down, and the Witty Pi's default ON brings it back when power returns.
@@ -69,5 +69,5 @@ echo "life-schedule: applying $want schedule"; grep -v '^#' $W/schedule.wpi | tr
 # always run it, now that the clock is right: the daemon already ran the script at boot, possibly on the wrong time
 (cd $W && ./runScript.sh >> $W/schedule.log 2>&1)
 tail -n 4 $W/schedule.log | grep -E 'Schedule next' || true
-# the extra hours: run the window to its end, or end it with its core when the battery is low
-[ $want = season ] && /usr/local/sbin/life-extra decide || true
+# a boot the board made by itself outside the windows posts and goes back to sleep until the next window
+[ $want = season ] && /usr/local/sbin/life-window check || true
