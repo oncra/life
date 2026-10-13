@@ -1,0 +1,28 @@
+{
+  "source": "Twente soil moisture network, van der Velde et al. 2023 (doi 10.5194/essd-15-1889-2023), data doi 10.17026/dans-znj-wyg5 (CC BY 4.0). Coordinates: Twente_network_locations.ods (first location). Land use of the adjacent field (first row of supplement Table S2, from the Dutch crop parcel registry): g grass, m maize, p potato, c cereal, o other crop, f forest, - none or unknown; one letter per year 2009-2020.",
+  "stations": {
+    "ITCSM_01": { "lat": 52.41472, "lon": 6.96722, "use": "gggggggggggg" },
+    "ITCSM_02": { "lat": 52.39000, "lon": 6.85722, "use": "gggggggggggg" },
+    "ITCSM_03": { "lat": 52.35061, "lon": 6.78992, "use": "gggggggggggm" },
+    "ITCSM_04": { "lat": 52.27167, "lon": 6.92111, "use": "gggggggggggg" },
+    "ITCSM_05": { "lat": 52.27333, "lon": 6.69944, "use": "gggggggggggg" },
+    "ITCSM_06": { "lat": 52.41389, "lon": 6.63667, "use": "gggggggpm---" },
+    "ITCSM_07": { "lat": 52.37167, "lon": 6.96528, "use": "mmmmmmccmmcm" },
+    "ITCSM_08": { "lat": 52.13583, "lon": 6.74500, "use": "mmmmmmmmmmmm" },
+    "ITCSM_09": { "lat": 52.14639, "lon": 6.84306, "use": "mmmpmmcmmcmm" },
+    "ITCSM_10": { "lat": 52.20000, "lon": 6.65944, "use": "gggggggmmcpm" },
+    "ITCSM_11": { "lat": 52.23111, "lon": 6.55889, "use": "gggggggggggg" },
+    "ITCSM_12": { "lat": 52.14028, "lon": 6.55972, "use": "gggggggggggg" },
+    "ITCSM_13": { "lat": 52.19389, "lon": 6.41750, "use": "gggggggggggg" },
+    "ITCSM_14": { "lat": 52.19167, "lon": 6.31722, "use": "gggggggggggg" },
+    "ITCSM_15": { "lat": 52.30944, "lon": 6.61250, "use": "gggggggggggg" },
+    "ITCSM_16": { "lat": 52.36781, "lon": 6.53525, "use": "gg-ggggggggg" },
+    "ITCSM_17": { "lat": 52.42056, "lon": 6.54056, "use": "gg-ggggggggg" },
+    "ITCSM_18": { "lat": 52.40528, "lon": 6.37991, "use": "gggggggggggg" },
+    "ITCSM_19": { "lat": 52.33333, "lon": 6.33167, "use": "--mmggggg---" },
+    "ITCSM_20": { "lat": 52.31889, "lon": 6.44861, "use": "ffffffff----" },
+    "ITCSM_Hupsel": { "lat": 52.06747, "lon": 6.65677, "use": "---------ggg" },
+    "ITCSM_Twenthe": { "lat": 52.27316, "lon": 6.89105, "use": "---------ggg" }
+  },
+  "knmi": { "290": [52.274, 6.891], "283": [52.069, 6.657], "278": [52.435, 6.259] }
+}

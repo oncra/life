@@ -11,6 +11,7 @@ import type { PlaceGeometry } from "../src/lib/geo";
 import { pollBirdWeather } from "../src/lib/birdweather";
 import { enrichPlaceContext } from "../src/lib/context";
 import { speciesImageSweep, speciesNameSweep } from "../src/lib/species-image";
+import { weatherSweep } from "../src/lib/weather";
 
 const CONCURRENCY = Number(process.env.SAT_CONCURRENCY ?? 4);
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
@@ -77,7 +78,9 @@ async function schedule() {
     await pollBirdWeather(log);
     const q = await sweepSilent(log);
     if (q.opened) log(`silent sweep: ${q.opened} alert(s) opened`);
-    for (const p of await prisma.place.findMany({ where: { placed: true, devices: { some: { kind: "SOUND" } } }, select: { id: true } })) {
+    // rain and evaporation for places with a soil probe, before their readings are recomputed (the Cycling water loop)
+    try { const days = await weatherSweep(log); if (days) log(`weather: ${days} day(s) stored`); } catch (e) { log("weather:", String(e).slice(0, 200)); }
+    for (const p of await prisma.place.findMany({ where: { placed: true, devices: { some: { kind: { in: ["SOUND", "SOIL"] } } } }, select: { id: true } })) {
       const open = await prisma.job.findFirst({ where: { placeId: p.id, status: { in: ["queued", "running"] } } });
       if (!open) await prisma.job.create({ data: { kind: "readings.recompute", placeId: p.id } });
     }

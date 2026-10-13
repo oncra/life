@@ -21,6 +21,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 *Learning.* The cost is small. Replayed on the same four Dutch stations that listen around the clock, the six-hour dawn of May to July would have added 1 to 2 points to the share of regular species heard, and 3 to 6 points to the days a farm bird such as a swallow or a lapwing is heard. The battery gains more. On the weather of 2005 to 2023, with the panel at half output or overgrown in summer, the 20 Ah battery stays above half full on all but 0.3% of the days from March to October; with the old schedule it went below half on 3 to 6% of them. No box had listened to the old core yet, so no series breaks. [#94](https://github.com/oncra/life/pull/94)
 
+### Cycling now runs on the node's own probes, and we measured how far to trust it
+
+*Change.* Cycling no longer waits for a lab sample. It now reads how much water living roots draw from the top 40 cm on a dry day, from one morning to the next, as a share of that day's evaporation from the nearest KNMI weather station. The node's two probes, at 10 and 30 cm, are both needed for it, so the second probe is no longer the part of the kit that is safe to leave out. Lab samples and a soil CO2 probe stay possible as stronger extra sources; nobody has to visit.
+
+*Learning.* Before trusting the number we ran it on twelve years of the Twente soil moisture network: 22 stations in the east of the Netherlands, read the way a node reads its probes, only in the first hour after dawn. Under permanent grass the number was 0.60, under maize 0.38, so it sees living cover. But at fields where nothing changed it moved by 0.22 from one year to the next, as much as the difference between grass and maize. Mowing dates, the droughts of 2018 and 2019 and showers the weather station did not catch all move it. So the reading only calls a change beyond 0.41 from one season to the next, or beyond 0.29 between two pairs of seasons, and it may never make a place "declining" on its own. We expected the second candidate, how much of a shower the soil still holds the next morning, to work as well; it did not tell grass from maize at all and is left out. We also expected that comparing a field with its neighbours would take the weather out; it made no difference, because the movement belongs to the field. The full test is on [the soil's water loop](../soil-water.md). [#92](https://github.com/oncra/life/pull/92)
+
 ## 12 October 2026
 
 ### Cycling took the weather for the soil

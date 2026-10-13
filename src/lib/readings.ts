@@ -4,6 +4,7 @@
  * Returns UNKNOWN with an explanation whenever the evidence is not there.
  */
 import type { Dimension, Direction } from "@/generated/prisma/client";
+import { SOIL_WATER } from "./soilwater";
 
 export const DIMENSIONS: Dimension[] = ["PRODUCTIVITY", "DIVERSITY", "STRUCTURE", "RENEWAL", "CYCLING", "RESILIENCE", "AUTONOMY"];
 
@@ -178,25 +179,34 @@ const DAY = 864e5;
 const doy = (d: Date) => Math.floor((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / DAY);
 const relChange = (a: number, b: number) => (b - a) / Math.max(1e-6, Math.abs(a));
 
+/** What the water loop (src/lib/soilwater.ts) hands the Cycling reading: the uptake share per season, the soil
+ *  devices that read in each season, and where the weather came from. */
+export interface WaterLoopIn {
+  seasons: { year: number; uptake: number | null; uptakeDays: number }[];
+  devicesBySeason: Record<number, string[]>;
+  weatherSource: string | null;
+  lat: number;
+  now?: number;
+}
+
 /**
- * Cycling: is the soil's own life changing, with the weather taken out?
- * Moisture and temperature alone cannot answer that: a warm, moist year raises the expected activity without any
- * change in the soil. So the direction comes only from a measured soil-life signal, in this order of weight:
+ * Cycling: is the soil's water loop, the part of it that living roots and soil life run, changing?
+ * Moisture and temperature alone describe the weather, so the direction comes from a measured signal, in this order:
  *   1. lab samples from visits, same depth and season each year: 24 h CO2 burst after rewetting (Franzluebbers et al.
- *      2000; Haney et al. 2008) and permanganate-oxidisable carbon, POXC (Weil et al. 2003). Both are run under
- *      standard lab conditions, so the weather of the day does not enter, and both respond to management within a few
- *      years (Hurisso et al. 2016).
- *   2. measured CO2 flux from the soil (chamber or gradient method), divided by the weather-expected activity at the
- *      same moments: the basal rate at 10 °C and optimal moisture, which is the part that belongs to the soil.
- * Without either, the reading is UNKNOWN; the weather-expected activity stays in the evidence as context.
+ *      2000; Haney et al. 2008) and permanganate-oxidisable carbon, POXC (Weil et al. 2003). Optional; a visit is not
+ *      needed for the reading.
+ *   2. measured CO2 flux from the soil, divided by the weather-expected activity at the same moments. Optional.
+ *   3. the water loop, from the node's own probes and KNMI weather, with nobody visiting: the share of the day's
+ *      reference evaporation that leaves the top 40 cm on dry days (soilwater.ts). Permanent grass draws more than maize
+ *      (0.60 against 0.38 on the Twente network), but a field where nothing changed moves about as much from one year to
+ *      the next (standard deviation 0.22), so the thresholds are the 90th percentile of that movement: 0.41 for one
+ *      season against the one before, 0.29 for the last two seasons against the two before (content/soil-water.md).
+ *      Its confidence (0.2 and 0.25) stays under the verdict's 0.3 bar on purpose: at a signal-to-noise of about one,
+ *      the water loop may say which way a place is going but cannot make the verdict "declining" on its own.
  */
-export function cycling(soil: SoilPoint[], frame: SoilFrame, samples: SoilSample[] = [], flux: FluxPoint[] = []): ReadingOut {
-  const method = "cycling-v0.2";
+export function cycling(soil: SoilPoint[], frame: SoilFrame, samples: SoilSample[] = [], flux: FluxPoint[] = [], water?: WaterLoopIn): ReadingOut {
+  const method = "cycling-v0.3";
   const ok = soil.filter((s) => s.tempC !== null && s.vwc !== null);
-  const condByYear = new Map<number, number[]>();
-  for (const s of ok) condByYear.set(s.ts.getUTCFullYear(), [...(condByYear.get(s.ts.getUTCFullYear()) ?? []), soilActivity(s.tempC!, s.vwc!, frame)]);
-  const conditionsIndexByYear = Object.fromEntries([...condByYear].map(([y, v]) => [y, Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 1000) / 1000]));
-  const context = { method, conditionsIndexByYear, conditionsNote: "weather-expected activity from moisture and temperature; context, not a direction" };
 
   // 1. lab samples: the latest against the most recent earlier one taken in the same season (within 45 days of the
   // same day of the year, at least 300 days before), at the same depth when both give one
@@ -225,7 +235,7 @@ export function cycling(soil: SoilPoint[], frame: SoilFrame, samples: SoilSample
     const agree = lab.length === 2 && Math.sign(lab[0]) === Math.sign(lab[1]);
     return {
       dimension: "CYCLING", direction: rel > 0.15 ? "RISING" : rel < -0.15 ? "FALLING" : "HOLDING", confidence: agree ? 0.5 : 0.35, maturity: 1,
-      evidence: { ...context, source: "lab samples", from: pair![0].date.toISOString().slice(0, 10), to: pair![1].date.toISOString().slice(0, 10), relativeChange: changes, threshold: 0.15 },
+      evidence: { method, source: "lab samples", from: pair![0].date.toISOString().slice(0, 10), to: pair![1].date.toISOString().slice(0, 10), relativeChange: changes, threshold: 0.15 },
     };
   }
 
@@ -245,16 +255,43 @@ export function cycling(soil: SoilPoint[], frame: SoilFrame, samples: SoilSample
     const rel = relChange(basal[fy[fy.length - 2]], basal[fy[fy.length - 1]]);
     return {
       dimension: "CYCLING", direction: rel > 0.1 ? "RISING" : rel < -0.1 ? "FALLING" : "HOLDING", confidence: 0.45, maturity: 1,
-      evidence: { ...context, source: "soil CO2 flux", basalRateByYear: basal, unit: "µmol CO2 m-2 s-1 at 10 °C and optimal moisture", threshold: 0.1 },
+      evidence: { method, source: "soil CO2 flux", basalRateByYear: basal, unit: "µmol CO2 m-2 s-1 at 10 °C and optimal moisture", threshold: 0.1 },
     };
   }
 
-  const note = labs.length || fy.length
-    ? "one measurement period so far; the direction needs a second in the same season"
-    : ok.length
-      ? "moisture and temperature show the weather, not the soil's life; a yearly lab sample (24 h CO2 burst and POXC, same month and depth) or a CO2 flux probe gives the direction"
-      : "no soil stream yet: install a moisture and temperature probe and take a yearly lab sample";
-  return { dimension: "CYCLING", direction: "UNKNOWN", confidence: ok.length ? 0.1 : 0, maturity: 0, evidence: { ...context, note, basalRateByYear: Object.keys(basal).length ? basal : undefined } };
+  // 3. the water loop: complete seasons only, and one series of probes (a replaced probe starts a new series)
+  const now = water?.now ?? Date.now();
+  const complete = (y: number) => now >= (water && water.lat < 0 ? Date.UTC(y, 3, 1) : Date.UTC(y, 9, 1));
+  const seasons = (water?.seasons ?? []).filter((s) => s.uptake !== null && complete(s.year)).sort((a, b) => a.year - b.year);
+  const key = (y: number) => [...(water?.devicesBySeason[y] ?? [])].sort().join(",");
+  const series: typeof seasons = [];
+  for (let i = seasons.length - 1; i >= 0; i--) {
+    if (series.length && key(seasons[i].year) !== key(series[0].year)) break;
+    series.unshift(seasons[i]);
+  }
+  const uptakeBySeason = Object.fromEntries((water?.seasons ?? []).map((s) => [s.year, { uptake: s.uptake, dryDays: s.uptakeDays }]));
+  const context = { method, source: "water loop", weatherSource: water?.weatherSource ?? null, uptakeBySeason, unit: "share of reference evaporation leaving the top 40 cm on dry days" };
+  const meanOf = (v: typeof seasons) => v.reduce((a, s) => a + s.uptake!, 0) / v.length;
+  if (series.length >= 4) {
+    const last2 = series.slice(-2), prior2 = series.slice(-4, -2);
+    const delta = Math.round((meanOf(last2) - meanOf(prior2)) * 1000) / 1000;
+    const t = SOIL_WATER.thresholdTwoYears;
+    return { dimension: "CYCLING", direction: delta > t ? "RISING" : delta < -t ? "FALLING" : "HOLDING", confidence: 0.25, maturity: 1, evidence: { ...context, comparison: `${last2.map((s) => s.year).join("+")} against ${prior2.map((s) => s.year).join("+")}`, delta, threshold: t } };
+  }
+  if (series.length >= 2) {
+    const [a, b] = series.slice(-2);
+    const delta = Math.round((b.uptake! - a.uptake!) * 1000) / 1000;
+    const t = SOIL_WATER.thresholdOneYear;
+    return { dimension: "CYCLING", direction: delta > t ? "RISING" : delta < -t ? "FALLING" : "HOLDING", confidence: 0.2, maturity: 1, evidence: { ...context, comparison: `${b.year} against ${a.year}`, delta, threshold: t } };
+  }
+  const note = !ok.length
+    ? "no soil stream yet: install the moisture and temperature probes"
+    : !water?.weatherSource
+      ? "no weather source within reach of this place: the water loop needs hourly rain and daily reference evaporation (KNMI covers the Netherlands; ERA5-Land elsewhere is specified)"
+      : seasons.length > series.length
+        ? "the probes changed: a new series has started and needs two complete growing seasons"
+        : "the water loop needs two complete growing seasons (April to September) with ten or more dry days each";
+  return { dimension: "CYCLING", direction: "UNKNOWN", confidence: ok.length ? 0.1 : 0, maturity: 0, evidence: { ...context, note } };
 }
 
 export type Verdict = "thriving" | "holding" | "declining" | "insufficient";
