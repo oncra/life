@@ -22,7 +22,7 @@ for (const r of JSON.parse(readFileSync(join(DATA, "knmi", "daily.json"), "utf8"
 const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], (a[1] - b[1]) * 0.61);
 const rainAt = (st: string, a: number, b: number) => { const hrs = hourly.get(st)!; let t = 0; for (let h = Math.floor(a / H) * H; h < b; h += H) { const v = hrs.get(h); if (v === undefined || v === null) return null; t += v * ((Math.min(h + H, b) - Math.max(h, a)) / H); } return t; };
 const DEPTHS = [10, 20, 40];
-type Cfg = { name: string; dryMm: number; dryH: number; allStations: boolean; months: [number, number]; minEt0: number; layer: "both" | "upper" | "lower"; minDays: number };
+type Cfg = { name: string; dryMm: number; dryH: number; allStations: boolean; months: [number, number]; minEt0: number; layer: "both" | "upper" | "lower"; minDays: number; atRef?: boolean };
 const base: Cfg = { name: "base", dryMm: 0.3, dryH: 48, allStations: false, months: [4, 9], minEt0: 1, layer: "both", minDays: 10 };
 const cfgs: Cfg[] = [
   base,
@@ -35,7 +35,17 @@ const cfgs: Cfg[] = [
   { ...base, name: "upper layer only (10 cm)", layer: "upper" },
   { ...base, name: "lower layer only (20-40 cm)", layer: "lower" },
   { ...base, name: "min 20 days", minDays: 20 },
+  { ...base, name: "at reference wetness (Theil-Sen on storage)", atRef: true },
+  { ...base, name: "at reference wetness, lower layer", atRef: true, layer: "lower" },
 ];
+/** Theil-Sen line through (x, y): median of pairwise slopes, intercept from the medians */
+function theilSen(x: number[], y: number[]): (v: number) => number {
+  const sl: number[] = [];
+  for (let i = 0; i < x.length; i++) for (let j = i + 1; j < x.length; j++) if (x[j] !== x[i]) sl.push((y[j] - y[i]) / (x[j] - x[i]));
+  const b = sl.length ? median(sl) : 0;
+  const a = median(y.map((v, i) => v - b * x[i]));
+  return (v) => a + b * v;
+}
 // load once
 const obsBy: Record<string, { obs: SoilObs[]; setupYears: Set<number>; ks: string; lat: number; lon: number; use: string }> = {};
 for (const [name, st] of Object.entries(meta.stations)) {
@@ -60,6 +70,8 @@ for (const cfg of cfgs) {
     const S = morningStorage(cfg.layer === "lower" ? obs.map((o) => ({ ...o, depthCm: 10 })) : obs, s.lat, s.lon);
     const e = ev.get(s.ks)!;
     const per = new Map<number, number[]>();
+    const perS = new Map<number, number[]>();
+    const allS: number[] = [];
     for (const [day, a] of S) {
       const b = S.get(day + DAY); if (!b) continue;
       const d = new Date(day), m = d.getUTCMonth() + 1, y = d.getUTCFullYear();
@@ -70,9 +82,19 @@ for (const cfg of cfgs) {
       for (const k of sts) { const r = rainAt(k, a.t - cfg.dryH * H, b.t); if (r === null || r > cfg.dryMm) { dry = false; break; } }
       if (!dry) continue;
       per.set(y, [...(per.get(y) ?? []), (a.s - b.s) / et0]);
+      perS.set(y, [...(perS.get(y) ?? []), a.s]);
+      allS.push(a.s);
     }
     vals[name] = {};
-    for (const [y, v] of per) if (v.length >= cfg.minDays) vals[name][y] = median(v);
+    const sRef = allS.length ? median(allS) : 0;
+    for (const [y, v] of per) {
+      if (v.length < cfg.minDays) continue;
+      if (!cfg.atRef) { vals[name][y] = median(v); continue; }
+      const xs = perS.get(y)!;
+      const lo = Math.min(...xs), hi = Math.max(...xs);
+      if (sRef < lo || sRef > hi) continue; // no extrapolation: the season must have dry days on both sides of the reference
+      vals[name][y] = theilSen(xs, v)(sRef);
+    }
   }
   const noise = (k: number, crowd: boolean) => {
     const crowdOf = (y: number, self: string, use: string) => { const v = Object.entries(vals).filter(([n]) => n !== self && obsBy[n].use[y - 2009] === use).map(([, x]) => x[y]).filter((x) => x !== undefined); return v.length >= 4 ? median(v) : undefined; };

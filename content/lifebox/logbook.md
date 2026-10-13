@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 13 October 2026
 
+### Taking the mowing out of the soil number did not make it stiller
+
+*Learning.* The soil number moves a lot from year to year at fields where nothing changed, and we expected much of that to be mowing and the stage of the crop: cut grass draws less water for a week or two. So we divided each dry day by how green the field was that day, from Sentinel-2, for the Twente stations in 2018 to 2020. The number moved more, not less (0.22 against 0.19). Reading it at a fixed wetness of the soil did no better (0.31 against 0.22). Within one season the daily share runs from about zero in a heat wave to above one in a wet April, and the season's value depends on how its dry days fall; that is the field's own movement and no correction we tried takes it out. The soil part of the score stays slow and coarse, and the next ideas lie outside the water loop: a few calibration places with lab samples and earthworm counts, and a microphone in the soil. Details on [the soil's water loop](../soil-water.md). [#95](https://github.com/oncra/life/pull/95)
+
 ### The battery ran flat, and the box now guards it itself
 
 *Learning.* Node 1's first run on its battery alone, without a panel, ended in the evening window of 12 October. Its last message came at 18:55 with the battery at 12.45 V. The next morning a meter read 0.2 V on the battery's own terminals, which means the battery's own protection (its BMS) had switched it off: the cells had run down to their limit. The box never knew it was coming. Its only guard was the charge controller's load disconnect, and whatever that did, it did not stop the battery from running down that far. It also cuts the power hard, in the middle of whatever the box is doing.
