@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """The listening schedule of a Life node, for its own place and this day (content/spec.md, section 2.2).
 
-The schedule has a core and extra hours. The core is the same at every node and every year, and it is the only part
-of the day the oracle's readings count:
+One rule for every node and every year, and the only hours the oracle's readings count:
 
-    March to October      4 h from civil dawn (6 h in May, June and July) and 1 h from sunset
+    March to October      4 h from civil dawn and 1 h from sunset
     November to February  2 h from sunrise
 
-On top of the core a node may listen longer from March to October, when its battery can carry it: the dawn window
-continues to 6 h after civil dawn and the dusk window to 2 h after sunset. The Witty Pi is given these full windows;
-`life-extra` ends a window at the end of its core when the battery is low at wake-up, so an overgrown panel costs
-extra hours and never the core. Why these hours: a year of four Dutch 24-hour BirdNET stations replayed against every
-schedule, and the battery simulated hour by hour on PVGIS weather for 2005 to 2023 (content/spec.md).
+The node listens to exactly these windows, so its effort is the same on every day of a season (until 13 October 2026
+the dawn window was 6 h in May to July and a node added extra hours when its battery allowed; one length all season is
+easier to read and leaves the battery more slack). Why these hours: a year of four Dutch 24-hour BirdNET stations
+replayed against every schedule, and the battery simulated hour by hour on PVGIS weather for 2005 to 2023
+(content/spec.md).
 
 The Witty Pi script is anchored on the first window of the day that holds --now (a boot after midnight, before the
 first window, still belongs to the previous day), and its states run exactly to the next day's first window, whatever
@@ -20,7 +19,8 @@ every boot, so the drift of the sun is never more than a day old. All arithmetic
 a ZoneInfo subtract as wall-clock times, which would put the last Sunday of October an hour out.
 
     life-schedule-wpi [--now 2026-06-21T23:30]               the Witty Pi script
-    life-schedule-wpi --windows [--now 2026-06-21T06:00]     the day's windows as JSON, and the one --now falls in
+    life-schedule-wpi --windows [--now 2026-06-21T06:00]     the day's windows as JSON, the one --now falls in, and
+                                                             the start of the next one (life-window uses it)
 
 env: NODE_LAT, NODE_LON (a node without them gets the middle of the Netherlands), NODE_TZ (default Europe/Amsterdam)
 """
@@ -39,20 +39,15 @@ TZ = ZoneInfo(os.environ.get("NODE_TZ") or "Europe/Amsterdam")
 H = timedelta(hours=1)
 obs = Observer(latitude=LAT, longitude=LON)
 
-DAWN_HOURS = 6          # the full dawn window, core and extra together
-DUSK_HOURS = 2          # the full dusk window
-DUSK_CORE = 1
-WINTER_HOURS = 2
+DAWN_HOURS = 4          # from civil dawn, March to October
+DUSK_HOURS = 1          # from sunset, March to October
+WINTER_HOURS = 2        # from sunrise, November to February
 EARLY = timedelta(minutes=10)   # a boot this much before a window still belongs to it (RTC drift, a slow boot)
 
 
 def season_month(d: date) -> int:
     """The month the rule follows: south of the equator the seasons are six months on."""
     return d.month if LAT >= 0 else (d.month + 5) % 12 + 1
-
-
-def dawn_core_hours(d: date) -> int:
-    return 6 if season_month(d) in (5, 6, 7) else 4
 
 
 def at(fn, d: date, fallback_hour: int) -> datetime:
@@ -63,15 +58,15 @@ def at(fn, d: date, fallback_hour: int) -> datetime:
 
 
 def windows(d: date) -> list[dict]:
-    """The listening windows of local date d: name, start, end of the core, end of the window (UTC)."""
+    """The listening windows of local date d: name, start and end (UTC)."""
     if season_month(d) in (11, 12, 1, 2):
         s = at(sunrise, d, 8)
-        return [{"name": "winter", "start": s, "core_end": s + WINTER_HOURS * H, "end": s + WINTER_HOURS * H}]
+        return [{"name": "winter", "start": s, "end": s + WINTER_HOURS * H}]
     a, e = at(dawn, d, 5), at(sunset, d, 21)
-    morning = {"name": "dawn", "start": a, "core_end": a + dawn_core_hours(d) * H, "end": a + DAWN_HOURS * H}
-    evening = {"name": "dusk", "start": e, "core_end": e + DUSK_CORE * H, "end": e + DUSK_HOURS * H}
+    morning = {"name": "dawn", "start": a, "end": a + DAWN_HOURS * H}
+    evening = {"name": "dusk", "start": e, "end": e + DUSK_HOURS * H}
     if evening["start"] <= morning["end"]:  # days too short for two windows: one, from dawn to the end of the dusk
-        return [{"name": "day", "start": a, "core_end": evening["core_end"], "end": evening["end"]}]
+        return [{"name": "day", "start": a, "end": evening["end"]}]
     return [morning, evening]
 
 
@@ -98,7 +93,7 @@ def script(now: datetime) -> str:
         states += [("ON", end - w["start"]), ("OFF", follow - end)]
     f = "%Y-%m-%d %H:%M:%S"
     loc = lambda t: t.astimezone(TZ)  # noqa: E731 - BEGIN and END are read by the Witty Pi as local clock time
-    desc = "; ".join(f"{w['name']} {loc(w['start']):%H:%M}-{loc(w['end']):%H:%M} (core to {loc(w['core_end']):%H:%M})" for w in ws)
+    desc = "; ".join(f"{w['name']} {loc(w['start']):%H:%M}-{loc(w['end']):%H:%M}" for w in ws)
     out = [f"# Life node listening schedule at {LAT:.4f}, {LON:.4f} ({TZ.key}), written by life-schedule at every boot",
            f"# {d}: {desc}; next start {loc(nxt):%Y-%m-%d %H:%M}",
            f"BEGIN\t{loc(ws[0]['start']).strftime(f)}",
@@ -111,14 +106,11 @@ def window_info(now: datetime) -> dict:
     d = cycle_day(now)
     ws = windows(d)
     active = next((w for w in ws if w["start"] - EARLY <= now < w["end"]), None)
+    nxt = next(w["start"] for w in ws + windows(d + timedelta(days=1)) if w["start"] - EARLY > now)
     iso = lambda t: t.isoformat(timespec="seconds")  # noqa: E731
-    return {
-        "date": d.isoformat(),
-        "now": iso(now),
-        "windows": [{"name": w["name"], "start": iso(w["start"]), "coreEnd": iso(w["core_end"]), "end": iso(w["end"])} for w in ws],
-        "active": None if active is None else {"name": active["name"], "start": iso(active["start"]),
-                                               "coreEnd": iso(active["core_end"]), "end": iso(active["end"])},
-    }
+    out = lambda w: {"name": w["name"], "start": iso(w["start"]), "end": iso(w["end"])}  # noqa: E731
+    return {"date": d.isoformat(), "now": iso(now), "windows": [out(w) for w in ws],
+            "active": None if active is None else out(active), "next": iso(nxt)}
 
 
 def main() -> None:

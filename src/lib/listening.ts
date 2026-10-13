@@ -1,10 +1,10 @@
 // The listening schedule (content/spec.md, section 2.2): the hours of a day that the readings count, the same at every
-// place and in every year. The node's own scheduler implements the same rule (node/image/life-schedule-wpi.py); a node
-// may listen longer than this core (its extra hours, when its battery can carry them) and other recorders may listen
-// all day, but diversity, renewal and the detection half of autonomy only see detections inside these windows, so a
-// node with a weak panel, a station that never sleeps and a node in a sunny year are counted on the same hours.
+// place, on every day of a season and in every year. The node's own scheduler listens to exactly these windows
+// (node/image/life-schedule-wpi.py); other recorders may listen all day, but diversity, renewal and the detection half
+// of autonomy only see detections inside these windows, so a node and a station that never sleeps are counted on the
+// same hours. (Until 13 October 2026 the dawn window was 6 h in May to July and a node could add extra hours.)
 //
-//   March to October      4 h from civil dawn (6 h in May, June and July) and 1 h from sunset
+//   March to October      4 h from civil dawn and 1 h from sunset
 //   November to February  2 h from sunrise
 //
 // South of the equator the months are six on. Windows are computed per UTC day from the place's centroid; the
@@ -20,7 +20,7 @@ function seasonMonth(t: number, lat: number): number {
   return lat >= 0 ? m : ((m + 5) % 12) + 1;
 }
 
-/** The core listening windows (epoch ms) of the UTC day that contains `t`. */
+/** The listening windows (epoch ms) of the UTC day that contains `t`. */
 export function coreWindows(t: number, lat: number, lon: number): Window[] {
   const d0 = Math.floor(t / DAY) * DAY;
   const m = seasonMonth(d0 + 12 * H, lat);
@@ -33,12 +33,11 @@ export function coreWindows(t: number, lat: number, lon: number): Window[] {
   const civil = sunAt(d0, lat, lon, -6);
   const a = civil ? civil.rise : solarNoon - 7 * H;
   const e = sun ? sun.set : solarNoon + 9 * H;
-  const dawnCore = m >= 5 && m <= 7 ? 6 : 4;
-  if (e <= a + 6 * H) return [[a, e + H]]; // days too short for two windows: one, dawn to the end of the dusk core
-  return [[a, a + dawnCore * H], [e, e + H]];
+  if (e <= a + 4 * H) return [[a, e + H]]; // days too short for two windows: one, from dawn to the end of the dusk window
+  return [[a, a + 4 * H], [e, e + H]];
 }
 
-/** Whether a detection at `ts` falls inside the core windows of its place. */
+/** Whether a detection at `ts` falls inside the listening windows of its place. */
 export function inCore(ts: number, lat: number, lon: number): boolean {
   for (const d of [ts, ts - DAY]) {
     for (const [s, e] of coreWindows(d, lat, lon)) if (ts >= s && ts < e) return true;
@@ -46,7 +45,7 @@ export function inCore(ts: number, lat: number, lon: number): boolean {
   return false;
 }
 
-/** All core windows that touch [from, to], in order. */
+/** All listening windows that touch [from, to], in order. */
 export function coreWindowsBetween(from: number, to: number, lat: number, lon: number): Window[] {
   const out: Window[] = [];
   for (let d = Math.floor(from / DAY) - 1; d <= Math.floor(to / DAY); d++) {
@@ -55,7 +54,7 @@ export function coreWindowsBetween(from: number, to: number, lat: number, lon: n
   return out;
 }
 
-/** The core windows of every UTC day from the day before `from` to the day of `to`, as four parallel arrays indexed by
+/** The listening windows of every UTC day from the day before `from` to the day of `to`, as four parallel arrays indexed by
  *  day (first and second window, start and end, ISO strings; an absent window is an empty one at the epoch), and the
  *  epoch day of index 0. For SQL: a detection's day index is floor(epoch seconds / 86400) - day0, so the test is two
  *  array lookups per row and the previous day's second window, never a scan of all windows. */
