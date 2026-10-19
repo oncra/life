@@ -197,7 +197,7 @@ A node that survives the bench and fails the farm has not been designed, only as
 
 **On arable land the node is lifted every year, so make that cheap.** Pulling and re-driving an 800 mm post takes a driver and the better part of an hour. A galvanised ground screw takes a turning bar and ten minutes, and it goes back into the same hole. It is in the order list as the arable option; on a headland the timber post is fine and stays put.
 
-**It hears birds and stores no sound.** BirdNET-Go can be configured to keep an audio clip with each detection, and a clip can hold a human voice. That option is off in the golden image. It is worth saying plainly at handover, in one sentence, because a microphone in a field beside a footpath is a reasonable thing for someone to ask about and the true answer is a good one.
+**It hears birds and sends no sound.** BirdNET-Go can be configured to keep an audio clip with each detection, and a clip can hold a human voice. In today's golden image that option is off and the node keeps no sound at all. The next image keeps a small sample of three-second clips on the node's own card, so that an expert can check by ear what the software named and every species can get its own threshold ([the bird protocols](bird-protocols.md)): bird and bat detections only, inside the listening windows, with any detection in which a voice is heard dropped, clip and all. The sample leaves the node only by hand, at a visit, and is deleted from it once copied; nothing of it goes over the 4G link, and the steward can switch it off. It is worth saying plainly at handover, in one or two sentences, because a microphone in a field beside a footpath is a reasonable thing for someone to ask about and the true answer is a good one.
 
 ## When the farm network does reach the field
 
@@ -222,7 +222,7 @@ So four things move from their design into ours, as specifications rather than a
 
 **[`acoupi_birdnet`](https://github.com/acoupi/acoupi_birdnet)** is MIT, untouched since January 2025, and pins `acoupi>=0.3.0` against a core now at 0.8.0. The integration point it uses is still exported and the model interface is a single method, so refreshing it is a small job. Worth doing as a contribution when there is a spare afternoon, independently of whether we ever use it.
 
-**[Bugg](https://github.com/bugg-resources)** publishes its full hardware design, PCBs and enclosure CAD included, under a non-commercial licence, with 97 units in the field across Europe under [TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308). We are not building this node because nobody has built one. We are building it because the ones that exist either upload raw audio, or cannot be used commercially, or are closed. The full scan is in [Prior art](prior-art.md).
+**[Bugg](https://github.com/bugg-resources)** publishes its full hardware design, PCBs and enclosure CAD included, under a non-commercial licence, with 108 units in the field across Europe under [TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308). We are not building this node because nobody has built one. We are building it because the ones that exist either upload raw audio, or cannot be used commercially, or are closed. The full scan is in [Prior art](prior-art.md).
 
 ## Next step down: an integrated board
 

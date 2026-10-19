@@ -41,7 +41,9 @@ TABMON, the Transnational Acoustic Biodiversity Monitoring Network (Biodiversa+)
 
 The oracle's Diversity reading counts every species above one score, 0.7 (specification, section 3.2). Sovon's blackbird shows what that can cost: a common species missed at every point. *Specified:* a threshold per species at a precision of 0.95, set from clips that experts have checked, replacing the single 0.7. It starts with the Annex V species, which keeps the first round of checking to 27 species rather than every bird the detector knows.
 
-Validation needs sound, and the standard node sends none: clip saving is switched off in its image. How a node can keep a small sample of clips for checking without sending sound over the air is an open question (specification, section 11).
+Validation needs sound, and the standard node sends none over the air. So the node keeps a sample of short clips on its own card, and a visit collects them by hand (decided 19 October 2026; specification, section 2.2). Only detections of bird and bat species qualify, only inside the listening windows, and a detection in which a speech detector hears a voice is dropped with its clip. For each species the node keeps at most five clips per month in every score band of 0.1, so that the checking covers the whole score range as TABMON's does. A clip is deleted from the node once a visit has copied it, and after twelve months if no visit has. The oracle never receives sound: a checker labels each clip as right, wrong or unsure, and only those labels go into the oracle's calibration register, from which the threshold per species is computed. Which tool the checkers listen with is chosen with the people who do the checking.
+
+What the detector misses is not in any clip. That side comes from the MAS counts at the node (section 2): a species the counter finds and the node never reports is a miss.
 
 ## 4. How it is shared: Camtrap DP for sound
 
