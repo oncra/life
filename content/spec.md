@@ -45,7 +45,7 @@ South of the equator the months are six on. The standard node listens to exactly
 
 Why these hours, from two checks run before the first baseline year. A year (2025) of four Dutch BirdWeather stations that record 24 hours a day (small-scale farmland, rural, a wetland reserve and urban green; every second day, confidence 0.7 or more) was replayed against each schedule. These windows hear 85 to 93% of the species those stations hear on at least three days of the full day, and 68 to 81% of them on three days or more; the curve bends at 3 to 4 hours of dawn listening, and the fifth and sixth hour add about the same in every month from March to October. A 6-hour dawn window in May to July would add 1 to 2 points to the first figure, up to 2 to the second and 3 to 6 points to the days a daytime farm bird is heard (a swallow, a wagtail, a lapwing), against a summer day that costs a quarter more energy. The sampling noise of a yearly species count is 2 to 3% at every window length, so shorter windows shorten the list without making it noisier. The battery was simulated hour by hour on PVGIS output for 2005 to 2023 (40 Wp at 45 degrees facing south, 20 Ah LiFePO4, no charging below 0 C): with the panel at half its output all year, or at 30% from June to September as under a crop or a hedge, the node lost no listening from March to October, and at most 3% in the worst winter month of those 19 years, and the battery stayed above half full on all but 0.3% of the days from March to October (with the extra hours of 12 October, 3 to 6%). With the panel at 30% all year it loses 2% in October and 7 to 9% in December and January, a site that needs the 100 W panel.
 
-Raw audio is never uploaded to the oracle. Processing happens at the edge (the standard node runs BirdNET-Go on its own computer; a BirdWeather PUC runs BirdNET in firmware) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Edge inference is what keeps a node inside a 500 MB ten-year SIM. Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere.
+Raw audio is never uploaded to the oracle. Processing happens at the edge (the standard node runs BirdNET-Go on its own computer; a BirdWeather PUC runs BirdNET in firmware) or on the installer's computer (AudioMoth SD cards through BirdNET-Analyzer). Edge inference is what keeps a node inside a 500 MB ten-year SIM. Built: BirdWeather stations are polled hourly by station id. Specified: the oracle publishes reference container images so that the same audio gives the same detections everywhere. Specified: an export of a place's detections as Camtrap DP with the acoustic additions proposed by the Safe and Sound project, the listening windows as its recording schedule, for publication to GBIF ([the bird protocols](bird-protocols.md), section 4).
 
 ### 2.3 Soil (built)
 
@@ -57,7 +57,7 @@ At registration and yearly, each place is enriched from open global layers, stor
 
 ### 2.4 Visits (built: storage; specified: scheduler)
 
-A **visit** is `{date, kind BASELINE|RANDOM|TRIGGERED, verifier, findings, notes}`. Specified: 5% of places per year drawn by a public random beacon (drand or the NIST beacon), plus a visit for every place whose streams disagree (see 4.2). Findings carry soil cores, eDNA results, insect counts and photos; lab results for Cycling go in `findings.soil` (3.5).
+A **visit** is `{date, kind BASELINE|RANDOM|TRIGGERED, verifier, findings, notes}`. Specified: 5% of places per year drawn by a public random beacon (drand or the NIST beacon), plus a visit for every place whose streams disagree (see 4.2). Findings carry soil cores, eDNA results, insect counts and photos; lab results for Cycling go in `findings.soil` (3.5). For birds, the visit is a count by Sovon's farmland protocol (Meetnet Agrarische Soorten): 10 minutes at the node in each of the four spring rounds, the species list in `findings` ([the bird protocols](bird-protocols.md), section 2).
 
 ## 3. The seven readings
 
@@ -69,7 +69,7 @@ Growing-season mean NDVI per year (April to September in the north, October to M
 
 ### 3.2 Diversity (built)
 
-Distinct species with detection confidence ≥ 0.7 per calendar year, counted from detections inside the listening windows (2.2). A species is its scientific name where the detector gives one, so a bird that arrives under both its common and its scientific name (BirdNET-Go's database keeps only the latter) counts once. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied).
+Distinct species with detection confidence ≥ 0.7 per calendar year, counted from detections inside the listening windows (2.2). A species is its scientific name where the detector gives one, so a bird that arrives under both its common and its scientific name (BirdNET-Go's database keeps only the latter) counts once. Needs two years. Relative change above +10% rising, below −10% falling. Confidence 0.5 until recorder-uptime and listening-hours normalisation is in place (specified: richness per 100 listening hours, rarefied). Specified: a threshold per species at a precision of 0.95, set from clips that experts have checked, replacing the single 0.7 (TABMON's method, after Wood and Kahl 2024), starting with the species of the farmland bird index of the Nature Restoration Regulation (Annex V); and a farmland bird lane on those species, the days each is heard from 1 April to 15 July ([the bird protocols](bird-protocols.md), sections 1 and 3).
 
 ### 3.3 Structure (built)
 
@@ -198,4 +198,5 @@ Nothing in the satellite path is specific to the Netherlands: Sentinel-2 covers 
 - Season rule for the tropics (see 10).
 - Weighting of human-population signals without making them tradeable.
 - Which public random beacon for the visit draw.
+- How a node keeps a small sample of clips for experts to check, which per-species thresholds need (3.2), without sending sound over the air: on its own card, collected at a visit, or a few seconds per species and score band with speech filtered out.
 - Whether to publish per-pixel NDVI or only per-place statistics (privacy of stewards versus reproducibility). Current: per-place statistics, raw scenes are public anyway.

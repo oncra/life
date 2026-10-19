@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 19 October 2026
+
+### Bird song already has its protocols, and the node will follow them
+
+*Change.* We had built the sound stream on a rule of our own: every species BirdNET names with a score of 0.7 or more counts. The rules for doing this well already exist, so the plan now follows them instead. Which birds count comes from the farmland bird index of the EU Nature Restoration Regulation, 27 species for the Netherlands, the same index the EU carbon farming rules name as a biodiversity co-benefit. How people count them comes from Sovon's farmland point counts, which become the visit for birds. When BirdNET can be believed comes from TABMON, a European network of 108 recorders: each species gets its own threshold, set from clips that experts have checked. Sharing goes through Camtrap DP, toward GBIF. None of this is built yet; it is written into the specification as the next steps for sound.
+
+*Learning.* Sovon tested recorders on its own farmland counting points and found what one threshold for all species costs: at a score of 0.5 or more, BirdNET did not recognise the blackbird once, at 34 points where it was heard. One node on a desk would not have shown us that. The details and sources are in [the bird protocols](../bird-protocols.md).
+
 ## 13 October 2026
 
 ### Taking the mowing out of the soil number did not make it stiller

@@ -43,7 +43,7 @@ Four of our rules have clear ancestors. Six do not, as far as we could find.
 
 ## Scientific frameworks
 
-**Essential Biodiversity Variables (GEO BON).** Twenty-one variables in six classes, deliberately not aggregated; satellite phenology and primary productivity are EBVs, there is no acoustic EBV.
+**Essential Biodiversity Variables (GEO BON).** Twenty-one variables in six classes, deliberately not aggregated; satellite phenology and primary productivity are EBVs, there is no acoustic EBV. Acoustic detections feed the species EBVs as data: TABMON delivers its detections as "EBV-useable" datasets.
 
 **SEEA Ecosystem Accounting (UN 2021).** Variables rescaled against a reference condition, then aggregated; the text is agnostic on the rule and names the minimum operator ("one out, all out") as a precautionary option used in the Habitats Directive and the IUCN Red Lists, while noting that arithmetic means let a lost bird community be compensated by deadwood.
 
@@ -63,7 +63,7 @@ Four of our rules have clear ancestors. Six do not, as far as we could find.
 
 **BLN 2.0 (WUR 2023).** Considered one-out-all-out for soils and rejected it because "in most cases soil quality would be judged insufficient", preferring classes over a grade.
 
-**Farmland Bird Index.** Geometric mean of species trends; compensatory by construction.
+**Farmland Bird Index.** Geometric mean of species trends; compensatory by construction. It is also the farmland indicator of the Nature Restoration Regulation (Annex V lists 27 species for the Netherlands), and the EU carbon farming rules name an improvement in it as a biodiversity co-benefit. The sound stream follows its species list, Sovon's farmland point counts and TABMON's validation of BirdNET: [the bird protocols](bird-protocols.md).
 
 **ARISE and Automated Biodiversity Monitoring (Naturalis, TNO, RIVM, Rijkswaterstaat; €19.4 M, 2026 to 2030).** The national sensor stack (acoustics, insect cameras, radar, eDNA), institution-hosted, no site verdict, no landowner route.
 
@@ -87,7 +87,7 @@ What none of them do is the combination. There is no product that hears, reads t
 
 The scan above asked which devices you can buy. This one asks the harder question: is there an open-source connected acoustic node we should adopt instead of building one? Four answers, and the shape of them decided the design.
 
-**[Bugg](https://github.com/bugg-resources) is genuinely open hardware, and it is the closest thing to this node that exists.** Not just firmware: the organisation publishes PCB eCAD for the main, LED and microphone boards, 3D CAD for the enclosure and assembly tooling, cable specifications, `buggd` for recording and upload, a modified `buggOS`, and the web dashboard. It is proven at a scale nobody else has reached in Europe: **[TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308)**, funded by Biodiversa+ and led by NINA, has 97 Bugg units deployed across forests and wetlands in several countries, streaming to a public dashboard at `tabmon.nina.no`, with the data pipeline and export interface open on GitHub. If the question were only "has someone solved connected bird acoustics in the field", the answer would be yes, and it would be Bugg.
+**[Bugg](https://github.com/bugg-resources) is genuinely open hardware, and it is the closest thing to this node that exists.** Not just firmware: the organisation publishes PCB eCAD for the main, LED and microphone boards, 3D CAD for the enclosure and assembly tooling, cable specifications, `buggd` for recording and upload, a modified `buggOS`, and the web dashboard. It is proven at a scale nobody else has reached in Europe: **[TABMON](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210x.70308)**, funded by Biodiversa+ and led by NINA, has 108 Bugg units, deployed in 2025 along a migration route through Norway, the Netherlands, France and Spain, streaming to a public dashboard at `tabmon.nina.no`, with the data pipeline and export interface open on GitHub. If the question were only "has someone solved connected bird acoustics in the field", the answer would be yes, and it would be Bugg.
 
 Three things stop it being our node. The licence is **CC-BY-NC-SA 4.0, non-commercial**, which does not sit comfortably under a certification body that sells its service. The devices carry no CE or UKCA marking, and the project says plainly that commercial deployment "may require significant further investment and potentially design changes". And the architecture is the opposite of ours: Bugg **uploads raw audio** to cloud storage and classifies it there, which is what TABMON does with a GPU pipeline running BirdNET v2.4 via AvesEcho. That is a good design for a research network with institutional bandwidth. It is the wrong one here, because it breaks the ten-year SIM on the first day and because "no sound leaves the node" is a promise we want to be able to make to a landowner.
 
@@ -168,4 +168,4 @@ walks the field.
 
 ## Sources not reachable today
 
-Verra and Plan Vivo pages intermittently blocked; Wallacea's methodology PDF is form-gated; ISC Victoria PDF; NINA/TABMON; Chirrup and Faunabit prices are not published anywhere we could reach. Listed so that the next pass knows where to look.
+Verra and Plan Vivo pages intermittently blocked; Wallacea's methodology PDF is form-gated; ISC Victoria PDF; Chirrup and Faunabit prices are not published anywhere we could reach. Listed so that the next pass knows where to look.
