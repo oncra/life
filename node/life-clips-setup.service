@@ -1,0 +1,11 @@
+[Unit]
+Description=Life node: clip export on or off in BirdNET-Go's config before it starts (LIFE_KEEP_CLIPS)
+After=life-firstboot.service
+Before=birdnet-go.service
+RequiresMountsFor=/data
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-clips setup
+[Install]
+WantedBy=multi-user.target

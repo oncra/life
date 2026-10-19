@@ -1,0 +1,9 @@
+[Unit]
+Description=Life node: keep the clip sample for checking, delete every other clip BirdNET-Go wrote
+RequiresMountsFor=/data
+[Service]
+Type=oneshot
+Nice=10
+IOSchedulingClass=idle
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-clips sample

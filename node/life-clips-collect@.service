@@ -1,0 +1,9 @@
+[Unit]
+Description=Life node: copy the clip sample onto the stick %I, check the copy, delete it from the node
+RequiresMountsFor=/data
+After=life-firstboot.service
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-clips collect-device /dev/%I
+TimeoutStartSec=30min
