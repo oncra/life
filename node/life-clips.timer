@@ -1,0 +1,7 @@
+[Unit]
+Description=Life node: sample BirdNET-Go's clips every 15 minutes (a clip is settled 15 minutes after its detection)
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+[Install]
+WantedBy=timers.target

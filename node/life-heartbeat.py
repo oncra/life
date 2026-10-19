@@ -30,6 +30,7 @@ Environment:
     WITTYPI_BUS         default 1; set empty to skip the Witty Pi
     VEDIRECT_PORT       default: the first /dev/serial/by-id/*VE_Direct*; set "none" to skip; a /dev/ttyUSB0 for a
                         home-made cable
+    LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait for a visit (`clipsWaiting`)
     LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
                         outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept)
 """
@@ -236,7 +237,20 @@ def metrics():
             pass
     m.update(power())
     m.update(listening())
+    m.update(clips())
     return m
+
+
+def clips():
+    """The clip sample waiting for a visit (life-clips writes it after every run): how many, how big, last collected."""
+    try:
+        d = json.loads(Path(os.environ.get("LIFE_CLIPS_DIR", "/data/life-clips"), "status.json").read_text())
+    except Exception:  # noqa: BLE001 - no sample on this node (yet)
+        return {}
+    out = {"clipsKeep": bool(d.get("keep")), "clipsWaiting": int(d.get("waiting") or 0), "clipsMb": float(d.get("mb") or 0)}
+    if d.get("collectedAt"):
+        out["clipsCollectedAt"] = str(d["collectedAt"])
+    return out
 
 
 def listening():

@@ -38,7 +38,7 @@ Whatever the schedule, do not change it at a place once it is running. A longer 
 
 | Set | Interval | Do |
 | --- | --- | --- |
-| Node | nothing scheduled; look at "last seen" monthly | wipe the microphone port and the panel once or twice a year; check the post and the probe cable after field work |
+| Node | nothing scheduled; look at "last seen" monthly | wipe the microphone port and the panel once or twice a year; check the post and the probe cable after field work. At a visit, take the clip sample: open a maintenance window on the box page, open the lid, plug a USB stick named LIFECLIPS (FAT32 or exFAT) into the node; the green light stays on for ten seconds when the clips are copied and checked, then they are gone from the node |
 | Offline sound (AudioMoth, Micro 2) | 6 to 8 weeks | swap microSD and batteries; check seal; photograph the mounting |
 | Connected sound (PUC, BirdNET-Pi) | monthly | check uptime on the dashboard; wipe microphone port; check panel |
 | Ultrasonic (Mini Bat 2) | 6 weeks (AA) / 3 to 4 months (Li-ion) | swap card and batteries |
