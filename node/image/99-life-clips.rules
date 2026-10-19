@@ -1,0 +1,2 @@
+# A USB stick named LIFECLIPS takes the node's clip sample away (life-clips collect-device). Any other stick is ignored.
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="LIFECLIPS", TAG+="systemd", ENV{SYSTEMD_WANTS}+="life-clips-collect@%k.service"

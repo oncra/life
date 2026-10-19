@@ -11,6 +11,9 @@ Environment:
     LIFE_API            default https://life.oncra.org/api/v1
     BIRDNET_DB          default ~/BirdNET-Pi/scripts/birds.db (BirdNET-Pi) or birdnet.db (BirdNET-Go)
     LIFE_MIN_CONFIDENCE default 0.5
+    LIFE_MIN_CONFIDENCE_FLOOR optional: nothing under it goes out, whatever LIFE_MIN_CONFIDENCE says. The Life node
+                        sets 0.7, the score its readings count from, because its clip sample has BirdNET-Go detect
+                        down to 0.1 (node/life-clips.py)
     LIFE_HEARTBEAT_CMD  optional: a command printing one JSON heartbeat (the Life node sets
                         `life-heartbeat --json`); it rides on the post, and a post goes out even with no detections
     LIFE_HEARTBEAT_EVENT optional: boot | hourly | shutdown | manual, passed to that command as --event
@@ -28,7 +31,7 @@ from pathlib import Path
 
 API = os.environ.get("LIFE_API", "https://life.oncra.org/api/v1").rstrip("/")
 TOKEN = os.environ.get("LIFE_DEVICE_TOKEN")
-MINCONF = float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5"))
+MINCONF = max(float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5")), float(os.environ.get("LIFE_MIN_CONFIDENCE_FLOOR") or 0))
 CURSOR = Path(os.environ.get("LIFE_CURSOR", str(Path.home() / ".life-oracle-cursor")))
 SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
 if not TOKEN:

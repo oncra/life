@@ -39,7 +39,7 @@ Root is read-only, so `apt-get` and edits under `/etc` vanish at the next reboot
 
 ## BirdNET-Go
 
-Runs as the `birdnet-go.service` from `/data/birdnet-go`. `build.sh` runs it once inside the chroot to write its default `config.yaml` and fetch the model, then sets `realtime.audio.export.enabled: false`. **Audio clip saving stays off.** Detections leave the node, sound does not. Its web UI is on port 8080 on the bench; there is no route to it from the field, which is intended.
+Runs as the `birdnet-go.service` from `/data/birdnet-go`. `build.sh` runs it once inside the chroot to write its default `config.yaml` and fetch the model, then sets `realtime.audio.export.enabled: false`. **Audio clip saving stays off in the image.** At every boot, before BirdNET-Go starts, `life-clips setup` switches it on for the clip sample (Opus at 32 kbit/s, BirdNET-Go's own retention off, its threshold at 0.1, its speech detector on), or keeps it off with `LIFE_KEEP_CLIPS=0`; every 15 minutes `life-clips sample` keeps the sample and deletes every other clip, and `99-life-clips.rules` starts `life-clips-collect@` when a stick named LIFECLIPS is plugged in. Detections leave the node, sound does not. Its web UI is on port 8080 on the bench; there is no route to it from the field, which is intended.
 
 The microphone is an INMP441 on I2S (pins 18, 19, 20), which Linux sees as the `googlevoicehat` sound card; `dtparam=audio=off` keeps it the only card on the node so BirdNET-Go's default source picks it.
 
