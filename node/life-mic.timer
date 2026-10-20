@@ -1,6 +1,8 @@
 [Unit]
 Description=Life node: check the microphones' models against the sun every five minutes
 [Timer]
+# the service has its own name: without this line systemd looks for life-mic.service and refuses to start
+Unit=life-mic-sync.service
 OnBootSec=4min
 OnUnitActiveSec=5min
 AccuracySec=30s
