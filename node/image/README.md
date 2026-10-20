@@ -49,6 +49,19 @@ The microphone is an INMP441 on I2S (pins 18, 19, 20), which Linux sees as the `
 
 A node that already runs the plain image can get the same without a reflash, because `/data` is writable: run `perch-v2.sh` against `/data` on the node and restart `birdnet-go`.
 
+## The bat microphone
+
+An AudioMoth USB Microphone in the Pi's fourth USB port is the node's bat microphone (`content/kit.md`, row 23; the wiring is `public/img/build/bat-mic-wiring.svg`). Two things in the image serve it:
+
+- `bat-model.sh` puts BirdNET-Go's bat model on the data partition at build time: BattyBirdNET for Europe (30 classes, among them the pond bat), its labels and the BirdNET v2.4 embeddings model it runs on, about 59 MB, pinned by SHA-256 from BirdNET-Go's model catalog. On by default (`BAT_REGION=eu`); `BAT_REGION=` leaves it out. The model is CC BY-NC-SA 4.0, like BirdNET itself.
+- `life-bats setup` runs at every boot before BirdNET-Go (`life-bats-setup.service`). It looks for the microphone on USB, sets it to 192 kHz with Open Acoustic Devices' command-line tool when it reports another rate (and stores that in the microphone once), finds its ALSA card and the I2S card, and writes BirdNET-Go's config: the bat model enabled, a second source `Bat microphone` at 192 kHz that runs only the bat model and is quiet from sunrise to sunset, and the bird source on the I2S card. Without the microphone or the model files it takes all of that out again. `life-bats status` says what it found.
+
+BirdNET-Go resamples the 192 kHz to the 256 kHz its bat model expects; 192 kHz covers the Dutch bats and is half the data of 384 kHz. The source is quiet by day rather than using BirdNET-Go's own `bat.nighttimeonly`, which waits for civil dusk and so would miss most of the node's evening window, the first hour after sunset.
+
+A node on an older image gets the same without a reflash: run `bat-model.sh` against `/data`, install `life-bats.py` as `/usr/local/bin/life-bats`, and run `life-bats setup` before restarting `birdnet-go`. Without the command-line tool, set the microphone once to 192 kHz from a laptop (`AudioMoth-USB-Microphone config 192000`, then `persist`).
+
+Not yet: the clips of bat detections. `life-clips` has BirdNET-Go write Opus clips, which carry nothing above 20 kHz, so a bat clip would hold nothing of the call. BirdNET-Go 20261014 can write bat clips as FLAC at the full rate; that comes with the next BirdNET-Go update.
+
 ## Witty Pi
 
 `life-wittypi` runs before both the daemon and the schedule. It lets them start only when a Witty Pi 4 answers on I2C **and** sits in the supply path (its own input voltage is up). A Witty Pi stacked on the Pi while the supply goes into the Pi's own USB-C can order a shutdown but cannot cut or restore power, and the halted Pi then draws about 1.8 W and never wakes; that happened on node 1's bench. When the check passes it also sets the board's **default ON** (register 17), so the Pi starts the moment the Witty Pi gets power instead of waiting for a press on K1. A node whose battery ran flat comes back on its own when the charge controller switches its load output on again. `WITTYPI_DEFAULT_ON=0` in the env keeps the button behaviour.
