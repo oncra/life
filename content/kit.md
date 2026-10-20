@@ -77,46 +77,62 @@ Node 1 as bought sits a little above the budget: the Pi is the 4 GB (€106.49, 
 
 ## How it compares
 
-Listening for life has many good tools, and the Life Node is one of them. Each was made for a different place: a garden, a farmyard, a season's survey, a field far from any house. Here they stand side by side by what each does best, where it fits, and what ten years of listening costs once the visits a box needs are counted. Only boxes that can be ordered today are in it. Device prices incl. VAT from the Dutch importer [Veldshop](https://www.veldshop.nl/nl/veldwerk/geluidsopname/audiorecorders/) unless a line says otherwise, checked on 20 October 2026. Dollars at that day's ECB rate ($1.1215 to the euro).
+Listening for life has many good tools, and the Life Node is one of them. Each was made for a different place: a garden, a farmyard, a season's survey, a field far from any house. The node is made for the last of these, and so is this comparison: boxes that can stand in a field or a food forest with no WiFi and no socket, and keep listening for ten years. Boxes made for a house and its garden are further down, folded away. Only boxes that can be ordered today are in it. Device prices incl. VAT from the Dutch importer [Veldshop](https://www.veldshop.nl/nl/veldwerk/geluidsopname/audiorecorders/) unless a line says otherwise, checked on 20 October 2026. Dollars at that day's ECB rate ($1.1215 to the euro).
 
 **Counting the visits.** A box that keeps its sound on a card needs someone to fetch it, and over ten years those trips can cost more than the box. We count a visit at about €120: an hour and a half of a technician's time at €60 an hour excl. VAT (the installer's rate in the [Knab Zzp Uurtarievenboekje 2026](https://bieb.knab.nl/ondernemen/wat-verdient-een-installateur-zzp-bekijk-uurtarief-en-winst)) plus 21% VAT, and 50 km at €0.25 (the [Belastingdienst's rate for 2026](https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/berichten/nieuws/verhoging-onbelaste-kilometervergoeding-hoe-verwerkt-u-dit-in-de-loonaangifte)). When the landowner makes the visit on their own rounds, the money drops out and about half an hour remains; that figure is in brackets. Cards come in at least four times a year, so that every quarter has its readings, and small recorders on AA batteries need a visit every six to eight weeks, about seven a year ([installation protocol](install-sound.md)). The node is built to need no routine visit: it brings its own power and connection, and someone comes by only when one of its alerts asks for it. We count none. A PUC in a field also gets a small USB-C solar panel and a mount, about €66 ([hardware guide](hardware.md)). Cases, batteries and posts for the other boxes are not counted; the node's price includes its post, panel and battery.
 
+### In the field
+
 | Device | Best at | Price | Fees over ten years | Visits a year | Per year over ten years |
 | --- | --- | ---: | --- | --- | --- |
-| EasyComp Zeeland Watch House Basic | birds named in the box (BirdNET-Pi on a Pi 3B+) on a house's WiFi and a socket, from a maker that works without profit ([EasyComp](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/), indicative price, VAT not stated) | €110 | none | none: it lives on a house | about €11 |
 | AudioMoth | recording anywhere for very little, with open firmware; the birds are named afterwards, on a computer | €146.85 | none | 7, for cards and batteries | about €855 (€15) |
 | Song Meter Micro 2 | small, light surveys | €177 | none | 7, for cards and batteries | about €858 (€18) |
-| Haikubox | birds in a garden, with a friendly app, on a socket and the house's WiFi; the first year of the full app included | €277 | about €473: $59 a year from the second year ([Haikubox](https://www.haikubox.com/products/haikubox-annual)), or a free tier that shows the day's birds | none: it lives on a house | about €75 |
-| BirdWeather PUC | birds wherever a house's WiFi reaches, and on its card away from it; more than 10,000 stations in one public network, with an open API | €289 | none | none on a house; in a field at least 4, to bring the card back within WiFi | about €29 on a house; in a field about €516 (€36) |
-| BirdWeather PUC Bat Edition | birds and bats on a house's WiFi, with 215 bat species and what they are doing ([Veldshop](https://www.veldshop.nl/nl/birdweather-puc-bat-edition.html)) | €495 | none | none on a house; in a field at least 4, for the birds (bats on the card come in BirdWeather's next update) | about €50 on a house; in a field about €536 (€56) |
+| BirdWeather PUC | birds on its card in a field, with a small USB-C panel, named in BirdWeather's cloud once the card is back within WiFi; more than 10,000 stations in one public network, with an open API | €289, and €66 for the panel and mount | none | at least 4, to bring the card back within WiFi | about €516 (€36) |
+| BirdWeather PUC Bat Edition | the same in a field, birds only for now: bats on the card come in BirdWeather's next update ([Veldshop](https://www.veldshop.nl/nl/birdweather-puc-bat-edition.html)) | €495, and €66 for the panel and mount | none | at least 4, to bring the card back within WiFi | about €536 (€56) |
 | Song Meter Mini 2 Li-ion | the professional standard for bird surveys, up to 1,330 hours on one set of batteries ([Veldshop](https://www.veldshop.nl/en/song-meter-mini-2-li-ion.html)) | €712 | none | 4, for the cards | about €551 (€71) |
 | Song Meter SM5 | professional recorder with two channels | €915 | none | 4, for the cards | about €572 (€92) |
-| Frontier Labs Solar BAR | years on solar power, far from anything; delivered in three to six weeks | €935 | none | 4, for the cards | about €574 (€94) |
+| Frontier Labs Solar BAR | years of recording on its own 10 W panel and battery, far from anything; delivered in three to six weeks, and sold without a microphone ([Veldshop](https://www.veldshop.nl/nl/frontier-labs-solar-bar-bio-akoestische-recorder.html)) | €935, and €73 for its standard microphone | none | 4, for the cards | about €581 (€101) |
 | Song Meter Mini Bat 2 Li-ion | the professional standard for bats, up to 125 ten-hour nights ([Veldshop](https://www.veldshop.nl/nl/song-meter-mini-bat-2-li-ion.html)) | €999 | none | 4, for the cards | about €580 (€100) |
 | **Life Node v1** | a field or food forest far from WiFi and power, for years: birds and bats named in the box, and the soil | about €809 in parts, built with the [guide](https://life.oncra.org/node) | none: the €13 SIM in the parts covers ten years | none: only when an alert asks | **about €81** |
 
 ### Side by side
 
-The node next to the three closest to it, each where it fits best.
+The node next to four boxes that can stand in the same field, each where it fits best.
 
-| | Life Node v1 | BirdWeather PUC Bat Edition | Haikubox | Song Meter Mini 2 + Mini Bat 2 |
-| --- | --- | --- | --- | --- |
-| Fits best | a field or food forest far from a house, measured for years | a garden, farmyard or field edge within reach of a house's WiFi | a garden with a socket and WiFi | a season's survey, with an ecologist |
-| Where it leads | the field itself: its own power and 4G, the soil, an alarm, no routine visits, and no sound leaving the box | price, ease and bats: 215 species and what they are doing, in a network of over 10,000 stations | the easiest start, with a friendly app | full recordings at professional quality, for an ecologist to check and analyse again |
-| Birds | named in the box | named in BirdWeather's cloud | named live, in its app | recorded, then named on a computer |
-| Bats | named in the box, after sunset | named live over WiFi | birds only | recorded by the Mini Bat 2, then named on a computer |
-| Beside the sound | the soil: moisture and temperature at 10 and 30 cm | the air: temperature, humidity, pressure and air quality | | |
-| Power | 40 W panel and a 256 Wh battery | a socket, or a small USB-C panel | a socket | their own batteries: up to 1,330 hours and 125 ten-hour nights |
-| Connection | its own 4G | the house's WiFi, or its card away from it | the house's WiFi | none needed: the cards hold it all |
-| Open | code, guide, and every part and price | an open API for the data | data export as CSV | standard sound files any software reads |
-| Price | about €809 in parts | €495 | €277 | €1,711 |
-| Fees over ten years | none: the SIM is in the parts | none | about €473 | none |
-| Visits a year | none: only when an alert asks | none on a house; at least 4 in a field | none | 4 |
-| **Per year over ten years** | **about €81** | **about €50 on a house; in a field about €536 (€56)** | **about €75** | **about €651 (€171)** |
+| | Life Node v1 | BirdWeather PUC Bat Edition, in a field | AudioMoth | Frontier Labs Solar BAR | Song Meter Mini 2 + Mini Bat 2 |
+| --- | --- | --- | --- | --- | --- |
+| Fits best | a field or food forest far from a house, measured for years | a field someone passes anyway, for its birds | surveys anywhere, for very little | long recordings far from anything | a season's survey, with an ecologist |
+| Where it leads | the field itself: its own power and 4G, the soil, an alarm, no routine visits, and no sound leaving the box | ease, and a public network of over 10,000 stations; bats on the card are on their way | price and open firmware, widely used in bird counts and research | years of recording on its own solar power, with visits only for the cards | full recordings at professional quality, for an ecologist to check and analyse again |
+| Birds | named in the box | named in BirdWeather's cloud, once the card is back within WiFi | recorded, then named on a computer | recorded, then named on a computer | recorded, then named on a computer |
+| Bats | named in the box, after sunset | on a live WiFi link for now; on the card in BirdWeather's next update | recorded up to 384 kHz, then named on a computer | birds only with its standard microphone (80 Hz to 20 kHz) | recorded by the Mini Bat 2, then named on a computer |
+| Beside the sound | the soil: moisture and temperature at 10 and 30 cm | the air: temperature, humidity, pressure and air quality | | | |
+| Power | 40 W panel and a 256 Wh battery | Li-ion pack and a small USB-C panel | three AA batteries | its own 10 W panel and 7.2 Ah battery | their own batteries: up to 1,330 hours and 125 ten-hour nights |
+| Connection | its own 4G | none in the field: the card goes back within WiFi | none: the card is collected | none: the cards are collected | none: the cards are collected |
+| Open | code, guide, and every part and price | an open API for the data | open firmware and apps (MIT) | standard sound files | standard sound files any software reads |
+| Price | about €809 in parts | €495, and €66 for the panel and mount | €146.85 | €935, and €73 for its microphone | €1,711 |
+| Fees over ten years | none: the SIM is in the parts | none | none | none | none |
+| Visits a year | none: only when an alert asks | at least 4 | 7 | 4 | 4 |
+| **Per year over ten years** | **about €81** | **about €536 (€56)** | **about €855 (€15)** | **about €581 (€101)** | **about €651 (€171)** |
 
-**Where each fits.** For a season's survey a recorder is the right tool: a few visits, and the recordings stay for anyone to check. On a house, a farmyard or a field edge within reach of WiFi, the PUC Bat Edition is a better buy than a node: €495, ready to use, birds and bats, no visits, and the Life Oracle already reads it by its station id ([data protocols](data-protocols.md)). The Haikubox is the easiest start in a garden. The node is made for the rest: a field or food forest far from a house, measured for ten years, where every visit counts. There it brings its own power and 4G, names birds and bats in the box so no sound leaves the field, reads the soil, and asks for a visit only when an alert calls for one. Many places will want more than one of these: a PUC by the farmhouse and a node in the field are read by the same oracle.
+**Where each fits.** For a season's survey a recorder is the right tool: a few visits, and the recordings stay for anyone to check. A PUC suits a field that someone passes anyway, and does more on a house (below). The node is made for the rest: a field or food forest far from a house, measured for ten years, where every visit counts. There it brings its own power and 4G, names birds and bats in the box so no sound leaves the field, reads the soil, and asks for a visit only when an alert calls for one.
 
-**Why a network of nodes scales.** The largest difference is not in one box but in a thousand of them. A box that keeps its sound on a card costs what its visits cost: the trips for batteries and cards, and then the hours to copy, name and upload each card, which the tables above do not even count. For a single survey that is a small part of the work; for a network it is nearly all of it, and it grows with every box. A thousand recorders fetched four times a year make four thousand trips a year, about sixteen on every working day. The node cuts that work out: it brings its own power, names what it hears in the box and sends its own readings, and someone comes by only when one of its alerts asks for it. Its year is about €81, against €536 to €858 for the boxes that keep their sound on a card: about a seventh to a tenth. That is what lets a network of a thousand places grow without a field crew growing with it.
+**Why a network of nodes scales.** The largest difference is not in one box but in a thousand of them. A box that keeps its sound on a card costs what its visits cost: the trips for batteries and cards, and then the hours to copy, name and upload each card, which the tables above do not even count. For a single survey that is a small part of the work; for a network it is nearly all of it, and it grows with every box. A thousand recorders fetched four times a year make four thousand trips a year, about sixteen on every working day. The node cuts that work out: it brings its own power, names what it hears in the box and sends its own readings, and someone comes by only when one of its alerts asks for it. Its year is about €81, against €516 to €858 for the boxes that keep their sound on a card: about a sixth to a tenth. That is what lets a network of a thousand places grow without a field crew growing with it.
+
+<details>
+<summary>Around a house: boxes for a garden or farmyard with WiFi and a socket</summary>
+
+For anyone who wants to listen around their own house. These boxes name their birds live over the house's WiFi, run on a socket and need no visits, which makes them the simplest start. They are not what the node is for, so they are here for information.
+
+| Device | Best at | Price | Fees over ten years | Per year over ten years |
+| --- | --- | ---: | --- | --- |
+| EasyComp Zeeland Watch House Basic | birds named in the box (BirdNET-Pi on a Pi 3B+) on a house's WiFi and a socket, from a maker that works without profit ([EasyComp](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/), indicative price, VAT not stated) | €110 | none | about €11 |
+| Haikubox | birds in a garden, with a friendly app, on a socket and the house's WiFi; the first year of the full app included | €277 | about €473: $59 a year from the second year ([Haikubox](https://www.haikubox.com/products/haikubox-annual)), or a free tier that shows the day's birds | about €75 |
+| BirdWeather PUC | birds, in one public network of more than 10,000 stations, with an open API | €289 | none | about €29 |
+| BirdWeather PUC Bat Edition | birds and bats, with 215 bat species and what they are doing ([Veldshop](https://www.veldshop.nl/nl/birdweather-puc-bat-edition.html)) | €495 | none | about €50 |
+
+Where a house's WiFi reaches the spot, a PUC Bat Edition is a better buy than a node: €495, ready to use, birds and bats, no visits, and the Life Oracle already reads it by its station id ([data protocols](data-protocols.md)). A place can have both: a PUC by the farmhouse and a node in the field, read by the same oracle.
+
+</details>
 
 Open is not one licence. The code in this repository is Apache-2.0 and these pages are CC BY 4.0, but BirdNET-Go and BirdNET's model, which run on the node, are CC BY-NC-SA 4.0, for non-commercial use, and so is BirdNET-Pi. The [hardware guide](hardware.md) lists what each licence allows.
 
