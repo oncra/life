@@ -124,7 +124,7 @@ On flat farmland expect 3 to 8 km from a mast-mounted outdoor gateway, 1 to 2 km
 
 **Network server.** The Things Stack **Sandbox** is free for small, non-commercial use (fair use: 30 s uplink airtime per device per day, plenty for a probe sending every 15 to 30 minutes at SF7 to SF9). The Things Stack Cloud Discovery tier is free for 10 devices with an SLA; Standard is €190/month for 1,000 devices. In the Netherlands **KPN LoRa** is nationwide: Explorer plan €1.33/month per device, monthly cancellable, devices must be on KPN's qualified list. Helium costs about $0.00001 per uplink but has no roaming with TTN and needs its own network server.
 
-**NB-IoT alternative** where there is no LoRaWAN: Dragino SE01-NB (€133 at Antratek) with a 1NCE SIM (€12 for ten years, 500 MB).
+**NB-IoT alternative** where there is no LoRaWAN: Dragino SE01-NB (€133 at Antratek) with a 1NCE SIM (€13 for ten years, 500 MB).
 
 ## Ready-made alternatives: can you skip the build?
 
@@ -142,7 +142,7 @@ Checked live on 2026-09-13. Prices include VAT where the shop shows it. The shor
 | Song Meter Micro 2 | about $202 | [wildlifeacoustics.com](https://www.wildlifeacoustics.com/products/song-meter-micro-2) | none | none | SD card |
 | RFCx Guardian 3 | not retail | [rfcx.org/guardian](https://rfcx.org/guardian) | cellular, solar | on device | programme deployments |
 
-The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: a node that sends only detections fits a €12 SIM for ten years instead of €180 a year.
+The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: a node that sends only detections fits a €13 SIM for ten years instead of €180 a year.
 
 Two open reference designs are worth reading before anyone builds a v2 board: [Microsoft SPARROW](https://microsoft.github.io/SPARROW/) (Jetson Orin Nano with Starlink, solar, edge inference) and [Bird@Edge](https://jonashoechst.de/assets/papers/hoechst2022birdedge.pdf) (ESP32 microphone nodes reporting to a Jetson base, about €110 in parts). Neither is a product.
 
