@@ -17,7 +17,7 @@ const POINTS: { title: string; body: ReactNode }[] = [
   },
   {
     title: "Its own 4G",
-    body: "One 4G stick on a €12 SIM that lasts ten years: no WiFi, no gateway, no monthly fee. Where a phone has signal, a node can stand, in the middle of a field or a food forest. It reports what it heard, and how it is doing, several times a day.",
+    body: "One 4G stick on a €13 SIM that lasts ten years: no WiFi, no gateway, no monthly fee. Where a phone has signal, a node can stand, in the middle of a field or a food forest. It reports what it heard, and how it is doing, several times a day.",
   },
   {
     title: "It names what it hears",
@@ -35,7 +35,7 @@ const POINTS: { title: string; body: ReactNode }[] = [
     title: "Open, and cheap enough to repeat",
     body: (
       <>
-        About €798 in parts, with every part, shop and price published, and open software and an open build guide. Birds and bats with two professional recorders cost about €1,700, without 4G, a panel or soil probes (<Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>).
+        About €799 in parts, the SIM for ten years included: about €80 a year. Every part, shop and price is published, and the software and the build guide are open. Birds and bats with two professional recorders cost about €1,700, without 4G, a panel or soil probes (<Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>).
       </>
     ),
   },
