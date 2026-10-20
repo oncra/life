@@ -35,12 +35,11 @@ body { background: var(--background); color: var(--foreground); }
 .prose th, .prose td { border: 1px solid var(--line); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
 .prose th { background: #f1efe6; }
 /* A folded part of a document (<details> in the markdown): the same card as the node dashboard's Collapsible */
-.prose details { border: 1px solid var(--line); border-radius: 0.5rem; background: #fff; margin: 1rem 0; }
-.prose summary { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.6rem 0.75rem; cursor: pointer; list-style: none; font-size: 0.875rem; }
+.prose details { border: 1px solid var(--line); border-radius: 0.5rem; background: #fff; margin: 1rem 0; padding: 0 0.75rem; }
+.prose summary { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 0 -0.75rem; padding: 0.6rem 0.75rem; cursor: pointer; list-style: none; font-size: 0.875rem; }
 .prose summary::-webkit-details-marker { display: none; }
 .prose summary::after { content: "Show \2193"; color: var(--muted); flex-shrink: 0; }
 .prose details[open] > summary::after { content: "Hide \2191"; }
-.prose details > :not(summary) { margin-left: 0.75rem; margin-right: 0.75rem; }
 .prose details[open] { padding-bottom: 0.25rem; }
 .prose blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--muted); margin: 1rem 0; }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
