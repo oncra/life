@@ -25,6 +25,7 @@ install -m 0755 "$HERE/../clients/birdnet-pi-push.py" /usr/local/bin/life-push
 install -m 0755 "$HERE/life-heartbeat.py" /usr/local/bin/life-heartbeat
 install -m 0755 "$HERE/life-guard.py" /usr/local/bin/life-guard
 install -m 0755 "$HERE/life-clips.py" /usr/local/bin/life-clips
+install -m 0755 "$HERE/life-bats.py" /usr/local/bin/life-bats
 install -d /etc/udev/rules.d && install -m 0644 "$HERE/image/99-life-clips.rules" /etc/udev/rules.d/
 install -d /usr/share/life-node/firmware && install -m 0644 "$HERE/firmware/life-guard/life-guard.hex" /usr/share/life-node/firmware/ && install -m 0755 "$HERE/firmware/life-guard/flash.sh" /usr/share/life-node/firmware/
 install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
@@ -34,6 +35,19 @@ install -m 0755 "$HERE/image/life-window.py" /usr/local/sbin/life-window
 life-schedule-wpi --now 2026-06-21T05:00 | grep -q "^ON" || { echo "life-schedule-wpi does not run"; exit 1; }
 SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake voltage-restored | grep -q '"offWindow": "stop"' || { echo "life-window does not run"; exit 1; }
 LIFE_CLIPS_DIR=/tmp/life-clips-check BIRDNET_DIR=/tmp/life-clips-check life-clips status --json | grep -q '"waiting": 0' || { echo "life-clips does not run"; exit 1; }; rm -rf /tmp/life-clips-check
+LIFE_BATS_PROC=/tmp/life-bats-check LIFE_BATS_SYS=/tmp/life-bats-check BIRDNET_DIR=/tmp/life-bats-check life-bats status --json | grep -q '"plugged": false' || { echo "life-bats does not run"; exit 1; }
+# the bat microphone's own tool (Open Acoustic Devices, MIT): life-bats sets the AudioMoth USB Microphone to 192 kHz
+# with it. Built from the pinned 1.0.2 source; the compiler stays, since taking it out again with autoremove could
+# take other packages the image came with.
+if ! command -v AudioMoth-USB-Microphone >/dev/null; then
+  curl -fsSL -o /tmp/amcmd.tgz https://github.com/OpenAcousticDevices/AudioMoth-USB-Microphone-Cmd/archive/refs/tags/1.0.2.tar.gz
+  echo "65f00220ebcbf487ae4d3d08881583a2cf919fc748f5c961f9b0a100e5863470  /tmp/amcmd.tgz" | sha256sum -c - >/dev/null
+  apt-get install -y -qq gcc libc6-dev libusb-1.0-0-dev >/dev/null
+  tar -xzf /tmp/amcmd.tgz -C /tmp
+  (cd /tmp/AudioMoth-USB-Microphone-Cmd-1.0.2 && gcc -Wall -std=c99 -I/usr/include/libusb-1.0 -I./src/linux/ ./src/main.c ./src/linux/hid.c -o /usr/local/bin/AudioMoth-USB-Microphone -lusb-1.0 -lrt -lpthread)
+  rm -rf /tmp/amcmd.tgz /tmp/AudioMoth-USB-Microphone-Cmd-1.0.2
+  command -v AudioMoth-USB-Microphone >/dev/null || { echo "the AudioMoth tool did not build"; exit 1; }
+fi
 install -m 0755 "$HERE/image/life-wittypi.sh" /usr/local/sbin/life-wittypi
 # the Witty Pi daemon drives its pins with wiringPi's gpio tool and exits without it; it is the daemon that sends
 # SYS_UP on GPIO-17, and only after SYS_UP does the board watch TXD and cut power once the Pi has shut down
@@ -75,10 +89,10 @@ systemctl disable regenerate_ssh_host_keys.service 2>/dev/null || true
 # BirdNET database are pinned to /data too, so a power cut never loses what was not yet posted. life-push sends
 # nothing under 0.7 (LIFE_MIN_CONFIDENCE_FLOOR), the score the readings count from, even while life-clips has
 # BirdNET-Go detect down to 0.1 for the clip sample; a stick named LIFECLIPS starts life-clips-collect@ (udev).
-install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service "$HERE"/life-guard.service "$HERE"/life-clips-setup.service "$HERE"/life-clips.service "$HERE"/life-clips.timer "$HERE"/life-clips-collect@.service /etc/systemd/system/
+install -m 0644 "$HERE"/life-soil.service "$HERE"/life-soil.timer "$HERE"/life-sound.service "$HERE"/life-sound.timer "$HERE"/life-flush.service "$HERE"/life-guard.service "$HERE"/life-clips-setup.service "$HERE"/life-clips.service "$HERE"/life-clips.timer "$HERE"/life-clips-collect@.service "$HERE"/life-bats-setup.service /etc/systemd/system/
 install -m 0644 "$HERE"/image/life-firstboot.service "$HERE"/image/life-schedule.service "$HERE"/image/birdnet-go.service "$HERE"/image/wittypi.service /etc/systemd/system/
-sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD=/usr/local/bin/life-guard apply" LIFE_STATE=/data/life-node LIFE_MIN_CONFIDENCE_FLOOR=0.7\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service /etc/systemd/system/life-guard.service /etc/systemd/system/life-clips-setup.service /etc/systemd/system/life-clips.service /etc/systemd/system/life-clips-collect@.service
-systemctl enable ssh avahi-daemon life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service life-clips-setup.service life-clips.timer >/dev/null 2>&1
+sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD=/usr/local/bin/life-guard apply" LIFE_STATE=/data/life-node LIFE_MIN_CONFIDENCE_FLOOR=0.7\nEnvironmentFile=/data/life-node/env#' /etc/systemd/system/life-soil.service /etc/systemd/system/life-sound.service /etc/systemd/system/life-flush.service /etc/systemd/system/life-guard.service /etc/systemd/system/life-clips-setup.service /etc/systemd/system/life-clips.service /etc/systemd/system/life-clips-collect@.service /etc/systemd/system/life-bats-setup.service
+systemctl enable ssh avahi-daemon life-firstboot.service life-schedule.service birdnet-go.service wittypi.service life-soil.timer life-sound.timer life-flush.service life-guard.service life-clips-setup.service life-clips.timer life-bats-setup.service >/dev/null 2>&1
 systemctl disable userconfig.service 2>/dev/null || true
 # NetworkManager runs the network. systemd-networkd manages no link here, so its wait-online can only time out: two
 # minutes on every boot, with network-online.target and the timers held behind it. apt's daily timers have nothing

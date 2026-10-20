@@ -2,7 +2,7 @@
 # Build the Life node golden image on a Linux workstation (x86_64 is fine: the arm64 root is entered
 # through qemu-user-static). Needs root, and: qemu-user-static binfmt-support xz-utils util-linux e2fsprogs.
 #
-#   sudo LIFE_USER_PASSWORD=... [AUTHORIZED_KEYS=~/.ssh/id_ed25519.pub] [PERCH_REGION=central-europe] \
+#   sudo LIFE_USER_PASSWORD=... [AUTHORIZED_KEYS=~/.ssh/id_ed25519.pub] [PERCH_REGION=central-europe] [BAT_REGION=eu] \
 #     bash node/image/build.sh raspios-lite-arm64.img.xz birdnet-go-linux-arm64.tar.gz wittyPi.zip out.img
 #
 # Layout of the result (9 GiB image; flash with dd or Raspberry Pi Imager, "no customisation"):
@@ -42,6 +42,10 @@ chroot "$R" /bin/bash -c 'mv /etc/resolv.conf /etc/resolv.conf.orig; cp /etc/res
 chroot "$R" /bin/bash -c 'bash /tmp/stage/node/image/birdnet-go-firstrun.sh'
 # optional second classifier: PERCH_REGION=central-europe adds Google Perch v2 (Apache-2.0) beside BirdNET
 [ -n "${PERCH_REGION:-}" ] && PERCH_REGION="$PERCH_REGION" bash "$HERE/perch-v2.sh" "$R/data"
+# the bat model (BattyBirdNET, CC BY-NC-SA 4.0), on by default since the bat microphone is part of the standard node;
+# BAT_REGION= (empty) leaves it out. life-bats turns it on at boot, and only when the microphone is plugged in.
+BAT_REGION=${BAT_REGION-eu}
+[ -n "$BAT_REGION" ] && BAT_REGION="$BAT_REGION" bash "$HERE/bat-model.sh" "$R/data"
 rm -rf "$R/tmp/stage" "$R/usr/bin/qemu-aarch64-static"
 umount -R "$R"; losetup -d "$LOOP"; LOOP=
 echo ">> $OUT ready; compress with: xz -T0 -9 $OUT"
