@@ -5,7 +5,9 @@
     life-bats status [--json]   what is plugged in, and what BirdNET-Go is told
 
 What setup does at every boot:
-- looks for the AudioMoth USB Microphone on USB (vendor 16d0, product 06f3);
+- looks for the AudioMoth USB Microphone on USB (vendor 16d0, product 06f3). With the board's switch on USB/OFF it
+  shows up as AudioMoth's configuration device instead (10c4:0002) and is no microphone; setup says so. The switch
+  belongs on DEFAULT;
 - if it reports another rate than BAT_SAMPLE_RATE, sets it with Open Acoustic Devices' command-line tool and stores
   that in the microphone (persist), so later boots find it set and nothing is written to its flash again;
 - finds the microphone's ALSA card, and the card of the I2S bird microphone, because the two can swap numbers;
@@ -47,6 +49,7 @@ PROC = Path(os.environ.get("LIFE_BATS_PROC", "/proc"))
 SYS = Path(os.environ.get("LIFE_BATS_SYS", "/sys"))
 WAIT_S = float(os.environ.get("LIFE_BATS_WAIT_S") or 20)
 USB_ID = ("16d0", "06f3")
+SETUP_ID = ("10c4", "0002")  # the same board with its switch on USB/OFF: AudioMoth's own configuration mode
 SOURCE = "Bat microphone"
 MIN_RATE = 96000  # BirdNET-Go's floor for its bat model
 
@@ -57,15 +60,28 @@ def say(msg: str) -> None:
 
 # --- the hardware ---
 
-def on_usb() -> bool:
-    """Whether the microphone is plugged in, whatever ALSA has made of it yet."""
+def usb_state() -> str | None:
+    """'mic' when the microphone is plugged in (whatever ALSA has made of it yet), 'switch' when an AudioMoth is
+    plugged in with its switch on USB/OFF, where it is no microphone at all, else None."""
+    found = None
     for dev in (SYS / "bus" / "usb" / "devices").glob("*"):
         try:
-            if ((dev / "idVendor").read_text().strip(), (dev / "idProduct").read_text().strip()) == USB_ID:
-                return True
+            ids = ((dev / "idVendor").read_text().strip(), (dev / "idProduct").read_text().strip())
         except OSError:
             continue
-    return False
+        if ids == USB_ID:
+            return "mic"
+        if ids == SETUP_ID:
+            try:
+                if "audiomoth" in (dev / "product").read_text().lower():
+                    found = "switch"
+            except OSError:
+                pass
+    return found
+
+
+def on_usb() -> bool:
+    return usb_state() == "mic"
 
 
 def cards() -> dict[int, dict]:
@@ -318,12 +334,16 @@ def setup() -> int:
         return 0
     card = rate = None
     files = model_files()
-    plugged = on_usb()
+    state = usb_state()
+    plugged = state == "mic"
     if plugged:  # at boot ALSA can be a second behind USB
         wait_for(lambda: find_cards()[0] is not None, WAIT_S)
     moth, moth_rate, bird, recording = find_cards()
     if not ON:
         say("LIFE_BATS=0: bats out")
+    elif state == "switch":
+        say("the AudioMoth is plugged in with its switch on USB/OFF, where it is no microphone: move the switch to "
+            "DEFAULT. Bats out")
     elif not plugged:
         say("no AudioMoth USB Microphone on USB: bats out")
     elif files is None:
@@ -354,7 +374,7 @@ def status(as_json: bool) -> int:
     lines = CONFIG.read_text().split("\n") if CONFIG.exists() else []
     span = list_span(lines, ("realtime", "audio", "sources")) if lines else None
     configured = bool(span and any(item_name(lines, s) == SOURCE for s in span[2]))
-    st = {"plugged": on_usb(), "card": card, "rate": rate, "birdCard": bird, "modelFiles": model_files() is not None,
+    st = {"plugged": on_usb(), "switchOff": usb_state() == "switch", "card": card, "rate": rate, "birdCard": bird, "modelFiles": model_files() is not None,
           "configured": configured, "enabled": ON}
     print(json.dumps(st) if as_json else "\n".join(f"{k}: {v}" for k, v in st.items()))
     return 0

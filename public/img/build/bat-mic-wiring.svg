@@ -35,6 +35,8 @@
 <text x="526" y="430" class="c b" style="fill:#fff">AudioMoth USB</text>
 <text x="526" y="448" class="c b" style="fill:#fff">Microphone</text>
 <text x="526" y="468" class="c s" style="fill:#e6f2ea">35 × 40 mm</text>
+<rect x="458" y="484" width="34" height="14" rx="3" fill="#e6f2ea" stroke="#1d5c32"/><rect x="480" y="486" width="10" height="10" rx="2" fill="#1d5c32"/>
+<text x="498" y="496" class="s" style="fill:#fff;font-size:12px">switch on DEFAULT</text>
 <circle cx="526" cy="530" r="11" fill="#1d5c32" stroke="#e6f2ea" stroke-width="2"/>
 <circle cx="526" cy="530" r="4" fill="#111"/>
 <rect x="590" y="500" width="24" height="18" class="part"/>
@@ -53,17 +55,20 @@
 <text x="690" y="716" class="s">membrane: any cover costs the</text>
 <text x="690" y="734" class="s">most at ultrasonic frequencies.</text>
 
-<rect x="640" y="95" width="330" height="250" rx="8" class="note"/>
+<rect x="640" y="95" width="330" height="320" rx="8" class="note"/>
 <text x="660" y="125" class="b">Before it goes in</text>
-<text x="660" y="152" class="s">1. Use a data cable. A charge-only</text>
-<text x="660" y="170" class="s">   cable powers the board but no sound</text>
-<text x="660" y="188" class="s">   reaches the Pi.</text>
-<text x="660" y="214" class="s">2. It listens at 192 kHz, which covers</text>
-<text x="660" y="232" class="s">   the Dutch bats. The box sets that</text>
-<text x="660" y="250" class="s">   itself when it starts.</text>
-<text x="660" y="276" class="s">3. The microphone opening faces the</text>
-<text x="660" y="294" class="s">   hole, a finger's width from it, with</text>
-<text x="660" y="312" class="s">   nothing in between. On the desk it</text>
-<text x="660" y="330" class="s">   may lie anywhere, opening free.</text>
+<text x="660" y="152" class="s">1. The small switch on the board on</text>
+<text x="660" y="170" class="s">   DEFAULT. On USB/OFF it is no</text>
+<text x="660" y="188" class="s">   microphone and the Pi hears nothing.</text>
+<text x="660" y="214" class="s">2. Use a data cable. A charge-only</text>
+<text x="660" y="232" class="s">   cable powers the board but no sound</text>
+<text x="660" y="250" class="s">   reaches the Pi.</text>
+<text x="660" y="276" class="s">3. It listens at 192 kHz, which covers</text>
+<text x="660" y="294" class="s">   the Dutch bats. The box sets that</text>
+<text x="660" y="312" class="s">   itself when it starts.</text>
+<text x="660" y="338" class="s">4. The microphone opening faces the</text>
+<text x="660" y="356" class="s">   hole, a finger's width from it, with</text>
+<text x="660" y="374" class="s">   nothing in between. On the desk it</text>
+<text x="660" y="392" class="s">   may lie anywhere, opening free.</text>
 <text x="30" y="785" class="s i">The bird microphone (INMP441 on the Witty Pi's header) stays as it is. The AudioMoth listens only from sunset to sunrise.</text>
 </svg>
