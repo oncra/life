@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 20 October 2026
 
+### The first evening with the bat microphone in the box
+
+*Learning.* On node 1 the bat model loaded and the AudioMoth listened at 192 kHz within a minute of starting. On a desk indoors, with no bat anywhere, it named a barbastelle twice and a long-eared bat once in four minutes. BirdNET-Go's own check had marked all three as unlikely, because there was no burst of ultrasound in the sound, only a flat hiss, but its approval did not look at that mark, and the long-eared bat went to the oracle. That one is now marked a test there and counts nowhere, and the box no longer sends a detection BirdNET-Go marked unlikely. And the bat model is not cheap: with it running the Pi drew **5.65 W** against 3.15 W without, its processor 91 per cent busy against 20, measured one minute each. We had planned for 1.1 to 2.2 W. For the one evening hour that is about 2.5 Wh a day, inside the 1.4 to 3.1 Wh we had calculated, but a processor that busy may let bird detections slip, so the next BirdNET-Go version, which no longer keeps its model threads spinning between analyses, has to be measured before the bats go into an image.
+
+*Change.* The AudioMoth comes without a cable: a 30 cm USB-A to micro-USB data cable is now on the order list. So are two small plug housings for the bird microphone's six wires on the Witty Pi's pins, one over pins 1 to 12 and one over pins 35 to 38, because loose jumper ends slip off one at a time. PRLINK
+
 ### The bat microphone has its software
 
 *Change.* The bat microphone, an AudioMoth USB Microphone, arrived for node 1. It plugs into the Pi's fourth and last free USB port with its own cable, and the box now knows what to do with it. At every start it sets the microphone to 192 kHz, which covers every Dutch bat, and gives BirdNET-Go a second microphone that only listens for bats, with BattyBirdNET, BirdNET-Go's bat model for Europe. That microphone is quiet from sunrise to sunset, so the morning window costs nothing extra; BirdNET-Go's own night-only switch would have waited for dusk, 35 to 50 minutes after sunset, and missed most of the evening window, which is when the bats come out. A box without the microphone runs as before. The wiring is a new drawing ([bat-mic-wiring.svg](../../public/img/build/bat-mic-wiring.svg)). The board has a small switch that has to be on DEFAULT: on USB/OFF it shows up as the AudioMoth's own configuration device, and nothing records.

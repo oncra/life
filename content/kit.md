@@ -1,6 +1,6 @@
 ---
 title: "The kit: one box on one post"
-summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €799 a node in parts, tamper guard and bat microphone included, plus tools bought once. Order list with suppliers and direct order links, prices and stock checked 2026-09-24, after the first order for the computer and probes fell through."
+summary: "Life node v1: a single solar-powered 4G box that hears (BirdNET), reads two wired soil probes and posts to the oracle. No farm network, no gateway, no WiFi. About €801 a node in parts, tamper guard and bat microphone included, plus tools bought once. Order list with suppliers and direct order links, prices and stock checked 2026-09-24, after the first order for the computer and probes fell through."
 order: 3
 ---
 
@@ -33,7 +33,7 @@ The node folds all of it into one enclosure:
 | 2 | Storage | 64 GB microSD. The bench card is a Silicon Power A2; the field node wants a SanDisk High Endurance (Opencircuit, €37.25), because `/data` takes every write | Kiwi Electronics (NL) | €25.99 |
 | 3 | Modem | Brovi/Huawei E3372-325 USB 4G stick, plug-and-play as a USB ethernet device | TelecomShop | €53.55 |
 | 4 | SIM | 1NCE IoT Lifetime Flat, 500 MB, 10 years. €11.55 delivery per order, so order several at once | 1nce.com | €13 |
-| 5 | Microphone | INMP441 I2S MEMS module (3-pack, for spares), inside the box behind a 5 mm port, wired to the stacking header with 10 cm jumpers | Amazon.nl | €8.39 + €9.99 wires |
+| 5 | Microphone | INMP441 I2S MEMS module (3-pack, for spares), inside the box behind a 5 mm port, wired to the stacking header with 10 cm jumpers, their ends in two plug housings (2×6 over pins 1 to 12, 2×2 over pins 35 to 38) so they cannot come loose one by one | Amazon.nl, Tinytronics | €8.39 + €9.99 wires + €0.25 plugs |
 | 6 | Microphone port | IP67 ePTFE acoustic membrane, 10 mm outside, 6 mm opening, 50 pcs, plus a foam-lined hood. Not yet tested against a bare port | AliExpress / bouwmarkt | €16.37 + ~€7 |
 | 7 | Soil probes ×2 | DFRobot SEN0600 RS485 moisture + temperature, stainless, IP68, each on its own 2 m lead (node 1 bought four: three sat €0.51 under DigiKey's free-shipping line) | DigiKey (NL) | 2 × €30.04 = €60.08 |
 | 8 | RS485 adapter | Waveshare industrial USB to RS485, FT232RL, surge and ESD protected | Kiwi Electronics (NL) | €14.27 |
@@ -51,12 +51,12 @@ The node folds all of it into one enclosure:
 | 19 | Battery lead | 2 × 2.5 mm² with ring terminals and an inline 15 A fuse | bouwmarkt | ~€8 |
 | 20 | Post and mount | 2 m post, pressure-treated class 4, two stainless clamps, M8 through-bolts for the panel brackets, cable lock | bouwmarkt | ~€25 |
 | 22 | Tamper guard | ATtiny84 on the Witty Pi's always-on 3V3, two reed contacts (lid, panel) and a tilt switch on a normally-closed loop, a 12 V piezo siren (100 dB) on the load output, a green LED through the wall. Under 1 µA in standby. Firmware and pinout in `node/firmware/life-guard` | reichelt | ~€22 |
-| 23 | Bat microphone | AudioMoth USB Microphone: full-spectrum to 384 kHz over USB, run at 192 kHz in the Pi's fourth USB port, beside the bird microphone; it listens from sunset to sunrise, so in the evening window. Added 2026-10-07, tried on node 1 first | LABmaker (DE) | €70.68 ($79) |
+| 23 | Bat microphone | AudioMoth USB Microphone: full-spectrum to 384 kHz over USB, run at 192 kHz in the Pi's fourth USB port, beside the bird microphone; it listens from sunset to sunrise, so in the evening window. Its switch on DEFAULT. It comes without a cable: a 30 cm USB-A to micro-USB data cable (Kiwi, €1.92). Added 2026-10-07, tried on node 1 first | LABmaker (DE), Kiwi | €70.68 ($79) + €1.92 |
 | 21 | Meter and bench supply | USB-C in/out inline meter, to measure the one number this whole design rests on, and the official 15 W Pi supply the bench runs on until the battery is in. Tools, bought once | Amazon.nl | €10.99 + €12.38, tools |
 
 > **Where you buy the panel and battery matters more than what they cost.** Offgridtec in Germany quoted **€232.90 of shipping on €88.30 of goods**: a hazardous-goods rate for the lithium battery plus freight for a bulky panel, crossing a border. Buying the same two things in the Netherlands and from reichelt costs more in parts and about €145 less delivered. Cheap parts behind expensive freight are not cheap.
 
-**Budget per node: about €799**, tamper guard and bat microphone included, set on 2026-10-11, raised by €43 on 2026-10-12 for the 20 Ah battery and by €1 on 2026-10-20, when 1NCE's invoice showed the SIM at €13 rather than €12 (`kit/order-list.csv`, every line not marked `alt`). Both the bat microphone and the tamper guard are part of the standard node (decided 2026-10-12); without them it would be about €698.
+**Budget per node: about €801**, tamper guard and bat microphone included, set on 2026-10-11, raised by €43 on 2026-10-12 for the 20 Ah battery by €1 on 2026-10-20, when 1NCE's invoice showed the SIM at €13 rather than €12, and by €2 the same day for the bat microphone's cable, which is not in its box, and two plug housings for the bird microphone's wires (`kit/order-list.csv`, every line not marked `alt`). Both the bat microphone and the tamper guard are part of the standard node (decided 2026-10-12); without them it would be about €698.
 
 | Part of the node | € |
 | --- | ---: |
@@ -64,7 +64,7 @@ The node folds all of it into one enclosure:
 | Box and mount: enclosure, glands, plate, paint, tape, standoffs, lacquer, USB leads, post | 126 |
 | Computer and storage | 132 |
 | Sensors: two probes, RS485 adapter, microphone with its port, hood and wiring | 127 |
-| Bat microphone | 71 |
+| Bat microphone | 73 |
 | 4G: stick and ten-year SIM | 58 |
 | Tamper guard | 29 |
 | Tools, counted per node | 10 |
@@ -93,7 +93,7 @@ Listening for life has many good tools, and the Life Node is one of them. Each w
 | Song Meter SM5 | professional recorder with two channels | €915 | none | 4, for the cards | about €572 (€92) |
 | Frontier Labs Solar BAR | years on solar power, far from anything | €935 | none | 4, for the cards | about €574 (€94) |
 | Song Meter Mini Bat 2 Li-ion | the professional standard for bats, up to 125 ten-hour nights ([Veldshop](https://www.veldshop.nl/nl/song-meter-mini-bat-2-li-ion.html)) | €999 | none | 4, for the cards | about €580 (€100) |
-| **Life Node v1** | a field or food forest far from WiFi and power, for years: birds and bats named in the box, and the soil | about €799 in parts, built with the [guide](https://life.oncra.org/node) | none: the €13 SIM in the parts covers ten years | 2, to wipe and look | **about €320 (€80)** |
+| **Life Node v1** | a field or food forest far from WiFi and power, for years: birds and bats named in the box, and the soil | about €801 in parts, built with the [guide](https://life.oncra.org/node) | none: the €13 SIM in the parts covers ten years | 2, to wipe and look | **about €320 (€80)** |
 
 ### Side by side
 
@@ -109,7 +109,7 @@ The node next to the four closest to it, each where it fits best.
 | Power | 40 W panel and a 256 Wh battery | 10 to 20 W panel and a power bank | a socket, or a small USB-C panel | a socket | their own batteries: up to 1,330 hours and 125 ten-hour nights |
 | Connection | its own 4G | its own 4G | the house's WiFi, or its card away from it | the house's WiFi | none needed: the cards hold it all |
 | Open | code, guide, and every part and price | the open-source BirdNET-Pi, every part named | an open API for the data | data export as CSV | standard sound files any software reads |
-| Price | about €799 in parts | €245, set up and tested | €495 | €277 | €1,711 |
+| Price | about €801 in parts | €245, set up and tested | €495 | €277 | €1,711 |
 | Fees over ten years | none: the SIM is in the parts | €1,800 in data | none | about €473 | none |
 | Visits a year | 2 | 2 | none on a house; at least 4 in a field | none | 4 |
 | **Per year over ten years** | **about €320 (€80)** | **about €445 (€205)** | **about €50 on a house; in a field about €536 (€56)** | **about €75** | **about €651 (€171)** |
@@ -192,7 +192,7 @@ A design accumulates parts faster than it sheds them, so the last pass over this
 
 ## Cheaper builds
 
-About €799 is the budgeted build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares the water roots draw on dry days **at one place, season over season**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
+About €801 is the budgeted build with new parts from named shops. About €200 of it is not measurement. Reading the code rather than guessing: `cycling()` compares the water roots draw on dry days **at one place, season over season**, and Diversity counts species per calendar year, so a stable sensor offset cancels while gaps and changes of equipment do not. That says number of nodes matters more than the grade of any one node, and it says exactly what is safe to cut.
 
 - **Free**: a plainer enclosure and mount, a second-hand computer and modem. The scheduler comes off too if the charge controller's timed load output can express a sunrise-relative window; check that, because a Pi cannot wake itself.
 - **Cheap with a condition**: a €5 I2S microphone instead of the €27 lavalier, and a generic RS485 probe instead of the DFRobot. Both are fine **only if one type is frozen across every node in the network**, because a change of sensor between nodes is a systematic offset in the counts the readings compare. Spend part of the saving on the acoustic port and on an oven-dry calibration per probe, stored in the device `mapping`.
