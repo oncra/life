@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 20 October 2026
 
+### The AudioMoth's microphone is behind the gold mesh
+
+*Learning.* Our drawing put the AudioMoth's microphone at the hole beside the microphone symbol, which is where the original AudioMoth has it. On the USB Microphone that symbol, next to a little plug, marks the 3.5 mm jack for an external microphone, and the holes there belong to the jack. The microphone itself sits on the other side of the board, right behind the small gold mesh in the white patch below the word AudioMoth. The mesh covers the hole it hears through and stays on, and that side faces the hole in the box. The drawing is corrected. [#107](https://github.com/oncra/life/pull/107)
+
 ### The first evening with the bat microphone in the box
 
 *Learning.* On node 1 the bat model loaded and the AudioMoth listened at 192 kHz within a minute of starting. On a desk indoors, with no bat anywhere, it named a barbastelle twice and a long-eared bat once in four minutes. BirdNET-Go's own check had marked all three as unlikely, because there was no burst of ultrasound in the sound, only a flat hiss, but its approval did not look at that mark, and the long-eared bat went to the oracle. That one is now marked a test there and counts nowhere, and the box no longer sends a detection BirdNET-Go marked unlikely. And the bat model is not cheap: with it running the Pi drew **5.65 W** against 3.15 W without, its processor 91 per cent busy against 20, measured one minute each. We had planned for 1.1 to 2.2 W. For the one evening hour that is about 2.5 Wh a day, inside the 1.4 to 3.1 Wh we had calculated, but a processor that busy may let bird detections slip, so the next BirdNET-Go version, which no longer keeps its model threads spinning between analyses, has to be measured before the bats go into an image.
