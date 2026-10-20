@@ -43,7 +43,7 @@ chroot "$R" /bin/bash -c 'bash /tmp/stage/node/image/birdnet-go-firstrun.sh'
 # optional second classifier: PERCH_REGION=central-europe adds Google Perch v2 (Apache-2.0) beside BirdNET
 [ -n "${PERCH_REGION:-}" ] && PERCH_REGION="$PERCH_REGION" bash "$HERE/perch-v2.sh" "$R/data"
 # the bat model (BattyBirdNET, CC BY-NC-SA 4.0), on by default since the bat microphone is part of the standard node;
-# BAT_REGION= (empty) leaves it out. life-bats turns it on at boot, and only when the microphone is plugged in.
+# BAT_REGION= (empty) leaves it out. life-mic turns it on at boot, and only when the AudioMoth is plugged in.
 BAT_REGION=${BAT_REGION-eu}
 [ -n "$BAT_REGION" ] && BAT_REGION="$BAT_REGION" bash "$HERE/bat-model.sh" "$R/data"
 rm -rf "$R/tmp/stage" "$R/usr/bin/qemu-aarch64-static"

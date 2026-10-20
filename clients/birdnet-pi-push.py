@@ -24,6 +24,11 @@ Environment:
     LIFE_KEEP_MODELS    optional: BirdNET-Go models whose detections stay on the node, comma separated as the
                         detector field names them (battybirdnet). For a model still on trial at a place: node 1's
                         first night outdoors, in rain, named Savi's pipistrelle at 0.99 every twenty seconds
+    LIFE_TEST_SOURCES   optional: BirdNET-Go audio sources, by name, whose bird detections go out marked test, so the
+                        oracle keeps them and counts them nowhere. For a microphone on trial beside the standard one:
+                        node 1 hears its birds on the I2S microphone and on the AudioMoth at once while the two are
+                        compared (node/life-mic.py, mode both). The detector field ends in @ and the source's name;
+                        bat detections from such a source go out as usual
 
 Everything a run posts goes over one connection. On a SIM the TLS handshake is most of what a post costs
 (about 6.5 kB against 1 to 3 kB of payload), so sound, heartbeat and soil share one.
@@ -38,6 +43,8 @@ MINCONF = max(float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5")), float(os.envi
 CURSOR = Path(os.environ.get("LIFE_CURSOR", str(Path.home() / ".life-oracle-cursor")))
 SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
 KEEP = {m.strip().lower() for m in os.environ.get("LIFE_KEEP_MODELS", "").split(",") if m.strip()}
+TEST_SOURCES = {m.strip().lower() for m in os.environ.get("LIFE_TEST_SOURCES", "").split(",") if m.strip()}
+BAT_MODELS = {"battybirdnet", "bat"}
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")
 
@@ -129,9 +136,18 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
     # BirdNET-Go marks a detection `unlikely` when its own check finds no real ultrasonic call in the sound (bats: a
     # flat noise floor instead of pulses). Those stay on the node: on node 1's first evening indoors the bat model
     # named a barbastelle and a long-eared bat in three minutes, all three marked unlikely.
-    likely = " and coalesce(d.unlikely, 0) = 0" if "unlikely" in [c[1] for c in con.execute("pragma table_info(detections)")] else ""
-    q = f"""select d.id, d.model_id, d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
-           join labels l on l.id = d.label_id join label_types t on t.id = l.label_type_id
+    cols = [c[1] for c in con.execute("pragma table_info(detections)")]
+    likely = " and coalesce(d.unlikely, 0) = 0" if "unlikely" in cols else ""
+    # Which microphone heard it: BirdNET-Go keeps one row per audio source and its id on each detection, so a
+    # microphone on trial (LIFE_TEST_SOURCES) can go out as test while the standard one counts
+    sources = next((t for t in ("audio_sources", "v2_audio_sources") if t in tables), None) if "source_id" in cols else None
+    source = f", coalesce(s.display_name, s.source_uri) as source" if sources else ", null as source"
+    join = f" left join {sources} s on s.id = d.source_id" if sources else ""
+    if TEST_SOURCES and not sources:
+        print("LIFE_TEST_SOURCES is set but this BirdNET-Go keeps no source on its detections; nothing is marked test",
+              file=sys.stderr)
+    q = f"""select d.id, d.model_id, d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name{source} from detections d
+           join labels l on l.id = d.label_id join label_types t on t.id = l.label_type_id{join}
            where t.name = 'species' and d.detected_at > ?{likely} order by d.detected_at"""
     for r in con.execute(q, (since_epoch,)):
         at = datetime.fromtimestamp(r["detected_at"])
@@ -141,6 +157,9 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
             continue
         if heard_by:
             det["detector"] = "birdnet-go:" + "+".join(sorted(heard_by))
+        if r["source"] and r["source"].lower() in TEST_SOURCES and not (heard_by and heard_by <= BAT_MODELS):
+            det["test"] = True
+            det["detector"] += "@" + r["source"].lower().replace(" ", "-")
         if r["begin_time"] and r["end_time"] and r["end_time"] > r["begin_time"]:
             det["durationS"] = round((r["end_time"] - r["begin_time"]) / 1000, 1)
         rows.append((at.isoformat(timespec="seconds"), det))

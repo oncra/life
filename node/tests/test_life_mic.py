@@ -1,4 +1,4 @@
-"""Tests for node/life-bats.py: the bat microphone found, set to its rate, and BirdNET-Go's config written to match.
+"""Tests for node/life-mic.py: the AudioMoth found, set to its rate, and BirdNET-Go's config written for the mode.
 
     python3 -B -m unittest discover -s node/tests -v
 
@@ -74,6 +74,11 @@ Capture:
 """
 
 
+DAY = "2026-10-21T12:00:00+02:00"      # midday
+EVENING = "2026-10-21T18:40:00+02:00"  # six minutes after sunset (18:34)
+DAWN = "2026-10-21T07:45:00+02:00"     # five minutes after civil dawn (07:40), in the dawn window
+
+
 class Node:
     """A temporary node: /proc, /sys, BirdNET-Go's directory, the model files and the microphone's tool."""
 
@@ -95,6 +100,7 @@ class Node:
                          "birdnet-v24-embeddings.onnx"):
                 (self.models / name).write_text("x")
         self.log = self.root / "tool.log"
+        self.restarts = self.root / "restarts.log"
         self.tool = self.root / "AudioMoth-USB-Microphone"
         if tool:
             self.tool.write_text(f"""#!/bin/sh
@@ -131,14 +137,18 @@ exit 0
                 f.rmdir() if f.is_dir() else f.unlink()
             d.rmdir()
 
-    def run(self, *args, on="1"):
-        env = {"LIFE_BATS": on, "BIRDNET_DIR": str(self.bng), "LIFE_BATS_PROC": str(self.proc),
-               "LIFE_BATS_SYS": str(self.sys), "AUDIOMOTH_CMD": str(self.tool), "LIFE_BATS_WAIT_S": "1"}
+    def run(self, *args, on="1", mode="i2s", at=DAY):
+        # every path set here, also the ones with a default: other test files leave theirs in the environment
+        env = {"LIFE_BATS": on, "BIRDNET_DIR": str(self.bng), "BIRDNET_CONFIG": str(self.bng / "config.yaml"),
+               "BAT_MODEL_DIR": str(self.models), "LIFE_BATS_PROC": str(self.proc),
+               "LIFE_BATS_SYS": str(self.sys), "AUDIOMOTH_CMD": str(self.tool), "LIFE_BATS_WAIT_S": "1",
+               "LIFE_BIRD_MIC": mode, "LIFE_MIC_NOW": at, "NODE_LAT": "52.37", "NODE_LON": "4.90",
+               "NODE_TZ": "Europe/Amsterdam", "LIFE_MIC_RESTART_CMD": f"sh -c 'echo restart >> {self.restarts}'"}
         old = {k: os.environ.get(k) for k in env}
         os.environ.update(env)
         try:
-            loader = importlib.machinery.SourceFileLoader("life_bats", str(NODE / "life-bats.py"))
-            spec = importlib.util.spec_from_loader("life_bats", loader)
+            loader = importlib.machinery.SourceFileLoader("life_mic", str(NODE / "life-mic.py"))
+            spec = importlib.util.spec_from_loader("life_mic", loader)
             mod = importlib.util.module_from_spec(spec)
             loader.exec_module(mod)
             return mod.main(list(args))
@@ -152,6 +162,9 @@ exit 0
     @property
     def config(self):
         return (self.bng / "config.yaml").read_text()
+
+    def restart_count(self):
+        return len(self.restarts.read_text().split()) if self.restarts.exists() else 0
 
     def tool_calls(self):
         return self.log.read_text().split("\n")[:-1] if self.log.exists() else []
@@ -276,6 +289,173 @@ class Setup(unittest.TestCase):
         n.run("setup")
         self.assertEqual(n.run("status", "--json"), 0)
 
+
+
+class Modes(unittest.TestCase):
+    """LIFE_BIRD_MIC=audiomoth and =both: the AudioMoth as a bird microphone, with the bat model by night."""
+
+    def setUp(self):
+        self.nodes = []
+
+    def tearDown(self):
+        for n in self.nodes:
+            n.close()
+
+    def node(self, **kw):
+        n = Node(**kw)
+        self.nodes.append(n)
+        return n
+
+    def test_audiomoth_by_day_hears_the_birds_alone(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        c = n.config
+        self.assertNotIn("Sound Card 1", c)
+        self.assertNotIn("Bat microphone", c)
+        self.assertIn('            - name: AudioMoth\n              device: ":1,0"\n              samplerate: 192000\n'
+                      "              gain: 0\n              models:\n                - birdnet\n                - perch_v2\n"
+                      "              quietHours:\n                enabled: false", c)
+        self.assertIn("        - perch_v2\n        - bat\nlowmemory:", c)  # the bat model loaded, for the evening
+        self.assertIn("    nighttimeonly: false", c)
+        self.assertTrue(c.endswith('webserver:\n    port: "8080"\n'))
+
+    def test_evening_adds_the_bat_model(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=EVENING)
+        self.assertIn("              models:\n                - birdnet\n                - perch_v2\n                - bat\n"
+                      "              quietHours:", n.config)
+
+    def test_dawn_window_has_no_bat_model(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAWN)
+        self.assertIn("                - perch_v2\n              quietHours:", n.config)
+        self.assertNotIn("                - bat\n", n.config)
+
+    def test_both_keeps_the_i2s_birds_and_adds_the_audiomoth(self):
+        n = self.node()
+        n.run("setup", mode="both", at=EVENING)
+        c = n.config
+        self.assertIn('            - name: Sound Card 1\n              device: ":0,0"', c)
+        self.assertIn('            - name: AudioMoth\n              device: ":1,0"', c)
+        self.assertIn("                - perch_v2\n                - bat\n              quietHours:", c)
+        self.assertNotIn("Bat microphone", c)
+
+    def test_from_i2s_to_both_and_back(self):
+        n = self.node()
+        n.run("setup", mode="i2s", at=EVENING)
+        self.assertIn("name: Bat microphone", n.config)
+        n.run("setup", mode="both", at=EVENING)
+        self.assertNotIn("Bat microphone", n.config)
+        self.assertEqual(n.config.count("- name: AudioMoth"), 1)
+        self.assertIn("name: Sound Card 1", n.config)
+        n.run("setup", mode="i2s", at=EVENING)
+        self.assertNotIn("name: AudioMoth", n.config)
+        self.assertIn("name: Bat microphone", n.config)
+
+    def test_unplugged_audiomoth_falls_back_to_the_i2s_microphone(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        self.assertNotIn("Sound Card 1", n.config)
+        n.unplug(1)
+        n.run("setup", mode="audiomoth", at=DAY)
+        c = n.config
+        self.assertNotIn("name: AudioMoth", c)
+        self.assertIn('            - name: I2S microphone\n              device: ":0,0"\n              gain: 0\n'
+                      "              models:\n                - birdnet\n                - perch_v2\n", c)
+        self.assertNotIn("        - bat\n", c)
+
+    def test_too_low_for_bats_still_hears_birds(self):
+        n = self.node(rate=48000, tool=False)
+        n.run("setup", mode="audiomoth", at=EVENING)
+        c = n.config
+        self.assertIn('            - name: AudioMoth\n              device: ":1,0"\n              samplerate: 48000', c)
+        self.assertIn("                - perch_v2\n              quietHours:", c)
+        self.assertNotIn("        - bat\n", c)
+
+    def test_bats_switched_off_keep_the_audiomoth_birds(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=EVENING, on="0")
+        self.assertIn("name: AudioMoth", n.config)
+        self.assertNotIn("- bat\n", n.config)
+
+    def test_unknown_mode_changes_nothing(self):
+        n = self.node()
+        n.run("setup", mode="stereo")
+        self.assertEqual(n.config, CONFIG)
+
+    def test_second_run_changes_nothing(self):
+        n = self.node()
+        n.run("setup", mode="both", at=EVENING)
+        first = n.config
+        n.run("setup", mode="both", at=EVENING)
+        self.assertEqual(n.config, first)
+
+    def test_status_names_the_sources(self):
+        n = self.node()
+        n.run("setup", mode="both", at=EVENING)
+        self.assertEqual(n.run("status", "--json", mode="both", at=EVENING), 0)
+
+
+class Sync(unittest.TestCase):
+    """life-mic sync: BirdNET-Go restarted when the list of models changes with the sun, and only then."""
+
+    def test_restart_only_when_the_config_changes(self):
+        n = Node()
+        try:
+            n.run("setup", mode="audiomoth", at=DAY)
+            n.run("sync", mode="audiomoth", at=DAY)
+            self.assertEqual(n.restart_count(), 0)
+            n.run("sync", mode="audiomoth", at=EVENING)
+            self.assertEqual(n.restart_count(), 1)
+            self.assertIn("                - bat\n              quietHours:", n.config)
+            n.run("sync", mode="audiomoth", at=EVENING)
+            self.assertEqual(n.restart_count(), 1)
+            n.run("sync", mode="audiomoth", at=DAWN)
+            self.assertEqual(n.restart_count(), 2)
+            self.assertNotIn("                - bat\n", n.config)
+        finally:
+            n.close()
+
+
+class Sun(unittest.TestCase):
+    """When the bat model runs: from fifteen minutes before sunset until ten minutes before civil dawn."""
+
+    def bat_time(self, local):
+        env = {"NODE_LAT": "52.37", "NODE_LON": "4.90", "NODE_TZ": "Europe/Amsterdam"}
+        old = {k: os.environ.get(k) for k in env}
+        os.environ.update(env)
+        try:
+            loader = importlib.machinery.SourceFileLoader("life_mic_sun", str(NODE / "life-mic.py"))
+            spec = importlib.util.spec_from_loader("life_mic_sun", loader)
+            mod = importlib.util.module_from_spec(spec)
+            loader.exec_module(mod)
+            from datetime import datetime
+            return mod.bat_time(datetime.fromisoformat(local))
+        finally:
+            for k, v in old.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
+    def test_midsummer(self):
+        # Amsterdam, 21 June: sunset 22:06, civil dawn 04:28 (CEST)
+        self.assertTrue(self.bat_time("2026-06-21T21:55:00+02:00"))
+        self.assertFalse(self.bat_time("2026-06-21T21:45:00+02:00"))
+        self.assertTrue(self.bat_time("2026-06-21T04:10:00+02:00"))
+        self.assertFalse(self.bat_time("2026-06-21T04:25:00+02:00"))
+
+    def test_midwinter(self):
+        # Amsterdam, 21 December: sunset 16:28, civil dawn 08:06 (CET)
+        self.assertTrue(self.bat_time("2026-12-21T16:20:00+01:00"))
+        self.assertFalse(self.bat_time("2026-12-21T16:05:00+01:00"))
+        self.assertTrue(self.bat_time("2026-12-21T07:50:00+01:00"))
+        self.assertFalse(self.bat_time("2026-12-21T08:00:00+01:00"))
+
+    def test_the_times_the_other_tests_use(self):
+        self.assertFalse(self.bat_time(DAY))
+        self.assertTrue(self.bat_time(EVENING))
+        self.assertFalse(self.bat_time(DAWN))
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,12 +1,12 @@
 [Unit]
-Description=Life node: the bat microphone at its rate, and BirdNET-Go's config to match, before it starts
+Description=Life node: the AudioMoth at its rate, and BirdNET-Go's microphones and models to match, before it starts
 After=life-firstboot.service life-clips-setup.service systemd-udev-settle.service
 Before=birdnet-go.service
 RequiresMountsFor=/data
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
-ExecStart=/usr/local/bin/life-bats setup
+ExecStart=/usr/local/bin/life-mic setup
 TimeoutStartSec=90
 [Install]
 WantedBy=multi-user.target

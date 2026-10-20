@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Put BirdNET-Go's bat model on a node image: BattyBirdNET for a region, the classifier and its labels, and the
 # BirdNET v2.4 embeddings model it runs on. Run by build.sh when BAT_REGION is set (default eu), with the image's
-# data partition mounted at $1 (the node sees it as /data). The config is not touched here: life-bats writes it at
+# data partition mounted at $1 (the node sees it as /data). The config is not touched here: life-mic writes it at
 # boot, and only when an AudioMoth USB Microphone is plugged in, so a node without one runs as before.
 #
 # Files come from the HuggingFace repo BirdNET-Go's own model gallery uses, pinned by SHA-256 from its model catalog
