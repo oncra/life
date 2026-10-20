@@ -194,8 +194,8 @@ class Setup(unittest.TestCase):
         self.assertIn("            - name: Bat microphone\n              device: \":1,0\"\n              samplerate: 192000", c)
         self.assertIn("              models:\n                - bat\n              quietHours:\n                enabled: true\n"
                       "                mode: solar", c)
-        self.assertIn("startEvent: sunrise", c)
-        self.assertIn("endEvent: sunset", c)
+        self.assertIn("startEvent: sunrise\n                startOffset: -60\n", c)  # quiet before the dawn window
+        self.assertIn("endEvent: sunset\n                endOffset: -15", c)       # on from 15 minutes before sunset
         self.assertIn(f"    embeddingmodel: {n.models}/birdnet-v24-embeddings.onnx", c)
         self.assertIn(f"    classifiermodel: {n.models}/BattyBirdNET-EU-256kHz_fp32.onnx", c)
         self.assertIn(f"    labelpath: {n.models}/BattyBirdNET-EU-256kHz_Labels.txt", c)
@@ -336,9 +336,18 @@ class Modes(unittest.TestCase):
         n.run("setup", mode="both", at=EVENING)
         c = n.config
         self.assertIn('            - name: Sound Card 1\n              device: ":0,0"', c)
-        self.assertIn('            - name: AudioMoth\n              device: ":1,0"', c)
-        self.assertIn("                - perch_v2\n                - bat\n              quietHours:", c)
+        # at night the AudioMoth runs only the bat model: the I2S microphone has the birds, the Pi no room for more
+        self.assertIn('            - name: AudioMoth\n              device: ":1,0"\n              samplerate: 192000\n'
+                      "              gain: 0\n              models:\n                - bat\n              quietHours:", c)
         self.assertNotIn("Bat microphone", c)
+
+    def test_both_by_day_runs_birdnet_alone_on_the_audiomoth(self):
+        n = self.node()
+        n.run("setup", mode="both", at=DAWN)
+        c = n.config
+        self.assertIn("                - birdnet\n                - perch_v2\n              quietHours:", c)  # the I2S
+        self.assertIn("              models:\n                - birdnet\n              quietHours:", c)     # the AudioMoth
+        self.assertEqual(c.count("- name: AudioMoth"), 1)
 
     def test_from_i2s_to_both_and_back(self):
         n = self.node()

@@ -8,13 +8,15 @@
 
 Three ways to listen, chosen with LIFE_BIRD_MIC:
 - `i2s` (the default): birds on the I2S microphone, and the AudioMoth beside it as the bat microphone, a second source
-  "Bat microphone" that runs only the bat model and is quiet from sunrise to sunset;
+  "Bat microphone" that runs only the bat model and is quiet from an hour before sunrise until BAT_LEAD_MIN minutes
+  before sunset, so it never runs in the dawn window;
 - `audiomoth`: the AudioMoth is the node's one microphone. One source, "AudioMoth", runs the bird models all the time
   and adds the bat model from BAT_LEAD_MIN minutes before sunset until just before civil dawn. The I2S source is taken
   out;
-- `both`: the comparison of the two. Birds on the I2S microphone as in `i2s`, and the AudioMoth as in `audiomoth`.
-  With LIFE_TEST_SOURCES=AudioMoth in the node's env, life-push marks the AudioMoth's bird detections as test, so the
-  oracle keeps them for the comparison and counts them nowhere.
+- `both`: the comparison of the two. Birds on the I2S microphone as in `i2s`, and on the AudioMoth BirdNET by day and
+  only the bat model at night, so the processor carries no more than in `i2s`: the bat model alone keeps a Pi 4 about
+  90 per cent busy (`kit/bench-log.csv`, 1.5). With LIFE_TEST_SOURCES=AudioMoth in the node's env, life-push marks the
+  AudioMoth's bird detections as test, so the oracle keeps them for the comparison and counts them nowhere.
 
 Why one source and not two on the AudioMoth: BirdNET-Go refuses two sources on one device, and its own
 `bat.nighttimeonly` waits for civil dusk, 35 to 50 minutes into the hour after sunset in which the bats come out. So
@@ -65,6 +67,7 @@ MODE = (os.environ.get("LIFE_BIRD_MIC") or "i2s").strip().lower()
 ON = os.environ.get("LIFE_BATS", "1").strip() != "0"
 RATE = int(os.environ.get("BAT_SAMPLE_RATE") or 192000)
 LEAD = int(os.environ.get("BAT_LEAD_MIN") or 15)
+DAWN_QUIET = 60  # minutes before sunrise the bat source goes quiet in mode i2s: before civil dawn in every season
 LAT = float(os.environ.get("NODE_LAT") or 52.37)
 LON = float(os.environ.get("NODE_LON") or 5.0)
 TZ = ZoneInfo(os.environ.get("NODE_TZ") or "Europe/Amsterdam")
@@ -347,8 +350,8 @@ def bat_source(i: int, card: int, rate: int) -> list[str]:
     a, b, c = " " * i, " " * (i + 2), " " * (i + 4)
     return [f"{a}- name: {SOURCE}", f'{b}device: ":{card},0"', f"{b}samplerate: {rate}", f"{b}gain: 0",
             f"{b}models:", f"{c}- bat", f"{b}quietHours:", f"{c}enabled: true", f"{c}mode: solar",
-            f'{c}startTime: ""', f'{c}endTime: ""', f"{c}startEvent: sunrise", f"{c}startOffset: 0",
-            f"{c}endEvent: sunset", f"{c}endOffset: 0"]
+            f'{c}startTime: ""', f'{c}endTime: ""', f"{c}startEvent: sunrise", f"{c}startOffset: -{DAWN_QUIET}",
+            f"{c}endEvent: sunset", f"{c}endOffset: -{LEAD}"]
 
 
 def moth_source(i: int, card: int, rate: int, models: list[str]) -> list[str]:
@@ -423,7 +426,10 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
     want_bat = mode == "i2s" and bats            # the AudioMoth as the bat microphone only
     want_moth = moth_birds                       # the AudioMoth as a bird (and bat) microphone
     want_i2s = mode != "audiomoth" or not moth_birds  # in audiomoth mode the I2S source is only the fallback
-    moth_models = birds + (["bat"] if bats and night else [])
+    if mode == "both":  # one model at a time beside the I2S microphone's: the processor has no room for more
+        moth_models = ["bat"] if bats and night else ["birdnet" if "birdnet" in birds else birds[0]]
+    else:
+        moth_models = birds + (["bat"] if bats and night else [])
     have = {SOURCE: False, MOTH: False, "i2s": False}
     for s in reversed(items):  # from the end, so a change never moves an item still to be looked at
         name = item_name(lines, s)
