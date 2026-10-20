@@ -73,6 +73,25 @@ The node folds all of it into one enclosure:
 
 Node 1 as bought sits a little above the budget: the Pi is the 4 GB (€106.49, the only Pi 4 a Dutch shop could ship the same day, where the 2 GB at €78.60 is the design choice), the card is the bench card rather than the high-endurance one (€37.25) a node on a post wants, and the €70 of tools was paid on this node. The earlier distributed set was €1,110. The first order was €687 until 24 September: Berrybase cancelled it over a VAT number added after checkout, and by the time the refund landed the Pi 4 2 GB and the SEN0600 were sold out there and almost everywhere else. The computer and small parts then came from Kiwi Electronics, the probes from DigiKey, the rest from Amazon.nl, the panel from Dekker Watersport, and the microphone membrane from AliExpress because no European shop sells it singly. What was ordered where, with order numbers and status, is `kit/node-1-purchases.csv`.
 
+## How it compares
+
+What a device that listens for birds or bats costs elsewhere: the device alone, incl. VAT, from the Dutch importer [Veldshop](https://www.veldshop.nl/nl/veldwerk/geluidsopname/audiorecorders/) unless a line says otherwise, checked on 20 October 2026.
+
+| Device | What it does | Price |
+| --- | --- | ---: |
+| AudioMoth | records to a memory card on AA batteries; the birds are named afterwards, on a computer | €146.85 |
+| Song Meter Micro 2 | small recorder, memory card | €177 |
+| Haikubox | names birds live, on mains power and the house's WiFi; $59 a year after the first year ([NHBS](https://www.nhbs.com/de/haikubox)) | €277 |
+| BirdWeather PUC | names birds live (BirdNET, in the cloud) over WiFi, no subscription | €289 |
+| Song Meter Mini 2 Li-ion | professional recorder, memory card ([Veldshop](https://www.veldshop.nl/en/song-meter-mini-2-li-ion.html)) | €712 |
+| Song Meter SM5 | professional recorder, memory card | €915 |
+| Frontier Labs Solar BAR | on solar power for years, memory cards swapped at each visit | €935 |
+| Song Meter Mini Bat 2 Li-ion | bats only, memory card ([Veldshop](https://www.veldshop.nl/nl/song-meter-mini-bat-2-li-ion.html)) | €993 |
+
+Two come closest to this node. EasyComp Zeeland's Field Pro is a BirdNET box on solar power with 4G as an option, €245 in a [listing of 2 May 2026](https://www.marktplaats.nl/v/tuin-en-terras/vogelhuisjes-en-vogelbaden/m2395149708-birdnet-pi-vogels-herkennen-met-ai-plug-play), birds only. [Bugg](https://groupgets.com/bugg) runs on solar power with a SIM and streams the sound itself to the cloud, $895 on a pre-order that ran to the end of December 2025, sound only.
+
+To measure what a node measures with professional recorders takes a Song Meter Mini 2 and a Mini Bat 2: €1,705, still without 4G, a panel or soil probes, and with someone coming by for the cards. The garden devices name birds live for under €300, but only within reach of a house's WiFi, the Haikubox on its mains too. Against all of them the node adds the bats, the soil, its own power, its own connection and an alarm, for about €798 in parts and a €12 SIM for ten years.
+
 ## How it is mounted
 
 A node in an arable field has two predators: people who take things, and the sprayer that never saw it. Both are answered by the same choice, which is to keep the solid part of the node below the crop and put only a 6 mm rod above it.

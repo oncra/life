@@ -3,6 +3,7 @@ import Image from "next/image";
 import { guide, planIntro, partsFor, purchases, shoppingList } from "@/lib/lifebox";
 import { Guide } from "@/components/Guide";
 import { Feedback } from "@/components/Feedback";
+import { NodeWhy, NODE_LEAD } from "@/components/NodeWhy";
 
 export default function LifeboxGuide() {
   const sections = guide();
@@ -24,6 +25,14 @@ export default function LifeboxGuide() {
           </div>
           <Image src="/img/life-node-impression.webp" alt="Impression of the Life Node: a small green box on a wooden post under a tilted solar panel, a skylark on the panel" width={1600} height={893} className="md:col-span-2 rounded-lg border border-line w-full" priority />
         </div>
+
+        <section className="mt-8" aria-labelledby="why-a-life-node">
+          <h2 id="why-a-life-node" className="text-xl font-semibold">Why a Life Node</h2>
+          <p className="mt-2 text-muted max-w-3xl">{NODE_LEAD}</p>
+          <div className="mt-4">
+            <NodeWhy compact />
+          </div>
+        </section>
 
         {sections.map((s, i) => {
           const parts = partsFor(s.parts);

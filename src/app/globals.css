@@ -64,6 +64,9 @@ body { background: var(--background); color: var(--foreground); }
 main { overflow-x: clip; }
 
 /* Life Node build guide: numbered steps, the current one marked, check cards */
+/* An anchor link to a heading in a document lands below the sticky header, not under it.
+   :where keeps this weaker than the guide's own step offset below. */
+:where(.prose) :where(h2, h3)[id] { scroll-margin-top: 4.5rem; }
 .guide .step-head { display: flex; align-items: center; gap: 0.6rem; scroll-margin-top: 8.5rem; font-size: 1.3rem; margin-top: 2.6rem; }
 .guide .step-n { flex: none; width: 2rem; height: 2rem; border-radius: 999px; border: 2px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--muted); background: #fff; }
 .guide .step-head.is-current .step-n { border-color: var(--accent); color: var(--accent); }
