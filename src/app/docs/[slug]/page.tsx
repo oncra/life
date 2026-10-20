@@ -15,7 +15,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           <a className="block px-2 py-1 text-muted hover:text-foreground" href={`https://github.com/oncra/life/edit/main/content/${slug}.md`}>Edit this page</a>
         </div>
       </aside>
-      <article className="lg:col-span-3 prose max-w-none order-1 lg:order-2" dangerouslySetInnerHTML={{ __html: doc.html }} />
+      <article className="lg:col-span-3 min-w-0 prose max-w-none order-1 lg:order-2" dangerouslySetInnerHTML={{ __html: doc.html }} />
     </div>
   );
 }
