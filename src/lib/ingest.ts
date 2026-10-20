@@ -7,6 +7,8 @@ export const Detection = z.object({
   confidence: z.number().min(0).max(1),
   detector: z.string().max(80).default("unknown"),
   durationS: z.number().min(0).max(3600).optional(),
+  /** made while a microphone or the node was being tested: stored as proof, counted nowhere */
+  test: z.boolean().optional(),
 });
 
 export const Index = z.object({

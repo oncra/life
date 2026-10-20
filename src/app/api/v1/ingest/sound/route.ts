@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return json({ error: "invalid body", issues: parsed.error.issues.slice(0, 10) }, 400);
   const { detections, indices, heartbeat } = parsed.data;
   const [d, i] = await Promise.all([
-    detections.length ? prisma.soundDetection.createMany({ data: detections.map((x) => ({ deviceId: p.id, ts: new Date(x.ts), species: x.species, scientific: x.scientific, confidence: x.confidence, detector: x.detector, durationS: x.durationS })) }) : { count: 0 },
+    detections.length ? prisma.soundDetection.createMany({ data: detections.map((x) => ({ deviceId: p.id, ts: new Date(x.ts), species: x.species, scientific: x.scientific, confidence: x.confidence, detector: x.detector, durationS: x.durationS, test: x.test ?? false })) }) : { count: 0 },
     indices.length ? prisma.acousticIndex.createMany({ data: indices.map((x) => ({ deviceId: p.id, ts: new Date(x.ts), windowS: x.windowS, aci: x.aci, adi: x.adi, aei: x.aei, bio: x.bio, ndsi: x.ndsi, biophony: x.biophony, anthrophony: x.anthrophony, spl: x.spl })) }) : { count: 0 },
   ]);
   // a node rides its heartbeat on the hourly push, so the SIM pays for one TLS handshake, not two

@@ -1,0 +1,9 @@
+[Unit]
+Description=Life node: the bat model on or off with the sun while the node stays on (restarts BirdNET-Go on a change)
+After=birdnet-go.service
+RequiresMountsFor=/data
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-mic sync
+TimeoutStartSec=90

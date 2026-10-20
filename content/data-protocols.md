@@ -28,6 +28,8 @@ Content-Type: application/json
 
 Up to 5,000 detections and 5,000 index rows per request. Species strings are the detector's label; keep them as the detector gives them (BirdNET common names) so that places can be compared.
 
+A detection can carry `"test": true`: it was made while a microphone or the node was being tested, such as birdsong played from a phone on the bench, or a second microphone heard beside the standard one while the two are compared. The oracle keeps it as proof and counts it nowhere: not in species, readings, the life index or the open data.
+
 ### From a Life node
 
 A [node](kit.md) delivers both streams by itself and needs nothing on the farm. `life-push` (the same `clients/birdnet-pi-push.py`) posts new detections from BirdNET-Go every ten minutes, and `life-soil-agent.py` posts the probes every twenty. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
