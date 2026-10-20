@@ -21,6 +21,9 @@ Environment:
                         `life-guard apply`, which caches the maintenance window and disarms the guard inside it)
     LIFE_SOIL_QUEUE     optional: the soil agent's queue file (the Life node sets /var/lib/life-node/queue.jsonl).
                         Its rows are posted to /ingest/soil on the same connection, each under its own token
+    LIFE_KEEP_MODELS    optional: BirdNET-Go models whose detections stay on the node, comma separated as the
+                        detector field names them (battybirdnet). For a model still on trial at a place: node 1's
+                        first night outdoors, in rain, named Savi's pipistrelle at 0.99 every twenty seconds
 
 Everything a run posts goes over one connection. On a SIM the TLS handshake is most of what a post costs
 (about 6.5 kB against 1 to 3 kB of payload), so sound, heartbeat and soil share one.
@@ -34,6 +37,7 @@ TOKEN = os.environ.get("LIFE_DEVICE_TOKEN")
 MINCONF = max(float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5")), float(os.environ.get("LIFE_MIN_CONFIDENCE_FLOOR") or 0))
 CURSOR = Path(os.environ.get("LIFE_CURSOR", str(Path.home() / ".life-oracle-cursor")))
 SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
+KEEP = {m.strip().lower() for m in os.environ.get("LIFE_KEEP_MODELS", "").split(",") if m.strip()}
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")
 
@@ -133,6 +137,8 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
         at = datetime.fromtimestamp(r["detected_at"])
         det = {"ts": at.astimezone().isoformat(), "species": names.get(r["scientific_name"], r["scientific_name"]), "scientific": r["scientific_name"], "confidence": float(r["confidence"]), "detector": "birdnet-go"}
         heard_by = contrib.get(r["id"]) or ({models[r["model_id"]]} if r["model_id"] in models else set())
+        if heard_by and heard_by <= KEEP:
+            continue
         if heard_by:
             det["detector"] = "birdnet-go:" + "+".join(sorted(heard_by))
         if r["begin_time"] and r["end_time"] and r["end_time"] > r["begin_time"]:
