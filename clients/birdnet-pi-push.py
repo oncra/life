@@ -122,9 +122,13 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
         for r in con.execute("""select c.detection_id, c.model_id from detection_model_contributions c join detections d on d.id = c.detection_id
                                 where d.detected_at > ?""", (since_epoch,)):
             contrib.setdefault(r[0], set()).add(models.get(r[1], str(r[1])))
-    q = """select d.id, d.model_id, d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
+    # BirdNET-Go marks a detection `unlikely` when its own check finds no real ultrasonic call in the sound (bats: a
+    # flat noise floor instead of pulses). Those stay on the node: on node 1's first evening indoors the bat model
+    # named a barbastelle and a long-eared bat in three minutes, all three marked unlikely.
+    likely = " and coalesce(d.unlikely, 0) = 0" if "unlikely" in [c[1] for c in con.execute("pragma table_info(detections)")] else ""
+    q = f"""select d.id, d.model_id, d.detected_at, d.begin_time, d.end_time, d.confidence, l.scientific_name from detections d
            join labels l on l.id = d.label_id join label_types t on t.id = l.label_type_id
-           where t.name = 'species' and d.detected_at > ? order by d.detected_at"""
+           where t.name = 'species' and d.detected_at > ?{likely} order by d.detected_at"""
     for r in con.execute(q, (since_epoch,)):
         at = datetime.fromtimestamp(r["detected_at"])
         det = {"ts": at.astimezone().isoformat(), "species": names.get(r["scientific_name"], r["scientific_name"]), "scientific": r["scientific_name"], "confidence": float(r["confidence"]), "detector": "birdnet-go"}

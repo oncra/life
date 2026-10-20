@@ -26,29 +26,32 @@
 <rect x="330" y="290" width="200" height="46" rx="6" class="box"/>
 <text x="430" y="311" class="c b">4G stick</text><text x="430" y="328" class="c s">on the other short lead</text>
 
-<path d="M216,353 H395 C420,353 420,470 446,470" class="cable"/>
-<text x="232" y="392" class="s">its own USB cable:</text>
-<text x="232" y="410" class="s">USB-A to micro-USB</text>
+<path d="M216,353 H468 V418" class="cable"/>
+<text x="232" y="380" class="s">its own USB cable:</text>
+<text x="232" y="398" class="s">USB-A to micro-USB, 30 cm</text>
+<text x="476" y="400" class="s" style="font-size:12px">micro-USB</text>
 
-<rect x="446" y="400" width="160" height="180" rx="8" class="moth"/>
-<rect x="436" y="458" width="18" height="24" class="part"/>
-<text x="526" y="430" class="c b" style="fill:#fff">AudioMoth USB</text>
-<text x="526" y="448" class="c b" style="fill:#fff">Microphone</text>
-<text x="526" y="468" class="c s" style="fill:#e6f2ea">35 × 40 mm</text>
-<rect x="458" y="484" width="34" height="14" rx="3" fill="#e6f2ea" stroke="#1d5c32"/><rect x="480" y="486" width="10" height="10" rx="2" fill="#1d5c32"/>
-<text x="498" y="496" class="s" style="fill:#fff;font-size:12px">switch on DEFAULT</text>
-<circle cx="526" cy="530" r="11" fill="#1d5c32" stroke="#e6f2ea" stroke-width="2"/>
-<circle cx="526" cy="530" r="4" fill="#111"/>
-<rect x="590" y="500" width="24" height="18" class="part"/>
-<text x="622" y="514" class="s">3.5 mm jack: leave empty</text>
-<text x="526" y="560" class="c s" style="fill:#e6f2ea">microphone opening</text>
-<text x="420" y="500" class="r s">micro-USB</text>
-
-<path d="M526,580 V640" fill="none" stroke="#1d5c32" stroke-width="2" stroke-dasharray="5 4"/>
+<rect x="446" y="430" width="160" height="180" rx="8" class="moth"/>
+<rect x="456" y="418" width="24" height="14" class="part"/>
+<rect x="514" y="420" width="18" height="12" rx="3" fill="#222"/>
+<text x="458" y="470" class="b" style="fill:#fff">AudioMoth</text>
+<text x="458" y="490" class="s" style="fill:#e6f2ea">USB Mic</text>
+<text x="458" y="508" class="s" style="fill:#e6f2ea">35 × 40 mm</text>
+<text x="458" y="528" class="s" style="fill:#e6f2ea;font-size:12px">seen from</text>
+<text x="458" y="543" class="s" style="fill:#e6f2ea;font-size:12px">the logo side</text>
+<circle cx="552" cy="446" r="6" fill="#111" stroke="#e6f2ea" stroke-width="2"/>
+<rect x="600" y="540" width="12" height="30" rx="2" fill="#e6f2ea" stroke="#1d5c32"/><rect x="602" y="542" width="8" height="9" rx="1" fill="#1d5c32"/>
+<text x="620" y="550" class="s" style="font-size:12px">DEFAULT  ← the switch here</text>
+<text x="620" y="566" class="s" style="font-size:12px;fill:#777">USB/OFF, CUSTOM</text>
+<text x="620" y="434" class="s" style="font-size:12px">3.5 mm jack: leave empty</text>
+<text x="620" y="456" class="s">microphone hole, beside</text>
+<text x="620" y="473" class="s">the microphone symbol</text>
+<path d="M558,446 L614,451" fill="none" stroke="#333" stroke-width="1"/>
+<path d="M552,452 V640" fill="none" stroke="#1d5c32" stroke-width="2" stroke-dasharray="5 4"/>
 <rect x="380" y="640" width="292" height="18" class="wall"/>
-<rect x="514" y="640" width="24" height="18" fill="#fff"/>
-<path d="M502,690 q8,-8 16,0 t16,0 t16,0" class="wave"/>
-<path d="M496,708 q8,-8 16,0 t16,0 t16,0 t16,0" class="wave"/>
+<rect x="540" y="640" width="24" height="18" fill="#fff"/>
+<path d="M528,690 q8,-8 16,0 t16,0 t16,0" class="wave"/>
+<path d="M522,708 q8,-8 16,0 t16,0 t16,0 t16,0" class="wave"/>
 <text x="690" y="653" class="s">bottom wall of the box</text>
 <text x="690" y="680" class="s">an open hole facing down, beside</text>
 <text x="690" y="698" class="s">the bird microphone's port. No</text>
@@ -57,7 +60,7 @@
 
 <rect x="640" y="95" width="330" height="320" rx="8" class="note"/>
 <text x="660" y="125" class="b">Before it goes in</text>
-<text x="660" y="152" class="s">1. The small switch on the board on</text>
+<text x="660" y="152" class="s">1. The small switch on its edge on</text>
 <text x="660" y="170" class="s">   DEFAULT. On USB/OFF it is no</text>
 <text x="660" y="188" class="s">   microphone and the Pi hears nothing.</text>
 <text x="660" y="214" class="s">2. Use a data cable. A charge-only</text>
@@ -66,9 +69,9 @@
 <text x="660" y="276" class="s">3. It listens at 192 kHz, which covers</text>
 <text x="660" y="294" class="s">   the Dutch bats. The box sets that</text>
 <text x="660" y="312" class="s">   itself when it starts.</text>
-<text x="660" y="338" class="s">4. The microphone opening faces the</text>
-<text x="660" y="356" class="s">   hole, a finger's width from it, with</text>
+<text x="660" y="338" class="s">4. The logo side faces the hole, the</text>
+<text x="660" y="356" class="s">   microphone hole a finger's width from it,</text>
 <text x="660" y="374" class="s">   nothing in between. On the desk it</text>
-<text x="660" y="392" class="s">   may lie anywhere, opening free.</text>
+<text x="660" y="392" class="s">   may lie anywhere, that hole free.</text>
 <text x="30" y="785" class="s i">The bird microphone (INMP441 on the Witty Pi's header) stays as it is. The AudioMoth listens only from sunset to sunrise.</text>
 </svg>
