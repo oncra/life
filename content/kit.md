@@ -75,22 +75,44 @@ Node 1 as bought sits a little above the budget: the Pi is the 4 GB (€106.49, 
 
 ## How it compares
 
-What a device that listens for birds or bats costs elsewhere: the device alone, incl. VAT, from the Dutch importer [Veldshop](https://www.veldshop.nl/nl/veldwerk/geluidsopname/audiorecorders/) unless a line says otherwise, checked on 20 October 2026.
+What it costs elsewhere to listen for birds or bats, and what it costs to keep listening for ten years, the span the node's SIM is paid for. Device prices incl. VAT from the Dutch importer [Veldshop](https://www.veldshop.nl/nl/veldwerk/geluidsopname/audiorecorders/) unless a line says otherwise, checked on 20 October 2026. Dollars at that day's ECB rate ($1.1215 to the euro).
 
-| Device | What it does | Price |
-| --- | --- | ---: |
-| AudioMoth | records to a memory card on AA batteries; the birds are named afterwards, on a computer | €146.85 |
-| Song Meter Micro 2 | small recorder, memory card | €177 |
-| Haikubox | names birds live, on mains power and the house's WiFi; $59 a year after the first year ([NHBS](https://www.nhbs.com/de/haikubox)) | €277 |
-| BirdWeather PUC | names birds live (BirdNET, in the cloud) over WiFi, no subscription | €289 |
-| Song Meter Mini 2 Li-ion | professional recorder, memory card ([Veldshop](https://www.veldshop.nl/en/song-meter-mini-2-li-ion.html)) | €712 |
-| Song Meter SM5 | professional recorder, memory card | €915 |
-| Frontier Labs Solar BAR | on solar power for years, memory cards swapped at each visit | €935 |
-| Song Meter Mini Bat 2 Li-ion | bats only, memory card ([Veldshop](https://www.veldshop.nl/nl/song-meter-mini-bat-2-li-ion.html)) | €993 |
+| Device | What it does | Price | Running it for ten years |
+| --- | --- | ---: | --- |
+| AudioMoth | records to a memory card on AA batteries; the birds are named afterwards, on a computer | €146.85 | no fees; someone comes by for the card and the batteries |
+| Song Meter Micro 2 | small recorder, memory card | €177 | no fees; someone comes by for the card |
+| EasyComp Zeeland Watch House Field Pro | names birds in the box (BirdNET-Pi on a Pi 4), on a 10 to 20 W panel and a power bank, with a 4G modem; birds only; "coming soon" ([EasyComp](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/), indicative price, VAT not stated) | €245 | **€1,800** in data: 4G at €15 a month for 10 GB |
+| Haikubox | names birds live, on mains power and the house's WiFi; the first year of the full app included | €277 | about €473: $59 a year from the second year ([Haikubox](https://www.haikubox.com/products/haikubox-annual)), or a free tier that shows only the day's birds |
+| BirdWeather PUC | names birds live over WiFi, in BirdWeather's cloud | €289 | no fees |
+| BirdWeather PUC Bat Edition | the same, birds by day and bats by night ([Veldshop](https://www.veldshop.nl/nl/birdweather-puc-bat-edition.html)) | €495 | no fees |
+| Song Meter Mini 2 Li-ion | professional recorder, memory card ([Veldshop](https://www.veldshop.nl/en/song-meter-mini-2-li-ion.html)) | €712 | no fees; someone comes by for the card |
+| Song Meter SM5 | professional recorder, memory card | €915 | no fees; someone comes by for the card |
+| Frontier Labs Solar BAR | on solar power for years, memory cards swapped at each visit | €935 | no fees; someone comes by for the cards |
+| Song Meter Mini Bat 2 Li-ion | bats only, memory card ([Veldshop](https://www.veldshop.nl/nl/song-meter-mini-bat-2-li-ion.html)) | €999 | no fees; someone comes by for the card |
+| **Life Node v1** | names birds and bats in the box, reads the soil at two depths, brings its own panel, battery, 4G and alarm | about €798 in parts | **no fees**: the €12 SIM in the parts covers ten years |
 
-Two come closest to this node. EasyComp Zeeland's Field Pro is a BirdNET box on solar power with 4G as an option, €245 in a [listing of 2 May 2026](https://www.marktplaats.nl/v/tuin-en-terras/vogelhuisjes-en-vogelbaden/m2395149708-birdnet-pi-vogels-herkennen-met-ai-plug-play), birds only. [Bugg](https://groupgets.com/bugg) runs on solar power with a SIM and streams the sound itself to the cloud, $895 on a pre-order that ran to the end of December 2025, sound only.
+### Side by side
 
-To measure what a node measures with professional recorders takes a Song Meter Mini 2 and a Mini Bat 2: €1,705, still without 4G, a panel or soil probes, and with someone coming by for the cards. The garden devices name birds live for under €300, but only within reach of a house's WiFi, the Haikubox on its mains too. Against all of them the node adds the bats, the soil, its own power, its own connection and an alarm, for about €798 in parts and a €12 SIM for ten years.
+The node next to the four that come closest. "Not listed" means the maker's page does not mention it.
+
+| | Life Node v1 | EasyComp Field Pro | BirdWeather PUC Bat Edition | Haikubox | Song Meter Mini 2 + Mini Bat 2 |
+| --- | --- | --- | --- | --- | --- |
+| Birds | named in the box; only the names leave | named in the box | named in BirdWeather's cloud | named live, shown in its app | recorded; named afterwards, on a computer |
+| Bats | named in the box, after sunset | no | named in BirdWeather's cloud | no | recorded by the Mini Bat 2; named afterwards |
+| Soil moisture and temperature | two probes, at 10 and 30 cm | no | no | no | no |
+| Power | 40 W panel and a 256 Wh battery, on a listening schedule | 10 to 20 W panel and a 10,000 to 20,000 mAh power bank | Li-ion pack; USB-C from the mains or a panel | the mains | their own batteries, recharged at each visit |
+| Connection | its own 4G | its own 4G | the house's WiFi | the house's WiFi | none: the cards are collected |
+| Theft alarm, health alerts | 100 dB siren on the lid, the panel and tilting; alerts when it goes quiet, moves or runs low | not listed | not listed | not listed | no |
+| Open | code Apache-2.0, guide CC BY 4.0, every part and price published | runs the open-source BirdNET-Pi; every part listed | device not published; data through a public API | not published | not published |
+| Price | about €798 in parts, built with the guide | €245, set up and tested | €495 | €277 | €1,711 |
+| Fees over ten years | none: the SIM is in the parts | €1,800 in data | none | about €473 | none, but every visit |
+| **Price and fees, ten years** | **about €798** | **about €2,045** | **€495** | **about €750** | **€1,711 and the visits** |
+
+Over ten years the cheapest box is not the cheapest to run. EasyComp's Field Pro is the nearest in build: BirdNET on a Pi, a panel and its own 4G, ready to use for €245. If its plan stays at €15 a month, the data adds €1,800 over the decade. The node sends only names and readings, a few kilobytes a day, so its €12 SIM covers the same ten years. The PUC Bat Edition is the nearest in sound: birds and bats for €495 and no subscription, wherever a house's WiFi reaches it, with the sound named in BirdWeather's cloud. Professional recorders do both for €1,711 and need someone to fetch the cards. [Bugg](https://www.bugg.xyz/) runs on solar power with a SIM and streams the sound itself to the cloud; its pre-order at $895 ran to the end of December 2025, sound only. None of them reads the soil. Against all of them the node adds the soil and the alarm, names birds and bats without anyone's WiFi, and has its ten years of data in the price: about €798 in parts, built from the open [guide](https://life.oncra.org/node).
+
+Open is not one licence. The code in this repository is Apache-2.0 and these pages are CC BY 4.0, but BirdNET-Go and BirdNET's model, which run on the node and on EasyComp's box alike, are CC BY-NC-SA 4.0, for non-commercial use. The [hardware guide](hardware.md) lists what each licence allows.
+
+**We would love to work with makers who build in the open.** Several of the devices above already do. EasyComp Zeeland sells its Watch Houses without profit and runs them on the open-source BirdNET-Pi. Open Acoustic Devices publishes the AudioMoth's firmware and apps under MIT, and its USB microphone is the node's bat microphone. Bugg publishes its whole hardware design. If you make, sell or run listening or soil devices and share your designs or software openly, we would like to hear from you: to measure side by side on the same post, to build or assemble nodes together, or to bring your device's readings into the Life Oracle. The code is on [GitHub](https://github.com/oncra/life); open an issue there or write to [sven@climatecleanup.org](mailto:sven@climatecleanup.org).
 
 ## How it is mounted
 
@@ -247,7 +269,7 @@ So four things move from their design into ours, as specifications rather than a
 
 A note on the modem, because the obvious upgrade is not as obvious as it looks. The Waveshare SIM7080G HAT (€34.90) does everything the USB stick does on a tenth of the power, 39 mA idle against roughly a watt, and it has GNSS built in: GPS, GLONASS, BeiDou and Galileo, for no extra money. Three things keep it out of v1. It has a three-month lead time. It is a HAT, so it wants the same 40-pin header the Witty Pi and the microphone are already sharing. And the documented way to use it is AT commands over a serial port with PPP on top, where the USB stick simply appears as a network interface and works. The fourth reason is the one that matters most here: its LTE and GNSS antennas are external, and a GNSS antenna needs a view of the sky. Putting it in would undo the decision to keep everything inside a closed box under a solar panel. Data rate is not the objection, for the record: Cat-M carries 1119 kbps up and 589 kbps down, which is far more than a day of detections needs.
 
-Everything in the box except the panel and battery could be one printed circuit board: an ESP32-S3 running a small bird classifier (the BirdWeather PUC proves it runs on that chip), an LTE-M module, an RS485 transceiver and a solar charger, bill of materials about €80 at a hundred units. That would put a node near €250 and cut the power draw ten-fold, which shrinks the panel and battery too. It is a firmware project of a few months, not a kit change; it starts once twenty v1 nodes have shown the streams are right. EasyComp Zeeland (NL) already assembles a €245 solar 4G BirdNET box on a Pi 4 with a €15/month data plan and may be a partner for v1 assembly.
+Everything in the box except the panel and battery could be one printed circuit board: an ESP32-S3 running a small bird classifier (the BirdWeather PUC is built on that chip but names its birds in BirdWeather's cloud, so a classifier on the chip itself is still to be shown), an LTE-M module, an RS485 transceiver and a solar charger, bill of materials about €80 at a hundred units. That would put a node near €250 and cut the power draw ten-fold, which shrinks the panel and battery too. It is a firmware project of a few months, not a kit change; it starts once twenty v1 nodes have shown the streams are right. EasyComp Zeeland (NL) already assembles a €245 solar 4G BirdNET box on a Pi 4 with a €15/month data plan and may be a partner for v1 assembly.
 
 ## How it gets built
 

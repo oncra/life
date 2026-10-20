@@ -42,7 +42,7 @@ Cornell's Swift is discontinued; Bugg (Imperial College) is not currently for sa
 
 | Device | Buy | Price | Does | Power | Link | Data out |
 | --- | --- | --- | --- | --- | --- | --- |
-| **BirdWeather PUC** | [Veldshop €289](https://www.veldshop.nl/en/birdweather-puc.html), [maker $299](https://www.birdweather.com/shop-birdweather-puc) | €289 | BirdNET on-device (~6,000 species), GPS, environment sensors | 3× AA lithium ≈ 48 h, or USB-C from a 3 to 5 W solar panel (maker sells both) | 2.4 GHz WiFi + BLE only; in a field you need a 4G router | [public GraphQL API](https://app.birdweather.com/api/index.html) with live subscriptions, CSV |
+| **BirdWeather PUC** | [Veldshop €289](https://www.veldshop.nl/en/birdweather-puc.html), [maker $299](https://www.birdweather.com/shop-birdweather-puc) | €289 | BirdNET in BirdWeather's cloud (~6,000 species), GPS, environment sensors | 3× AA lithium ≈ 48 h, or USB-C from a 3 to 5 W solar panel (maker sells both) | 2.4 GHz WiFi + BLE only; in a field you need a 4G router | [public GraphQL API](https://app.birdweather.com/api/index.html) with live subscriptions, CSV |
 | **BirdWeather PUC Bat Edition** | [Veldshop €495](https://www.veldshop.nl/en/birdweather-puc-bat-edition.html) | €495 | 250 kHz; bat classifier 215 species plus BirdNET | Li-ion pack included, solar via USB-C | WiFi | API, FLAC on 64 GB SD |
 | **Haikubox** | [Veldshop €277](https://www.veldshop.nl/en/haikubox.html) | €277 | BirdNET in the cloud | mains USB only; maker says solar is not viable | WiFi | CSV, no public API |
 | **DIY BirdNET-Pi / BirdNET-Go** (this is what the node is) | Raspberry Pi 4 (~€50; the Zero 2 W at ~€22 is out of stock in the EU until December 2026 and BirdNET-Go dropped support for it) + USB microphone + weatherproof box + 10 to 20 W panel and battery | €150 to €250 | BirdNET locally; BirdNET-Go adds bat models (needs an ultrasonic USB mic, e.g. Dodotronic Ultramic384K €445) | ~3 W listening; 40 W panel and 20 Ah battery on the listening schedule of the [spec](spec.md) (2.2) | WiFi or USB LTE dongle (the node uses the dongle) | MQTT, webhooks, SQLite. Use `clients/birdnet-pi-push.py` |
@@ -134,7 +134,7 @@ Checked live on 2026-09-13. Prices include VAT where the shop shows it. The shor
 
 | Product | Price | Link | Connectivity | Inference | Data |
 | --- | --- | --- | --- | --- | --- |
-| BirdWeather PUC | €289 | [veldshop.nl](https://www.veldshop.nl/en/birdweather-puc.html) | WiFi only | on device, 6,424 birds plus frogs and some insects | public API, CSV, no subscription |
+| BirdWeather PUC | €289 | [veldshop.nl](https://www.veldshop.nl/en/birdweather-puc.html) | WiFi only | in BirdWeather's cloud, 6,424 birds plus frogs and some insects | public API, CSV, no subscription |
 | EasyComp Watch House Field Pro | €245 plus €15/month for 10 GB | [easycompzeeland.nl](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/) | 4G modem, 10 to 20 W solar | BirdNET-Pi on the device | your own instance. "Coming soon" on the check date |
 | EasyComp Watch House Basic / Plus | €110 / €155 | same | WiFi | BirdNET-Pi | Basic ships today, mains powered |
 | Bugg v4 | not published | [bugg.xyz](https://www.bugg.xyz/) | 3G/4G, off-grid solar | cloud | pre-order via GroupGets; "hardware, not analyses or dashboards" |
@@ -142,7 +142,7 @@ Checked live on 2026-09-13. Prices include VAT where the shop shows it. The shor
 | Song Meter Micro 2 | about $202 | [wildlifeacoustics.com](https://www.wildlifeacoustics.com/products/song-meter-micro-2) | none | none | SD card |
 | RFCx Guardian 3 | not retail | [rfcx.org/guardian](https://rfcx.org/guardian) | cellular, solar | on device | programme deployments |
 
-The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: their box ships audio, ours ships detections, so a €12 SIM covers ten years instead of €180 a year.
+The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: a node that sends only detections fits a €12 SIM for ten years instead of €180 a year.
 
 Two open reference designs are worth reading before anyone builds a v2 board: [Microsoft SPARROW](https://microsoft.github.io/SPARROW/) (Jetson Orin Nano with Starlink, solar, edge inference) and [Bird@Edge](https://jonashoechst.de/assets/papers/hoechst2022birdedge.pdf) (ESP32 microphone nodes reporting to a Jetson base, about €110 in parts). Neither is a product.
 
