@@ -35,14 +35,14 @@ const POINTS: { title: string; body: ReactNode }[] = [
     title: "Open, and cheap enough to repeat",
     body: (
       <>
-        About €799 in parts, the SIM for ten years included: about €80 a year. Every part, shop and price is published, and the software and the build guide are open. Birds and bats with two professional recorders cost about €1,700, without 4G, a panel or soil probes (<Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>).
+        About €799 in parts, the SIM for ten years included: about €80 a year, and a visit or two a year to wipe the microphone port and the panel. Every part, shop and price is published, and the software and the build guide are open. Where the other listening boxes fit best, and what each costs with its visits counted: <Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>.
       </>
     ),
   },
 ];
 
 export const NODE_SCALE =
-  "Measuring networks usually grow as fast as their infrastructure and their rounds: a gateway per farm, power to every post, someone collecting cards. A Life Node brings its own power and its own connection and keeps running without visits, so adding a place means adding a post. Every node is built to the same open plan, runs the same software image and is read by the same rules, so a thousand nodes are one network, not a thousand projects.";
+  "Measuring networks usually grow as fast as their infrastructure and their rounds: a gateway per farm, power to every post, someone collecting cards. A Life Node brings its own power and its own connection and keeps running without anyone fetching cards or changing batteries, so adding a place means adding a post. Every node is built to the same open plan, runs the same software image and is read by the same rules, so a thousand nodes are one network, not a thousand projects.";
 
 /** The six points as cards. `compact` for the build guide's narrower column. */
 export function NodeWhy({ compact = false }: { compact?: boolean }) {
