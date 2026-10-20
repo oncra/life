@@ -35,7 +35,7 @@ const POINTS: { title: string; body: ReactNode }[] = [
     title: "Open, and cheap enough to repeat",
     body: (
       <>
-        About €801 in parts, the SIM for ten years included: about €80 a year, and a visit or two a year to wipe the microphone port and the panel. Every part, shop and price is published, and the software and the build guide are open. Where the other listening boxes fit best, and what each costs with its visits counted: <Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>.
+        About €809 in parts, the SIM for ten years included: about €80 a year, and a visit or two a year to wipe the microphone port and the panel. Every part, shop and price is published, and the software and the build guide are open. Where the other listening boxes fit best, and what each costs with its visits counted: <Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>.
       </>
     ),
   },

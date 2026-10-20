@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 20 October 2026
 
+### One plug over the whole header
+
+*Change.* Two small plug housings for the bird microphone's wires, one over pins 1 to 12 and one over pins 35 to 38, still leave room to put one on a row too far along. A single 2×20 housing covers all forty pins of the Witty Pi's header and fits only two ways, so with a dot of paint on pin 1 it cannot go on wrong. It is on the order list instead of the two small ones: a pack of five, one a node, about €8. The budget is now about €809.
+
 ### The AudioMoth's microphone is behind the gold mesh
 
 *Learning.* Our drawing put the AudioMoth's microphone at the hole beside the microphone symbol, which is where the original AudioMoth has it. On the USB Microphone that symbol, next to a little plug, marks the 3.5 mm jack for an external microphone, and the holes there belong to the jack. The microphone itself sits on the other side of the board, right behind the small gold mesh in the white patch below the word AudioMoth. The mesh covers the hole it hears through and stays on, and that side faces the hole in the box. The drawing is corrected. [#107](https://github.com/oncra/life/pull/107)
