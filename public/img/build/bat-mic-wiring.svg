@@ -39,24 +39,29 @@
 <text x="458" y="508" class="s" style="fill:#e6f2ea">35 × 40 mm</text>
 <text x="458" y="528" class="s" style="fill:#e6f2ea;font-size:12px">seen from</text>
 <text x="458" y="543" class="s" style="fill:#e6f2ea;font-size:12px">the logo side</text>
-<circle cx="552" cy="446" r="6" fill="#111" stroke="#e6f2ea" stroke-width="2"/>
 <rect x="600" y="540" width="12" height="30" rx="2" fill="#e6f2ea" stroke="#1d5c32"/><rect x="602" y="542" width="8" height="9" rx="1" fill="#1d5c32"/>
 <text x="620" y="550" class="s" style="font-size:12px">DEFAULT  ← the switch here</text>
 <text x="620" y="566" class="s" style="font-size:12px;fill:#777">USB/OFF, CUSTOM</text>
-<text x="620" y="434" class="s" style="font-size:12px">3.5 mm jack: leave empty</text>
-<text x="620" y="456" class="s">microphone hole, beside</text>
-<text x="620" y="473" class="s">the microphone symbol</text>
-<path d="M558,446 L614,451" fill="none" stroke="#333" stroke-width="1"/>
-<path d="M552,452 V640" fill="none" stroke="#1d5c32" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="620" y="434" class="s" style="font-size:12px">3.5 mm jack: leave empty.</text>
+<text x="620" y="450" class="s" style="font-size:12px">The microphone symbol and the</text>
+<text x="620" y="466" class="s" style="font-size:12px">hole beside it mark this jack.</text>
+<rect x="545" y="566" width="48" height="28" rx="6" fill="#f2f2f2" stroke="#1d5c32"/>
+<rect x="562" y="572" width="14" height="16" fill="#b8892e" stroke="#7a5a1a"/>
+<path d="M565.5,572 V588 M569,572 V588 M572.5,572 V588 M562,576 H576 M562,580 H576 M562,584 H576" stroke="#7a5a1a" stroke-width="0.8"/>
+<path d="M577,582 L616,596" fill="none" stroke="#333" stroke-width="1"/>
+<text x="620" y="600" class="s">the microphone, under the gold</text>
+<text x="620" y="617" class="s">mesh below the word AudioMoth</text>
+<path d="M569,594 V640" fill="none" stroke="#1d5c32" stroke-width="2" stroke-dasharray="5 4"/>
 <rect x="380" y="640" width="292" height="18" class="wall"/>
-<rect x="540" y="640" width="24" height="18" fill="#fff"/>
-<path d="M528,690 q8,-8 16,0 t16,0 t16,0" class="wave"/>
-<path d="M522,708 q8,-8 16,0 t16,0 t16,0 t16,0" class="wave"/>
+<rect x="557" y="640" width="24" height="18" fill="#fff"/>
+<path d="M545,690 q8,-8 16,0 t16,0 t16,0" class="wave"/>
+<path d="M539,708 q8,-8 16,0 t16,0 t16,0 t16,0" class="wave"/>
 <text x="690" y="653" class="s">bottom wall of the box</text>
 <text x="690" y="680" class="s">an open hole facing down, beside</text>
-<text x="690" y="698" class="s">the bird microphone's port. No</text>
-<text x="690" y="716" class="s">membrane: any cover costs the</text>
-<text x="690" y="734" class="s">most at ultrasonic frequencies.</text>
+<text x="690" y="698" class="s">the bird microphone's port. No extra</text>
+<text x="690" y="716" class="s">membrane: the board's own mesh is</text>
+<text x="690" y="734" class="s">enough, any more cover costs the</text>
+<text x="690" y="752" class="s">most at ultrasonic frequencies.</text>
 
 <rect x="640" y="95" width="330" height="320" rx="8" class="note"/>
 <text x="660" y="125" class="b">Before it goes in</text>
@@ -69,9 +74,9 @@
 <text x="660" y="276" class="s">3. It listens at 192 kHz, which covers</text>
 <text x="660" y="294" class="s">   the Dutch bats. The box sets that</text>
 <text x="660" y="312" class="s">   itself when it starts.</text>
-<text x="660" y="338" class="s">4. The logo side faces the hole, the</text>
-<text x="660" y="356" class="s">   microphone hole a finger's width from it,</text>
-<text x="660" y="374" class="s">   nothing in between. On the desk it</text>
-<text x="660" y="392" class="s">   may lie anywhere, that hole free.</text>
+<text x="660" y="338" class="s">4. The microphone is under the gold</text>
+<text x="660" y="356" class="s">   mesh below the word AudioMoth: leave</text>
+<text x="660" y="374" class="s">   it on. That side faces the hole, the</text>
+<text x="660" y="392" class="s">   mesh right above it, nothing between.</text>
 <text x="30" y="785" class="s i">The bird microphone (INMP441 on the Witty Pi's header) stays as it is. The AudioMoth listens only from sunset to sunrise.</text>
 </svg>
