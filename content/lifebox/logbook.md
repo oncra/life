@@ -11,7 +11,7 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ### The AudioMoth's microphone is behind the gold mesh
 
-*Learning.* Our drawing put the AudioMoth's microphone at the hole beside the microphone symbol, which is where the original AudioMoth has it. On the USB Microphone that symbol, next to a little plug, marks the 3.5 mm jack for an external microphone, and the holes there belong to the jack. The microphone itself sits on the other side of the board, right behind the small gold mesh in the white patch below the word AudioMoth. The mesh covers the hole it hears through and stays on, and that side faces the hole in the box. The drawing is corrected.
+*Learning.* Our drawing put the AudioMoth's microphone at the hole beside the microphone symbol, which is where the original AudioMoth has it. On the USB Microphone that symbol, next to a little plug, marks the 3.5 mm jack for an external microphone, and the holes there belong to the jack. The microphone itself sits on the other side of the board, right behind the small gold mesh in the white patch below the word AudioMoth. The mesh covers the hole it hears through and stays on, and that side faces the hole in the box. The drawing is corrected. [#107](https://github.com/oncra/life/pull/107)
 
 ### The first evening with the bat microphone in the box
 
