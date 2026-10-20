@@ -261,6 +261,16 @@ class Setup(unittest.TestCase):
         self.assertIn('            - name: Bat microphone\n              device: ":2,0"', c)
         self.assertEqual(c.count("Bat microphone"), 1)
 
+    def test_switch_on_usb_off(self):
+        n = self.node(plugged=False)
+        dev = n.sys / "bus" / "usb" / "devices" / "1-1.3"
+        dev.mkdir(parents=True)
+        (dev / "idVendor").write_text("10c4\n")
+        (dev / "idProduct").write_text("0002\n")
+        (dev / "product").write_text("AudioMoth\n")
+        n.run("setup")
+        self.assertEqual(n.config, CONFIG)
+
     def test_status(self):
         n = self.node()
         n.run("setup")
