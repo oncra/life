@@ -135,14 +135,13 @@ Checked live on 2026-09-13. Prices include VAT where the shop shows it. The shor
 | Product | Price | Link | Connectivity | Inference | Data |
 | --- | --- | --- | --- | --- | --- |
 | BirdWeather PUC | €289 | [veldshop.nl](https://www.veldshop.nl/en/birdweather-puc.html) | WiFi only | in BirdWeather's cloud, 6,424 birds plus frogs and some insects | public API, CSV, no subscription |
-| EasyComp Watch House Field Pro | €245 plus €15/month for 10 GB | [easycompzeeland.nl](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/) | 4G modem, 10 to 20 W solar | BirdNET-Pi on the device | your own instance. "Coming soon" on the check date |
-| EasyComp Watch House Basic / Plus | €110 / €155 | same | WiFi | BirdNET-Pi | Basic ships today, mains powered |
-| Bugg v4 | not published | [bugg.xyz](https://www.bugg.xyz/) | 3G/4G, off-grid solar | cloud | pre-order via GroupGets; "hardware, not analyses or dashboards" |
+| EasyComp Watch House Basic | €110 | [easycompzeeland.nl](https://easycompzeeland.nl/en/services/birdnet-pi-non-profit/) | WiFi | BirdNET-Pi on the device | ships today, mains powered |
 | Haikubox | $399 with 5 years, then $59/year | [haikubox.com](https://haikubox.com/collections/all) | WiFi | on device | closed consumer platform |
 | Song Meter Micro 2 | about $202 | [wildlifeacoustics.com](https://www.wildlifeacoustics.com/products/song-meter-micro-2) | none | none | SD card |
-| RFCx Guardian 3 | not retail | [rfcx.org/guardian](https://rfcx.org/guardian) | cellular, solar | on device | programme deployments |
 
-The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none. EasyComp's Field Pro does add 4G, at €15 a month for 10 GB, which is the whole architectural argument in one line: a node that sends only detections fits a €13 SIM for ten years instead of €180 a year.
+Not in shops, and worth knowing: Bugg v4 (3G/4G and off-grid solar, inference in the cloud; its GroupGets pre-order has closed) and RFCx Guardian 3 (cellular and solar, in programme deployments only).
+
+The PUC is the strongest of these and this oracle already polls it hourly by station id. Its one constraint is the one that produced the node: WiFi and nothing else, and most fields have none.
 
 Two open reference designs are worth reading before anyone builds a v2 board: [Microsoft SPARROW](https://microsoft.github.io/SPARROW/) (Jetson Orin Nano with Starlink, solar, edge inference) and [Bird@Edge](https://jonashoechst.de/assets/papers/hoechst2022birdedge.pdf) (ESP32 microphone nodes reporting to a Jetson base, about €110 in parts). Neither is a product.
 
