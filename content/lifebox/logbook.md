@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 20 October 2026
 
+### The bat model kept out of the dawn window
+
+*Change.* The bat model turned out to keep the Pi 91 per cent busy and draw 2.5 W extra, so it now runs only in the evening window, from fifteen minutes before sunset. Until now the bat microphone was quiet only from sunrise, so in the dawn window it also ran from civil dawn until sunrise, 35 to 50 minutes beside the dawn chorus; leaving that out saves 1.5 to 2 Wh a day and keeps the processor for the birds. In the comparison of the two microphones the AudioMoth runs one model at a time, BirdNET by day and the bat model at night, so the processor carries no more than before. [#116](https://github.com/oncra/life/pull/116)
+
 ### The AudioMoth on trial as the only microphone
 
 *Change.* The node can now hear its birds on the AudioMoth as well as its bats, so it might do without the soldered I2S microphone: one microphone, one hole in the box, no jumper wires. Node 1 tries it first. For five dawns it hears its birds on both microphones at once; only the I2S microphone's birds count, and the AudioMoth's go to the oracle marked as test, so the two can be compared species for species. If the AudioMoth names the same birds, it becomes the node's only microphone. A cheaper home-made bat microphone was looked at and put off: it would need its own board and a season of testing against the AudioMoth, and the AudioMoth is the recorder Sovon has used beside its bird counts. [#113](https://github.com/oncra/life/pull/113)
