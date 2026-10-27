@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 27 October 2026
+
+### What a detection is worth
+
+*Learning.* Before the first clip has been checked, we ran the checking method the node is built for on someone else's checked clips: TABMON's 3,000, labelled by experts in France, Norway and Spain. The node sends 0.7 and up, the score Diversity counts from. For the common birds the checked clips say that is too high: in Norway the blackbird was right 65 times out of 65 from a score of 0.2 up, and for the yellowhammer and the blue tit the curve passed 0.95 at about 0.36, though some thirty clips each cannot pin that down. Others are never right: the spotted crake was wrong 91 times out of 91, up to a score of 0.96, usually with no bird in the clip at all. So a single 0.7 throws away good blackbirds and lets bad crakes through. What the sound can and cannot claim, from presence to numbers of birds and bats, is now one page: [what it measures](../confidence.md).
+
+*Change.* A threshold has to hold for everything it lets through, and the node checks five clips per score band whether that band held ten detections or a thousand. So the stick now also gets `bands.csv`: per month, species and band, how many detections the clips were drawn from. In the test, seven blackbirds in one band and five clips kept: each clip stands for 1.4 detections.
+
 ## 20 October 2026
 
 ### The bat model kept out of the dawn window

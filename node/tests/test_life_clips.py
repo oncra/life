@@ -299,11 +299,14 @@ class Visit(unittest.TestCase):
         self.assertTrue(lines[0].startswith("file,detection,time_local,time_utc,scientific,score,band"))
         self.assertIn(",Turdus merula,0.850,0.8,birdnet-go:birdnet,15,3,6,", lines[1])
         sums = (run / "SHA256SUMS").read_text().splitlines()
-        self.assertEqual(len(sums), 5)
+        self.assertEqual(len(sums), 6)                                # five clips and the band list
         for line in sums:
             h, name = line.split("  ")
             self.assertEqual(nd.mod.sha256(run / name), h)
-        self.assertTrue((run / "RECEIPT.txt").exists())
+        bands = (run / "bands.csv").read_text().strip().splitlines()
+        self.assertEqual(bands[0], "month,scientific,band,detections,kept,as_of_utc")
+        self.assertTrue(bands[1].startswith("2026-05,Turdus merula,0.8,7,5,"))  # seven heard, five kept: weight 7/5
+        self.assertTrue((run / "RECEIPT.txt").read_text().startswith("5 clips"))
         self.assertEqual(list((nd.home / "sample").rglob("*.opus")), [])  # gone from the node
         st = json.loads((nd.home / "status.json").read_text())
         self.assertEqual((st["waiting"], bool(st["collectedAt"])), (0, True))
