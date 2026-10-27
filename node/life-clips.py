@@ -7,7 +7,7 @@ away by hand on a USB stick named LIFECLIPS.
 
     life-clips setup                     before BirdNET-Go starts: clip export on or off in its config
     life-clips sample                    every 15 minutes: keep the sample, delete every other clip
-    life-clips collect --to DIR          copy the sample and its list into DIR, check the copy, delete it from the node
+    life-clips collect --to DIR          copy the sample, its list and the band counts into DIR, check the copy, delete it from the node
     life-clips collect-device /dev/sdX1  the same onto a stick named LIFECLIPS (udev starts this when one is plugged in)
     life-clips status [--json]           what is waiting for a visit
 
@@ -476,11 +476,25 @@ def _collect(dest: Path) -> int:
             done.append((cell, slot, src))
         f.flush()
         os.fsync(f.fileno())
-    (out / "SHA256SUMS").write_text("".join(f"{h}  {n}\n" for n, h in sorted(sums.items())))
+    # How many detections each kept clip stands for: per month, species and score band, the detections the sampler saw
+    # and the clips it kept from them. A clip's weight is detections / kept; without it a checked sample of five per
+    # band says how often the detector is right in a band, but not how often it is right over all it reported.
+    with open(out / "bands.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["month", "scientific", "band", "detections", "kept", "as_of_utc"])
+        as_of = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        for cell, n in con.execute("select cell, n from seen order by cell").fetchall():
+            month, scientific, b = cell.split("|")
+            k = con.execute("select count(*) from kept where cell = ?", (cell,)).fetchone()[0]
+            w.writerow([month, scientific, b, n, k, as_of])
+        f.flush()
+        os.fsync(f.fileno())
+    lists = {"bands.csv": sha256(out / "bands.csv")}
+    (out / "SHA256SUMS").write_text("".join(f"{h}  {n}\n" for n, h in sorted({**sums, **lists}.items())))
     for d in {out, *[out / Path(n).parent for n in sums]}:
         fsync_dir(d)
     # read it back from the stick before anything leaves the node
-    bad = [n for n, h in sums.items() if sha256(out / n) != h]
+    bad = [n for n, h in {**sums, **lists}.items() if sha256(out / n) != h]
     if bad:
         (out / "FAILED.txt").write_text(f"{len(bad)} of {len(sums)} clips did not copy cleanly; nothing was deleted from the node.\n")
         print(f"life-clips: {len(bad)} clips did not copy cleanly onto {dest}; nothing deleted", file=sys.stderr)
@@ -495,7 +509,9 @@ def _collect(dest: Path) -> int:
     (out / "RECEIPT.txt").write_text(
         f"{len(sums)} clips ({mb:.1f} MB) from {host}, copied {stamp}, checked against SHA256SUMS and deleted from the node.\n"
         "clips.csv lists each clip: species, score and where in the clip the detected three seconds are. A checker fills in\n"
-        "label (right, wrong or unsure) and, when wrong, the species that sang; the labels go to the oracle, the sound does not.\n")
+        "label (right, wrong or unsure) and, when wrong, the species that sang; the labels go to the oracle, the sound does not.\n"
+        "bands.csv says how many detections each month's clips were drawn from, per species and score band: the weights that\n"
+        "turn the checked sample into the share of all detections that were right.\n")
     print(f"life-clips: {len(sums)} clips ({mb:.1f} MB) copied to {out} and deleted from the node")
     return 0
 
