@@ -5,7 +5,8 @@ A node in a field keeps its clip sample on its card for a visit (node/life-clips
 A node on the bench, with its steward's yes (LIFE_KEEP_CLIPS=1 and LIFE_CLIPS_ANYTIME=1 in /data/life-node/env), can
 have its sample fetched by a computer on the same network, which is what this does. It never uses the node's SIM: the
 node sends nothing, this computer pulls over ssh. Run it from launchd or cron every half hour; it does nothing while
-the node is off or out of reach.
+the node is off or out of reach. A server in the steward's tailnet can run it instead, sandboxed, with
+clients/lifeclips-upload.service and LIFE_NODE_SSH set to the node's tailnet address.
 
     clips-upload.py            fetch what the node has kept, then send everything not yet sent
     clips-upload.py --send     only send what is already here

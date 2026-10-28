@@ -3,7 +3,8 @@
 # never carries it: life-tailscale.py.
 #
 #     sudo bash node/apply-tailscale.sh on tailscale_1.104.4_arm64.tgz   # put it on (or update it) and switch it on
-#     sudo bash node/apply-tailscale.sh off                               # before the node goes to a field
+#     sudo bash node/apply-tailscale.sh off                               # off for now; the node stays in the tailnet
+#     sudo bash node/apply-tailscale.sh forget                            # before the node goes to a field
 #
 # Fetch Tailscale's static build on a laptop, never on the node over 4G, and compare it with the published checksum:
 #     curl -fLO https://pkgs.tailscale.com/stable/tailscale_1.104.4_arm64.tgz
@@ -11,11 +12,12 @@
 #     scp -r node tailscale_1.104.4_arm64.tgz life@<hostname>.local:
 # and then, on the node, cd ~ && sudo bash node/apply-tailscale.sh on tailscale_1.104.4_arm64.tgz. Joining the steward's
 # tailnet is once per node: sudo tailscale up --hostname=<hostname> --accept-dns=false prints a link, and the steward opens
-# it and logs in. The identity stays on /data, so off and on again needs no new login. Root is a read-only overlay, so
+# it and logs in. The identity stays on /data, so off and on again needs no new login; forget logs the node out and
+# deletes that identity, so a node stolen from a field cannot rejoin the tailnet. Root is a read-only overlay, so
 # this writes to the live root and to the one under it (/media/root-ro): the change takes effect now and holds after a
 # reboot.
 set -euo pipefail
-MODE=${1:?mode: on or off}
+MODE=${1:?mode: on, off or forget}
 HERE=$(cd "$(dirname "$0")" && pwd)
 ENVF=/data/life-node/env
 TS=/data/tailscale
@@ -27,13 +29,20 @@ set_env() {
 }
 
 case $MODE in
+  forget)
+    tailscale logout 2>/dev/null || echo "could not log out (no tailscaled running): remove the node in the Tailscale admin console too"
+    systemctl stop life-tailscale.service 2>/dev/null || true
+    rm -rf "$TS/state"
+    set_env LIFE_TAILSCALE 0
+    echo "Tailscale is off and the node's identity is gone; on the bench again, apply-tailscale.sh on and a new login"
+    exit 0 ;;
   off)
     set_env LIFE_TAILSCALE 0
     systemctl stop life-tailscale.service 2>/dev/null || true
     echo "Tailscale is off (LIFE_TAILSCALE=0); the node's identity stays in $TS for its next time on the bench"
     exit 0 ;;
   on) ;;
-  *) echo "the mode is on or off"; exit 2 ;;
+  *) echo "the mode is on, off or forget"; exit 2 ;;
 esac
 
 TGZ=${2:?the Tailscale build, tailscale_<version>_arm64.tgz, fetched on a laptop}
