@@ -3,7 +3,8 @@
 
 To give every species its own threshold, someone has to hear what the detector heard. The node sends no sound over
 the air, so it keeps a small sample of BirdNET-Go's clips on /data and nothing else, and a visit takes the sample
-away by hand on a USB stick named LIFECLIPS.
+away by hand on a USB stick named LIFECLIPS. On a bench, with the steward's yes, a computer on the same network may
+fetch it over WiFi instead (clients/clips-upload.py) for the oracle's triage page; a node in a field never sends it.
 
     life-clips setup                     before BirdNET-Go starts: clip export on or off in its config
     life-clips sample                    every 15 minutes: keep the sample, delete every other clip
