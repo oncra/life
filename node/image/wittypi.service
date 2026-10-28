@@ -3,6 +3,9 @@ Description=Witty Pi 4 daemon (scheduled power, RTC, shutdown on the button and 
 After=life-firstboot.service
 [Service]
 Type=simple
+# the Witty Pi keeps UTC: its RTC, its alarms and UUGear's scripts never see the clocks change. An RTC in local time
+# is an hour out after a change: on 25 October 2026 it woke node 1 an hour early, and in March it would wake late
+Environment=TZ=UTC
 # only with a Witty Pi in the supply path; also sets the board to switch the Pi on when power arrives
 ExecCondition=/usr/local/sbin/life-wittypi
 WorkingDirectory=/data/wittypi

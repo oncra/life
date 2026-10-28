@@ -16,7 +16,8 @@
 set -u
 W=/data/wittypi; STATE=/data/life-node
 set -a; [ -f $STATE/env ] && . $STATE/env; set +a
-wp() { (cd $W && . ./utilities.sh >/dev/null 2>&1 && "$@"); }
+# UUGear's scripts run in UTC, like the daemon (wittypi.service): the RTC and every alarm keep UTC, so no clock change moves them
+wp() { (cd $W && export TZ=UTC && . ./utilities.sh >/dev/null 2>&1 && "$@"); }
 
 timedatectl set-ntp true >/dev/null 2>&1
 synced=no
@@ -67,7 +68,7 @@ fi
 mv $W/schedule.wpi.new $W/schedule.wpi
 echo "life-schedule: applying $want schedule"; grep -v '^#' $W/schedule.wpi | tr '\t' ' ' | paste -sd ';'
 # always run it, now that the clock is right: the daemon already ran the script at boot, possibly on the wrong time
-(cd $W && ./runScript.sh >> $W/schedule.log 2>&1)
+(cd $W && TZ=UTC ./runScript.sh >> $W/schedule.log 2>&1)
 tail -n 4 $W/schedule.log | grep -E 'Schedule next' || true
 # a boot the board made by itself outside the windows posts and goes back to sleep until the next window
 [ $want = season ] && /usr/local/sbin/life-window check || true

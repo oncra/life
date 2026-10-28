@@ -1,7 +1,7 @@
-# Life node, November to February, fallback only: 2 hours from 08:00 local clock time, about sunrise in midwinter.
+# Life node, November to February, fallback only: 2 hours from 08:00 local clock time (07:00 UTC, the Witty Pi's clock), about sunrise in midwinter.
 # life-schedule writes the schedule computed for the node's place (2 hours from sunrise) instead, and uses this file
 # only if that computation fails
-BEGIN	2026-11-01 08:00:00
+BEGIN	2026-11-01 07:00:00
 END	2035-12-31 23:59:59
 ON	H2
 OFF	H22

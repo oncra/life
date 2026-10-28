@@ -92,12 +92,13 @@ def script(now: datetime) -> str:
         end = min(w["end"], follow - timedelta(minutes=1))
         states += [("ON", end - w["start"]), ("OFF", follow - end)]
     f = "%Y-%m-%d %H:%M:%S"
-    loc = lambda t: t.astimezone(TZ)  # noqa: E731 - BEGIN and END are read by the Witty Pi as local clock time
+    loc = lambda t: t.astimezone(TZ)  # noqa: E731 - the comment lines, for people
+    utc = lambda t: t.astimezone(timezone.utc)  # noqa: E731 - BEGIN and END: the Witty Pi's scripts run in UTC
     desc = "; ".join(f"{w['name']} {loc(w['start']):%H:%M}-{loc(w['end']):%H:%M}" for w in ws)
     out = [f"# Life node listening schedule at {LAT:.4f}, {LON:.4f} ({TZ.key}), written by life-schedule at every boot",
            f"# {d}: {desc}; next start {loc(nxt):%Y-%m-%d %H:%M}",
-           f"BEGIN\t{loc(ws[0]['start']).strftime(f)}",
-           f"END\t{loc(ws[0]['start'] + timedelta(days=30)).strftime(f)}"]
+           f"BEGIN\t{utc(ws[0]['start']).strftime(f)}",
+           f"END\t{utc(ws[0]['start'] + timedelta(days=30)).strftime(f)}"]
     out += [f"{s}\t{span(t)}" for s, t in states]
     return "\n".join(out)
 

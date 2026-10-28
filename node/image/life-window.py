@@ -116,11 +116,11 @@ def stop(args: list[str]) -> None:
         log(f"the {info['active']['name']} window has begun; staying on, the schedule ends it")
         return
     start = datetime.fromisoformat(info["next"])
-    # the board reads its alarm as local clock fields, the way UUGear's runScript writes them
-    fields = subprocess.run(["date", "-d", f"@{int(start.timestamp())}", "+%d %H %M %S"], capture_output=True, text=True,
+    # the board reads its alarm as clock fields against its RTC, which keeps UTC (wittypi.service, life-schedule)
+    fields = subprocess.run(["date", "-u", "-d", f"@{int(start.timestamp())}", "+%d %H %M %S"], capture_output=True, text=True,
                             check=True).stdout.split()
     cmd = f"cd /data/wittypi && . ./utilities.sh >/dev/null 2>&1 && set_startup_time {' '.join(fields)} && clear_shutdown_time"
-    log(f"outside the windows: next start {info['next']} (local {' '.join(fields)}), powering off")
+    log(f"outside the windows: next start {info['next']} (Witty Pi clock, UTC: {' '.join(fields)}), powering off")
     if dry:
         print(f"would run: bash -c '{cmd}' && systemctl poweroff")
         return
