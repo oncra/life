@@ -7,6 +7,8 @@ export type TriageClip = {
   id: string;
   ts: string;
   confidence: number;
+  /** which model named it: "birdnet-go:birdnet", "birdnet-go:battybirdnet" (the bat model), ... */
+  detector: string | null;
   source: string | null;
   fromS: number | null;
   toS: number | null;
@@ -35,6 +37,8 @@ const VERDICTS = [
 
 const when = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const mic = (s: string | null) => (s === "Sound Card 1" ? "I2S microphone" : s ?? "microphone unknown");
+const MODEL: Record<string, string> = { "birdnet-go:birdnet": "BirdNET", "birdnet-go:battybirdnet": "bat model", "birdnet-go:perch_v2": "Perch" };
+const model = (d: string | null) => (d ? MODEL[d] ?? d.replace(/^birdnet-go:/, "") : "detector");
 
 export function Triage({ species }: { species: TriageSpecies[] }) {
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -115,7 +119,11 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
   return (
     <li className="rounded border border-line p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-        <span><span className="font-semibold">{clip.confidence.toFixed(2)}</span> · {when.format(new Date(clip.ts))} · {mic(clip.source)}</span>
+        <span>
+          <span className="font-semibold" title="How sure the model was that this is the species named: its score for this detection">
+            {model(clip.detector)} {Math.round(clip.confidence * 100)}% sure
+          </span> · {when.format(new Date(clip.ts))} · {mic(clip.source)}
+        </span>
         {o.right + o.wrong + o.unsure > 0 ? <span className="text-muted">others: right {o.right}, wrong {o.wrong}, not sure {o.unsure}</span> : null}
       </div>
       {clip.hasSound ? (
