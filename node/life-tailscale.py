@@ -7,7 +7,9 @@ no routes, no firewall rules and no DNS change on the node, and an SSH connectio
 the node's own sshd on localhost. The SIM never carries it. tailscaled runs only while the node's way out to the
 internet is the cable or the WiFi, and stops the moment that way out is anything else, the 4G stick above all: an idle
 Tailscale keeps a connection to its coordination server and to a relay open all day, traffic a 500 MB ten-year SIM has
-no room for. Its log upload to Tailscale is off. The binaries and the node's identity live in /data/tailscale and
+no room for. Where systemd has its BPF framework (Debian 13 on the Pi does), the unit also has the kernel refuse
+tailscaled every interface but lo, eth0 and wlan0, so not even a missed route change sends a byte over the stick.
+Its log upload to Tailscale is off. The binaries and the node's identity live in /data/tailscale and
 survive the read-only root and a new image. node/apply-tailscale.sh puts it on a node; LIFE_TAILSCALE=0 (apply-tailscale.sh
 off) before the node goes to a field.
 

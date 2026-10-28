@@ -6,6 +6,7 @@ ConditionPathExists=/data/tailscale/tailscaled
 [Service]
 EnvironmentFile=/etc/life-node.env
 ExecStart=/usr/local/bin/life-tailscale run
+RestrictNetworkInterfaces=lo eth0 wlan0
 RuntimeDirectory=tailscale
 Restart=on-failure
 RestartSec=30
