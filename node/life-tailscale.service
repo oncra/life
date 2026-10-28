@@ -1,0 +1,13 @@
+[Unit]
+Description=Life node: Tailscale on the bench, over the cable or the WiFi and never over the SIM (LIFE_TAILSCALE)
+After=network.target life-firstboot.service
+RequiresMountsFor=/data
+ConditionPathExists=/data/tailscale/tailscaled
+[Service]
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-tailscale run
+RuntimeDirectory=tailscale
+Restart=on-failure
+RestartSec=30
+[Install]
+WantedBy=multi-user.target
