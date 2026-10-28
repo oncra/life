@@ -1,14 +1,17 @@
 import { createHash } from "node:crypto";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/db";
 import { authenticate, json } from "@/lib/auth";
-import { CLIP_MAX_BYTES, clipSender, mimeOf, pruneClips, saveClipFile } from "@/lib/clips";
+import { CLIP_MAX_BYTES, clipPath, clipSender, mimeOf, pruneClips, saveClipFile } from "@/lib/clips";
 export const dynamic = "force-dynamic";
 
 // One detection's clip for /triage, as multipart: the sound (`file`) and the fields of its row in the node's clips.csv
 // (detection, time_utc, scientific, score, band, detector, clip_s, detection_from_s, detection_to_s), plus species and
-// source (the microphone) when known. Sent by clients/clips-upload.py from a computer at a bench node, with the node's
-// own token, or with an admin or steward key and `device`. The same detection sent twice is kept once.
+// source (the microphone) when known, and `expansion` when the sound is slowed down (a bat clip, ten times). Sent by
+// clients/clips-upload.py from a computer at a bench node, with the node's own token, or with an admin or steward key
+// and `device`. The same detection sent twice is kept once; with `replace=1` the second sound takes the first one's
+// place and the verdicts stay, for a clip that was first sent in a form nobody could judge.
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   if (!form) return json({ error: "send multipart/form-data" }, 400);
@@ -37,17 +40,25 @@ export async function POST(req: Request) {
   if (!ref || Number.isNaN(ts.getTime()) || !scientific || confidence === null || confidence < 0 || confidence > 1) {
     return json({ error: "detection, time_utc, scientific and score are needed" }, 400);
   }
+  const x = num("expansion");
+  const expansion = x !== null && Number.isInteger(x) && x > 1 && x <= 100 ? x : null;
   const deviceId = who.deviceId;
-  const have = await prisma.clip.findUnique({ where: { deviceId_detectionRef: { deviceId, detectionRef: ref } }, select: { id: true } });
-  if (have) return json({ ok: true, id: have.id, created: false });
+  const have = await prisma.clip.findUnique({ where: { deviceId_detectionRef: { deviceId, detectionRef: ref } }, select: { id: true, file: true } });
+  const replace = text("replace") === "1";
+  if (have && !replace) return json({ ok: true, id: have.id, created: false });
   const data = Buffer.from(await file.arrayBuffer());
   const name = `${deviceId}/${createHash("sha256").update(data).digest("hex").slice(0, 32)}${path.extname(file.name).toLowerCase()}`;
   await saveClipFile(name, data);
+  if (have) {
+    await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion } });
+    if (have.file && have.file !== name) await rm(clipPath(have.file), { force: true }).catch(() => {});
+    return json({ ok: true, id: have.id, created: false, replaced: true });
+  }
   const clip = await prisma.clip.create({
     data: {
       deviceId, detectionRef: ref, ts, scientific: scientific.slice(0, 120), species: text("species")?.slice(0, 120) ?? null, confidence,
       band: text("band")?.slice(0, 8) ?? null, detector: text("detector")?.slice(0, 80) ?? null, source: text("source")?.slice(0, 80) ?? null,
-      clipS: num("clip_s"), fromS: num("detection_from_s", "from_s"), toS: num("detection_to_s", "to_s"), file: name, mime, bytes: data.length,
+      clipS: num("clip_s"), fromS: num("detection_from_s", "from_s"), toS: num("detection_to_s", "to_s"), file: name, mime, bytes: data.length, expansion,
     },
   });
   pruneClips().catch(() => {});

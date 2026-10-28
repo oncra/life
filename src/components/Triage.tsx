@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { rowOf, spectrogram } from "@/lib/spectrogram";
 
 export type TriageClip = {
   id: string;
@@ -8,6 +9,8 @@ export type TriageClip = {
   source: string | null;
   fromS: number | null;
   toS: number | null;
+  /** how many times slower the sound plays than it was heard (a bat clip: 10); null for real time */
+  expansion: number | null;
   hasSound: boolean;
   mine: { verdict: string; actual: string | null; note: string | null } | null;
   others: { right: number; wrong: number; unsure: number };
@@ -80,6 +83,7 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
     } else setState("error");
   }
   const o = clip.others;
+  const x = clip.expansion ?? 1;
   return (
     <li className="rounded border border-line p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
@@ -89,9 +93,10 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
       {clip.hasSound ? (
         <>
           <audio controls preload="none" src={`/api/clips/${clip.id}/audio`} className="mt-2 w-full" />
-          {clip.fromS != null && clip.toS != null ? <div className="text-xs text-muted mt-1">The detected part is {clip.fromS} to {clip.toS} s into the clip.</div> : null}
-          <button type="button" className="mt-1 text-xs underline" onClick={() => setSpec((x) => !x)}>{spec ? "hide spectrogram" : "show spectrogram"}</button>
-          {spec ? <Spectrogram src={`/api/clips/${clip.id}/audio`} fromS={clip.fromS} toS={clip.toS} /> : null}
+          {x > 1 ? <div className="text-xs text-muted mt-1">Slowed down {x} times, so a bat call at 40 kHz is heard at {40 / x} kHz; the spectrogram shows the frequencies as they were.</div> : null}
+          {clip.fromS != null && clip.toS != null ? <div className="text-xs text-muted mt-1">The detected part is {clip.fromS * x} to {clip.toS * x} s into the clip.</div> : null}
+          <button type="button" className="mt-1 text-xs underline" onClick={() => setSpec((s) => !s)}>{spec ? "hide spectrogram" : "show spectrogram"}</button>
+          {spec ? <Spectrogram src={`/api/clips/${clip.id}/audio`} fromS={clip.fromS} toS={clip.toS} x={x} /> : null}
         </>
       ) : (
         <div className="mt-2 text-sm text-muted">The sound of this clip has been deleted.</div>
@@ -113,9 +118,9 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
   );
 }
 
-// A spectrogram drawn in the browser from the clip itself: 50 Hz to 16 kHz on a log scale, so a ship horn's low hum
-// and a bird's song are both readable; the detected seconds are shaded.
-function Spectrogram({ src, fromS, toS }: { src: string; fromS: number | null; toS: number | null }) {
+// A spectrogram drawn in the browser from the clip itself (src/lib/spectrogram.ts), labelled in the frequencies the
+// microphone heard; the detected seconds are shaded.
+function Spectrogram({ src, fromS, toS, x: slow }: { src: string; fromS: number | null; toS: number | null; x: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [msg, setMsg] = useState("drawing");
   useEffect(() => {
@@ -126,29 +131,8 @@ function Spectrogram({ src, fromS, toS }: { src: string; fromS: number | null; t
         const audio = await new OfflineAudioContext(1, 1, 48000).decodeAudioData(buf);
         if (gone) return;
         const x = audio.getChannelData(0);
-        const rate = audio.sampleRate;
-        const N = 2048;
-        const W = 900;
-        const H = 240;
-        const hop = Math.max(128, Math.floor(x.length / W));
-        const frames = Math.max(1, Math.floor((x.length - N) / hop));
-        const win = new Float32Array(N).map((_, i) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1)));
-        const fmin = 50, fmax = Math.min(16000, rate / 2);
-        const rowBin = Array.from({ length: H }, (_, y) => Math.round((fmin * Math.pow(fmax / fmin, (H - 1 - y) / (H - 1)) * N) / rate));
-        const db = new Float32Array(frames * H);
-        const re = new Float32Array(N);
-        const im = new Float32Array(N);
-        let top = -Infinity;
-        for (let f = 0; f < frames; f++) {
-          for (let i = 0; i < N; i++) { re[i] = x[f * hop + i] * win[i]; im[i] = 0; }
-          fft(re, im);
-          for (let y = 0; y < H; y++) {
-            const k = rowBin[y];
-            const v = 10 * Math.log10(re[k] * re[k] + im[k] * im[k] + 1e-12);
-            db[f * H + y] = v;
-            if (v > top) top = v;
-          }
-        }
+        const sp = spectrogram(x, audio.sampleRate, slow);
+        const { db, frames, rows: H, top } = sp;
         const c = ref.current;
         if (!c) return;
         c.width = frames;
@@ -165,16 +149,16 @@ function Spectrogram({ src, fromS, toS }: { src: string; fromS: number | null; t
           }
         }
         g.putImageData(img, 0, 0);
-        const secs = x.length / rate;
+        const secs = x.length / audio.sampleRate;
         if (fromS != null && toS != null) {
           g.fillStyle = "rgba(220, 120, 0, 0.18)";
-          g.fillRect((fromS / secs) * frames, 0, ((toS - fromS) / secs) * frames, H);
+          g.fillRect(((fromS * slow) / secs) * frames, 0, (((toS - fromS) * slow) / secs) * frames, H);
         }
         g.fillStyle = "rgba(0,0,0,0.55)";
         g.font = "11px sans-serif";
-        for (const hz of [100, 1000, 4000, 10000]) {
-          if (hz > fmax) continue;
-          const y = H - 1 - ((H - 1) * Math.log(hz / fmin)) / Math.log(fmax / fmin);
+        for (const hz of slow > 1 ? [20000, 40000, 80000] : [100, 1000, 4000, 10000]) {
+          const y = rowOf(sp, hz, slow);
+          if (y === null) continue;
           g.fillRect(0, y, 6, 1);
           g.fillText(hz >= 1000 ? `${hz / 1000} kHz` : `${hz} Hz`, 8, y + 4);
         }
@@ -186,42 +170,11 @@ function Spectrogram({ src, fromS, toS }: { src: string; fromS: number | null; t
     return () => {
       gone = true;
     };
-  }, [src, fromS, toS]);
+  }, [src, fromS, toS, slow]);
   return (
     <div className="mt-2">
       <canvas ref={ref} className="w-full h-40 rounded border border-line" style={{ imageRendering: "pixelated" }} />
       {msg ? <div className="text-xs text-muted">{msg}</div> : null}
     </div>
   );
-}
-
-/** In-place radix-2 FFT; re and im have a power-of-two length. */
-function fft(re: Float32Array, im: Float32Array) {
-  const n = re.length;
-  for (let i = 1, j = 0; i < n; i++) {
-    let bit = n >> 1;
-    for (; j & bit; bit >>= 1) j ^= bit;
-    j ^= bit;
-    if (i < j) {
-      [re[i], re[j]] = [re[j], re[i]];
-      [im[i], im[j]] = [im[j], im[i]];
-    }
-  }
-  for (let len = 2; len <= n; len <<= 1) {
-    const a = (-2 * Math.PI) / len;
-    const wr = Math.cos(a), wi = Math.sin(a);
-    for (let i = 0; i < n; i += len) {
-      let cr = 1, ci = 0;
-      for (let k = 0; k < len / 2; k++) {
-        const u = i + k, v = u + len / 2;
-        const br = re[v] * cr - im[v] * ci;
-        const bi = re[v] * ci + im[v] * cr;
-        re[v] = re[u] - br; im[v] = im[u] - bi;
-        re[u] += br; im[u] += bi;
-        const t = cr * wr - ci * wi;
-        ci = cr * wi + ci * wr;
-        cr = t;
-      }
-    }
-  }
 }
