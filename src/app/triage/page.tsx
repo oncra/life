@@ -62,6 +62,7 @@ export default async function TriagePage() {
       id: c.id,
       ts: c.ts.toISOString(),
       confidence: c.confidence,
+      detector: c.detector,
       source: c.source,
       fromS: c.fromS,
       toS: c.toS,
