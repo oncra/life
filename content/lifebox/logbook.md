@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 28 October 2026
+
+### The night the clocks went back
+
+*Learning.* On 25 October, the night the clocks went back, node 1 woke at 05:48, an hour before its dawn window. The Witty Pi compares its alarms with a clock of its own, and that clock still held summer time from the evening before. The box saw it was outside its windows, sent what it had and slept until 06:48, so nothing was lost; in March the same thing would have woken it an hour late, in the middle of the dawn chorus. A second clock fault showed in the bat detections: at every start the box chose the AudioMoth's model before its clock was set, while it still read the image's date, 15 September in the night, so the first four minutes of each dawn window went to the bat model.
+
+*Change.* The Witty Pi now keeps UTC: its clock, its alarms and the scripts that set them, so no clock change reaches it; only what people read is in local time. And the microphones are set up after the clock is. [#121](https://github.com/oncra/life/pull/121)
+
 ## 27 October 2026
 
 ### What a detection is worth
