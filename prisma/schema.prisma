@@ -122,6 +122,8 @@ model Device {
   soilReadings    SoilReading[]
   heartbeats      Heartbeat[]
   alerts          Alert[]
+  clips           Clip[]
+  clipBands       ClipBand[]
 
   @@index([placeId])
 }
@@ -337,6 +339,7 @@ model User {
   sessions  Session[]
   boxes     Box[]
   places    PlaceAccess[]
+  clipReviews ClipReview[]
 }
 
 model LoginCode {
@@ -454,4 +457,68 @@ model BacklogCard {
   doneAt    DateTime?
 
   @@index([lane, rank])
+}
+
+/// A detection's sound, kept so people can check by ear whether the detector was right (/triage). Only from a node on
+/// the bench, by the steward's choice: in a field a node keeps no sound (node/life-clips.py). The sound file is deleted
+/// once CLIP_KEEP_DAYS have passed; the clip's row and the verdicts on it stay, for the per-species thresholds.
+model Clip {
+  id           String       @id @default(cuid())
+  deviceId     String
+  device       Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  /// the detection's id on the node (BirdNET-Go), so a clip sent twice is kept once
+  detectionRef String
+  ts           DateTime
+  scientific   String
+  species      String?
+  confidence   Float
+  /// the score band of 0.1 the node's sample drew it from, e.g. "0.7"
+  band         String?
+  detector     String?
+  /// which microphone heard it: BirdNET-Go's audio source, e.g. "Sound Card 1" (I2S) or "AudioMoth"
+  source       String?
+  clipS        Float?
+  /// where in the clip the detected seconds are
+  fromS        Float?
+  toS          Float?
+  /// path under CLIP_DIR; null once the sound has been deleted
+  file         String?
+  mime         String?
+  bytes        Int?
+  createdAt    DateTime     @default(now())
+  reviews      ClipReview[]
+
+  @@unique([deviceId, detectionRef])
+  @@index([deviceId, scientific])
+}
+
+/// One person's verdict on a clip: right, wrong or unsure, and when wrong what it was instead.
+model ClipReview {
+  id        String   @id @default(cuid())
+  clipId    String
+  clip      Clip     @relation(fields: [clipId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verdict   String
+  actual    String?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([clipId, userId])
+}
+
+/// How many detections a month's kept clips stand for on a node, per species and score band (life-clips bands.csv):
+/// the weight that turns a checked sample into the share of all detections that were right.
+model ClipBand {
+  deviceId   String
+  device     Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  month      String
+  scientific String
+  band       String
+  detections Int
+  kept       Int
+  asOf       DateTime
+
+  @@id([deviceId, month, scientific, band])
 }

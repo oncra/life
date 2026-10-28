@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 28 October 2026
 
+### Hearing what the detector heard
+
+*Change.* In a week of dawns node 1 named a bittern 31 times, ten on the I2S microphone and 21 on the AudioMoth. Bitterns do not call in October; the ships on the IJ do, and a horn or an engine is low and drawn out like a bittern's boom. A score cannot settle that; an ear can. So while node 1 stands on the bench it keeps its clip sample (`life-clips`: at most five clips per species, month and score band of 0.1), a computer on the same network fetches it over WiFi, never over the SIM (`clients/clips-upload.py`), and the sound goes to a private page, [triage](https://life.oncra.org/triage), where we listen species by species, look at a spectrogram and say right, wrong or not sure, and what it was instead. The verdicts set each species' own threshold; the sound is deleted after 30 days. In a field the node keeps its sample for a visit, as before. [#123](https://github.com/oncra/life/pull/123)
+
 ### The night the clocks went back
 
 *Learning.* On 25 October, the night the clocks went back, node 1 woke at 05:48, an hour before its dawn window. The Witty Pi compares its alarms with a clock of its own, and that clock still held summer time from the evening before. The box saw it was outside its windows, sent what it had and slept until 06:48, so nothing was lost; in March the same thing would have woken it an hour late, in the middle of the dawn chorus. A second clock fault showed in the bat detections: at every start the box chose the AudioMoth's model before its clock was set, while it still read the image's date, 15 September in the night, so the first four minutes of each dawn window went to the bat model.
