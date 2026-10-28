@@ -62,6 +62,12 @@ export async function mayHear(deviceId: string, req?: Request): Promise<boolean>
   return d ? canSeeExact({ id: d.placeId }, req) : false;
 }
 
+/** Removes a sound file once no clip refers to it any more: two species named in the same seconds share one file. */
+export async function dropClipFile(file: string) {
+  if ((await prisma.clip.count({ where: { file } })) > 0) return;
+  await rm(clipPath(file), { force: true }).catch(() => {});
+}
+
 /** Deletes the sound of clips older than CLIP_KEEP_DAYS. Their rows and the verdicts on them stay. */
 export async function pruneClips(now = new Date()): Promise<number> {
   const old = await prisma.clip.findMany({
@@ -70,8 +76,8 @@ export async function pruneClips(now = new Date()): Promise<number> {
     take: 500,
   });
   for (const c of old) {
-    if (c.file) await rm(clipPath(c.file), { force: true }).catch(() => {});
     await prisma.clip.update({ where: { id: c.id }, data: { file: null } });
+    if (c.file) await dropClipFile(c.file);
   }
   return old.length;
 }
