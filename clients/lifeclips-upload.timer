@@ -1,0 +1,7 @@
+[Unit]
+Description=Fetch the bench node's clip sample every quarter of an hour (it does nothing while the node is off)
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=15min
+[Install]
+WantedBy=timers.target

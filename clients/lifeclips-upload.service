@@ -1,0 +1,47 @@
+# Fetch a bench node's clip sample for the triage page from a server in the steward's tailnet (clients/clips-upload.py,
+# node/life-tailscale.py), so no laptop has to be at home. The clips come from a device that stands outdoors and could
+# be tampered with, and ffmpeg reads them, so this runs as its own user with no sudo, cannot see /home or anything
+# outside /var/lib/lifeclips, and reaches only the node and the oracle. Install as /etc/systemd/system/lifeclips-upload.service
+# with the timer, after: useradd --system --home-dir /var/lib/lifeclips --create-home --shell /usr/sbin/nologin lifeclips;
+# a key for it (ssh-keygen as lifeclips) in the node's /data/ssh/authorized_keys.life behind restrict,from="127.0.0.1,::1"
+# (tailnet SSH reaches the node from localhost); the node's host key in /var/lib/lifeclips/.ssh/known_hosts; this
+# script as /opt/lifeclips/clips-upload.py. Set the node's tailnet address and the oracle's address below.
+[Unit]
+Description=Bring the bench node's clip sample to the triage page, over the tailnet
+After=network-online.target tailscaled.service
+Wants=network-online.target
+[Service]
+Type=oneshot
+User=lifeclips
+Group=lifeclips
+Environment=LIFE_NODE_SSH=life@100.65.131.64
+Environment=LIFE_CLIPS_HOME=/var/lib/lifeclips/clips
+Environment=FFMPEG=/usr/bin/ffmpeg
+ExecStart=/usr/bin/python3 -I /opt/lifeclips/clips-upload.py
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/lifeclips
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# the node over the tailnet, the oracle (life.oncra.org), and the local resolver
+IPAddressDeny=any
+IPAddressAllow=100.65.131.64 178.104.246.133 127.0.0.0/8 ::1
