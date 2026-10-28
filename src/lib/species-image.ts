@@ -229,13 +229,21 @@ export async function makeSpeciesImage(species: string, scientific: string | nul
   }
 }
 
-/** Species heard anywhere that have no picture yet (a failure is tried again after thirty days), newest first. */
+/** Species heard anywhere that have no picture yet (a failure is tried again after thirty days), newest first. Also
+ * the species of the clips on /triage, which go down to a score of 0.1 and to the test microphone, so many were never
+ * reported: a species whose scientific name already has a picture under another name is left alone. */
 export async function speciesImageSweep(log: (s: string) => void = () => {}, limit = 40): Promise<number> {
   const todo = await prisma.$queryRaw<{ species: string; scientific: string | null }[]>`
-    select d.species, max(d.scientific) as scientific from "SoundDetection" d
-    left join "SpeciesImage" i on i.species = d.species
-    where not d.test and (i.id is null or (i.status = 'failed' and i."updatedAt" < now() - interval '30 days'))
-    group by d.species order by max(d.ts) desc limit ${limit}`;
+    select t.species, max(t.scientific) as scientific from (
+      select d.species, max(d.scientific) as scientific, max(d.ts) as ts from "SoundDetection" d where not d.test group by d.species
+      union all
+      select coalesce(c.species, c.scientific), c.scientific, max(c.ts) from "Clip" c
+      where not exists (select 1 from "SpeciesImage" j where j.scientific = c.scientific and j.status <> 'failed')
+      group by coalesce(c.species, c.scientific), c.scientific
+    ) t
+    left join "SpeciesImage" i on i.species = t.species
+    where i.id is null or (i.status = 'failed' and i."updatedAt" < now() - interval '30 days')
+    group by t.species order by max(t.ts) desc limit ${limit}`;
   let made = 0;
   for (const t of todo) if (await makeSpeciesImage(t.species, t.scientific, log)) made++;
   if (todo.length) releaseModel();

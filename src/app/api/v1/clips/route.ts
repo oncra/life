@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 // (detection, time_utc, scientific, score, band, detector, clip_s, detection_from_s, detection_to_s), plus species and
 // source (the microphone) when known, and `expansion` when the sound is slowed down (a bat clip, ten times). Sent by
 // clients/clips-upload.py from a computer at a bench node, with the node's own token, or with an admin or steward key
-// and `device`. The same detection sent twice is kept once; with `replace=1` the second sound takes the first one's
-// place and the verdicts stay, for a clip that was first sent in a form nobody could judge.
+// and `device`. The same detection sent twice is kept once; with `replace=1` the second sound and its timing take the
+// first one's place and the verdicts stay: for a clip first sent in a form nobody could judge, or cut and levelled anew.
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   if (!form) return json({ error: "send multipart/form-data" }, 400);
@@ -49,7 +49,9 @@ export async function POST(req: Request) {
   const name = `${deviceId}/${createHash("sha256").update(data).digest("hex").slice(0, 32)}${path.extname(file.name).toLowerCase()}`;
   await saveClipFile(name, data);
   if (have) {
-    await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion } });
+    const timing = { clipS: num("clip_s"), fromS: num("detection_from_s", "from_s"), toS: num("detection_to_s", "to_s") };
+    const known = Object.fromEntries(Object.entries(timing).filter(([, v]) => v !== null));
+    await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion, ...known } });
     if (have.file && have.file !== name) await dropClipFile(have.file);
     return json({ ok: true, id: have.id, created: false, replaced: true });
   }

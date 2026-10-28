@@ -34,9 +34,28 @@ export default async function TriagePage() {
   ]);
   const count = new Map(reported.map((r) => [r.scientific ?? "", r._count._all]));
   const common = new Map(names.filter((n) => n.scientific && n.species !== n.scientific).map((n) => [n.scientific as string, n.species]));
+  // the cut-out and the Dutch name the worker keeps per species (src/lib/species-image.ts), found by scientific name
+  const sci = [...new Set(clips.map((c) => c.scientific))];
+  const pictures = await prisma.speciesImage.findMany({
+    where: { OR: [{ scientific: { in: sci } }, { species: { in: sci } }] },
+    select: { id: true, species: true, scientific: true, status: true, width: true, height: true, author: true, license: true, sourceUrl: true, names: true },
+  });
+  const look = new Map<string, { image: TriageSpecies["image"]; nl: string | null }>();
+  for (const p of pictures) {
+    const key = p.scientific ?? p.species;
+    const had = look.get(key) ?? { image: null, nl: null };
+    const nl = (p.names as Record<string, string> | null)?.nl ?? null;
+    look.set(key, {
+      image: had.image ?? (p.status === "ready" ? { id: p.id, width: p.width, height: p.height, author: p.author, license: p.license, sourceUrl: p.sourceUrl } : null),
+      nl: had.nl ?? nl,
+    });
+  }
   const groups = new Map<string, TriageSpecies>();
   for (const c of clips) {
-    const g = groups.get(c.scientific) ?? { scientific: c.scientific, name: c.species ?? common.get(c.scientific) ?? null, reported: count.get(c.scientific) ?? 0, clips: [] };
+    const g = groups.get(c.scientific) ?? {
+      scientific: c.scientific, name: c.species ?? common.get(c.scientific) ?? null, nl: look.get(c.scientific)?.nl ?? null,
+      image: look.get(c.scientific)?.image ?? null, reported: count.get(c.scientific) ?? 0, clips: [],
+    };
     const mine = c.reviews.find((r) => r.userId === user.id);
     const others = c.reviews.filter((r) => r.userId !== user.id);
     g.clips.push({
@@ -60,7 +79,9 @@ export default async function TriagePage() {
       <p className="mt-2 text-muted text-sm">
         Clips a Life Node kept while it stood on the bench{allowed.length ? ` (${allowed.map((d) => d.place.name).join(", ")})` : ""}: per species up to five
         in each score band of 0.1, so the low scores are heard as well as the high ones. Listen, look at the spectrogram if it helps, and say whether
-        it is the species named. Your verdicts set each species&apos; own threshold. The sound is deleted after {CLIP_KEEP_DAYS} days; the verdicts stay.
+        it is the species named. Each clip starts a second before the detected part and stops a second after it, and every clip is
+        brought to the same loudness, so the quieter microphone is heard as well as the louder one. Your verdicts set each species&apos; own
+        threshold. The sound is deleted after {CLIP_KEEP_DAYS} days; the verdicts stay.
       </p>
       {species.length === 0 ? (
         <p className="mt-6">No clips yet. They arrive a few hours after a node on the bench has heard something.</p>
