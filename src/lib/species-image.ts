@@ -28,12 +28,15 @@ async function getJson(url: string): Promise<Record<string, unknown>> {
   return r.json() as Promise<Record<string, unknown>>;
 }
 const stripHtml = (h: unknown) => (typeof h === "string" ? h.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() || null : null);
+/** The names to look a species up by. A detector's label for a genus ("Plecotus spec.", the long-eared bats) has no
+ * article of its own, so it is looked up as the genus. */
+const lookupNames = (...names: (string | null)[]) =>
+  [...new Set(names.map((s) => s?.trim().replace(/\s+(spec|sp|spp)\.?$/i, "")).filter((s): s is string => !!s))];
 
 /** The lead photo of the species' English Wikipedia article, with its Commons credits. The scientific name first:
  * it is unambiguous, where a common name may land on a disambiguation page. */
 export async function findPhoto(scientific: string | null, species: string): Promise<Photo | null> {
-  const names = [...new Set([scientific, species].map((s) => s?.trim()).filter((s): s is string => !!s))];
-  for (const name of names) {
+  for (const name of lookupNames(scientific, species)) {
     let s: Record<string, unknown>;
     try { s = await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g, "_"))}`); } catch { continue; }
     if (s.type === "disambiguation") continue;
@@ -74,7 +77,7 @@ export async function wikidataNames(qid: string, scientific: string | null): Pro
     getJson(`https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&entity=${encodeURIComponent(qid)}&property=P1843`),
     getJson(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=${encodeURIComponent(qid)}&props=labels&languages=${langs}`),
   ]);
-  const sci = (scientific ?? "").trim().toLowerCase();
+  const sci = (lookupNames(scientific)[0] ?? "").toLowerCase();
   const real = (t: string) => t.length > 0 && t.toLowerCase() !== sci && !/[,;/()]/.test(t);
   const byLang = new Map<string, { text: string; preferred: boolean }[]>();
   for (const c of ((claims.claims as Record<string, WdClaim[]> | undefined)?.P1843 ?? [])) {
@@ -103,7 +106,7 @@ export async function wikidataNames(qid: string, scientific: string | null): Pro
 
 /** The Wikidata item of a species, from the summary of its English Wikipedia article (scientific name first). */
 async function wikidataItem(scientific: string | null, species: string): Promise<string | null> {
-  for (const name of [...new Set([scientific, species].map((s) => s?.trim()).filter((s): s is string => !!s))]) {
+  for (const name of lookupNames(scientific, species)) {
     try {
       const s = await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g, "_"))}`);
       if (s.type !== "disambiguation" && typeof s.wikibase_item === "string") return s.wikibase_item;
