@@ -1,6 +1,8 @@
 [Unit]
 Description=Life node: the AudioMoth at its rate, and BirdNET-Go's microphones and models to match, before it starts
-After=life-firstboot.service life-clips-setup.service systemd-udev-settle.service
+# after life-schedule has set the clock: until then a node's clock reads the image's date, and the bat model's hours
+# would be worked out for that night (node 1 ran the bat model for the first four minutes of every dawn window)
+After=life-firstboot.service life-clips-setup.service systemd-udev-settle.service life-schedule.service
 Before=birdnet-go.service
 RequiresMountsFor=/data
 [Service]
