@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
-import { rm } from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/db";
 import { authenticate, json } from "@/lib/auth";
-import { CLIP_MAX_BYTES, clipPath, clipSender, mimeOf, pruneClips, saveClipFile } from "@/lib/clips";
+import { CLIP_MAX_BYTES, clipSender, dropClipFile, mimeOf, pruneClips, saveClipFile } from "@/lib/clips";
 export const dynamic = "force-dynamic";
 
 // One detection's clip for /triage, as multipart: the sound (`file`) and the fields of its row in the node's clips.csv
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
   await saveClipFile(name, data);
   if (have) {
     await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion } });
-    if (have.file && have.file !== name) await rm(clipPath(have.file), { force: true }).catch(() => {});
+    if (have.file && have.file !== name) await dropClipFile(have.file);
     return json({ ok: true, id: have.id, created: false, replaced: true });
   }
   const clip = await prisma.clip.create({
