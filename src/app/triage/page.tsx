@@ -46,6 +46,7 @@ export default async function TriagePage() {
       source: c.source,
       fromS: c.fromS,
       toS: c.toS,
+      expansion: c.expansion,
       hasSound: c.file !== null,
       mine: mine ? { verdict: mine.verdict, actual: mine.actual, note: mine.note } : null,
       others: { right: others.filter((r) => r.verdict === "right").length, wrong: others.filter((r) => r.verdict === "wrong").length, unsure: others.filter((r) => r.verdict === "unsure").length },

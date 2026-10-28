@@ -485,6 +485,9 @@ model Clip {
   file         String?
   mime         String?
   bytes        Int?
+  /// the sound plays this many times slower than it was heard: a bat clip is slowed down ten times, so a call at
+  /// 40 kHz is heard at 4 kHz; null for real time
+  expansion    Int?
   createdAt    DateTime     @default(now())
   reviews      ClipReview[]
 

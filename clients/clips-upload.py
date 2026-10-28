@@ -9,6 +9,9 @@ the node is off or out of reach.
 
     clips-upload.py            fetch what the node has kept, then send everything not yet sent
     clips-upload.py --send     only send what is already here
+    clips-upload.py --send --replace   send again, and let each clip's new sound take the old one's place on the oracle
+                               (verdicts stay): for clips first sent in a form nobody could judge; take a batch from
+                               done/ back to incoming/ and strike its detections from sent.txt first
 
 Steps:
 1. on the node: if clips are waiting, `life-clips collect --to /tmp/life-clips-out`: the sample, its clips.csv and
@@ -17,12 +20,16 @@ Steps:
 2. that batch comes here over ssh as a tar stream and is checked against its SHA256SUMS again; on the node it is then
    renamed, so the next run does not fetch it twice;
 3. per clip, the microphone (BirdNET-Go's audio source for the detection) and the common name, from the node;
-4. each Opus clip becomes AAC (.m4a), which every browser plays, Safari on a phone included;
+4. each clip becomes AAC (.m4a), which every browser plays, Safari on a phone included. A clip recorded faster than
+   48 kHz (the AudioMoth on the bat model, a WAV at 192 kHz) is slowed down ten times on the way (.x10.m4a): AAC keeps
+   nothing above about 18 kHz, where every bat calls, and slowed down a call at 40 kHz is heard at 4 kHz;
 5. clip by clip to POST /api/v1/clips with the node's own token, read from the node over ssh and kept in memory only,
    then bands.csv to /api/v1/clips/bands. A batch whose every clip went is moved to done/.
 
 env: LIFE_NODE_SSH (life@192.168.2.114), LIFE_API (https://life.oncra.org/api/v1),
-     LIFE_CLIPS_HOME (~/Library/Application Support/life-clips), FFMPEG (ffmpeg, then /opt/homebrew/bin/ffmpeg)
+     LIFE_CLIPS_HOME (~/Library/Application Support/life-clips), FFMPEG (ffmpeg, then /opt/homebrew/bin/ffmpeg),
+     LIFE_TOKEN and LIFE_DEVICE: an admin or steward key and the node's device id, to send while the node is off; pass
+     the key in from where it is kept for this one run, never into a file
 """
 from __future__ import annotations
 
@@ -38,6 +45,7 @@ import tarfile
 import urllib.error
 import urllib.request
 import uuid
+import wave
 from pathlib import Path
 
 NODE = os.environ.get("LIFE_NODE_SSH", "life@192.168.2.114")
@@ -46,6 +54,7 @@ HOME = Path(os.environ.get("LIFE_CLIPS_HOME") or Path.home() / "Library/Applicat
 SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", NODE]
 OUT = "/tmp/life-clips-out"
 ENV = "set -a; . /data/life-node/env >/dev/null 2>&1; set +a"
+SLOW = 10  # time expansion for a clip recorded faster than 48 kHz: 192 kHz becomes 19.2 kHz, a call at 40 kHz plays at 4
 
 
 def say(msg: str) -> None:
@@ -141,6 +150,17 @@ print(json.dumps({{"source": src, "common": common}}))
         return {}, {}
 
 
+def rate(clip: Path) -> int:
+    """The sample rate of a WAV clip; the Opus clips are 48 kHz."""
+    if clip.suffix.lower() != ".wav":
+        return 48000
+    try:
+        with wave.open(str(clip)) as w:
+            return w.getframerate()
+    except (wave.Error, EOFError):
+        return 48000
+
+
 def token() -> str | None:
     r = node("sudo bash -c '. /data/life-node/env >/dev/null 2>&1; printf %s \"$LIFE_DEVICE_TOKEN\"'")
     t = r.stdout.decode().strip()
@@ -173,10 +193,11 @@ def send() -> int:
     batches = sorted(p.parent for p in (HOME / "incoming").glob("life-clips/*/*/clips.csv"))
     if not batches:
         return 0
-    tok = token()
+    tok = os.environ.get("LIFE_TOKEN") or token()
     if not tok:
         say("no device token from the node (is it on?); the batches wait here")
         return 0
+    replace = "--replace" in sys.argv[1:]
     ff = ffmpeg()
     if not ff:
         say("no ffmpeg on this computer; install it (brew install ffmpeg) to send the clips")
@@ -191,9 +212,12 @@ def send() -> int:
             if r["detection"] in sent:
                 continue
             clip = batch / r["file"]
-            m4a = clip.with_suffix(".m4a")
+            sr = rate(clip)
+            slow = SLOW if sr > 48000 else 1
+            m4a = clip.with_suffix(f".x{slow}.m4a" if slow > 1 else ".m4a")
             if not m4a.exists():
-                t = subprocess.run([ff, "-nostdin", "-loglevel", "error", "-y", "-i", str(clip), "-ac", "1", "-c:a", "aac", "-b:a", "96k", str(m4a)], capture_output=True)
+                af = ["-af", f"asetrate={sr // slow},aresample=48000"] if slow > 1 else []
+                t = subprocess.run([ff, "-nostdin", "-loglevel", "error", "-y", "-i", str(clip), *af, "-ac", "1", "-c:a", "aac", "-b:a", "96k", str(m4a)], capture_output=True)
                 if t.returncode != 0:
                     say(f"{clip.name}: ffmpeg failed: {t.stderr.decode(errors='replace').strip()[:200]}")
                     failed += 1
@@ -201,6 +225,9 @@ def send() -> int:
             fields = {k: r.get(k) for k in ("detection", "time_utc", "scientific", "score", "band", "detector", "clip_s", "detection_from_s", "detection_to_s")}
             fields["source"] = src.get(r["detection"])
             fields["species"] = common.get(r["scientific"])
+            fields["expansion"] = slow if slow > 1 else None
+            fields["replace"] = "1" if replace else None
+            fields["device"] = os.environ.get("LIFE_DEVICE")
             body, ctype = multipart(fields, m4a.name, m4a.read_bytes(), "audio/mp4")
             status, out = post("/clips", tok, body, ctype)
             if status in (200, 201):
@@ -212,7 +239,8 @@ def send() -> int:
         with open(batch / "bands.csv", newline="") as f:
             bands = list(csv.DictReader(f))
         if bands:
-            status, out = post("/clips/bands", tok, json.dumps({"rows": bands}).encode(), "application/json")
+            dev = {"device": os.environ["LIFE_DEVICE"]} if os.environ.get("LIFE_DEVICE") else {}
+            status, out = post("/clips/bands", tok, json.dumps({"rows": bands, **dev}).encode(), "application/json")
             if status != 200:
                 say(f"{batch.name}: bands not sent ({status} {out.get('error', '')})")
                 failed += 1
