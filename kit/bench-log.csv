@@ -40,3 +40,4 @@ stage,what,how,modelled,unit,measured,date,notes
 4.3,first upload from the field,watch lastSeenAt on all three devices,3,of 3 devices,,,
 5,detections per day,compare day 14 against day 1,,count,,,a falling count with a rising queue is a radio problem
 5,unsent queue length,check on day 14,0,rows,,,
+1.5,microphone level: I2S against the AudioMoth,"ffmpeg volumedetect on the detected seconds of node 1's first 256 bird clips (108 I2S, 148 AudioMoth), median per microphone",,dB,-22,2026-10-28,"peaks median -49.2 dBFS on the I2S microphone against -27.1 on the AudioMoth, mean level -60.5 against -40.0, both at gain 0 in BirdNET-Go; the detector hears both as recorded, the triage page levels each clip"

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { rowOf, spectrogram } from "@/lib/spectrogram";
 
@@ -15,7 +16,16 @@ export type TriageClip = {
   mine: { verdict: string; actual: string | null; note: string | null } | null;
   others: { right: number; wrong: number; unsure: number };
 };
-export type TriageSpecies = { scientific: string; name: string | null; reported: number; clips: TriageClip[] };
+export type TriageSpecies = {
+  scientific: string;
+  name: string | null;
+  /** the Dutch name (Wikidata), for the people who judge the clips in the Netherlands */
+  nl: string | null;
+  /** the cut-out the worker made from the species' Wikipedia photo, with its Commons credits */
+  image: { id: string; width: number | null; height: number | null; author: string | null; license: string | null; sourceUrl: string | null } | null;
+  reported: number;
+  clips: TriageClip[];
+};
 
 const VERDICTS = [
   { v: "right", label: "Right", on: "bg-green-600 text-white border-green-600" },
@@ -34,7 +44,7 @@ export function Triage({ species }: { species: TriageSpecies[] }) {
   const judged = Object.values(done).filter(Boolean).length;
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return species.filter((s) => !t || s.scientific.toLowerCase().includes(t) || (s.name ?? "").toLowerCase().includes(t));
+    return species.filter((s) => !t || [s.scientific, s.name, s.nl].some((n) => (n ?? "").toLowerCase().includes(t)));
   }, [species, q]);
   return (
     <div className="mt-6">
@@ -51,11 +61,29 @@ export function Triage({ species }: { species: TriageSpecies[] }) {
           return (
             <details key={s.scientific} className="rounded-lg border border-line bg-white" open={species.length <= 3}>
               <summary className="cursor-pointer p-4">
-                <span className="font-semibold">{s.name ?? s.scientific}</span>{s.name ? <span className="italic text-muted"> {s.scientific}</span> : null}
-                <span className="block text-sm text-muted mt-1">
-                  reported {s.reported} times · {s.clips.length} clips · right {tally.right ?? 0}, wrong {tally.wrong ?? 0}, not sure {tally.unsure ?? 0}
+                <span className="inline-flex items-center gap-3 align-middle">
+                  <span className="flex h-16 w-20 shrink-0 items-center justify-center">
+                    {s.image ? (
+                      <Image src={`/api/species-image/${s.image.id}.webp`} alt="" width={s.image.width || 160} height={s.image.height || 120} unoptimized
+                        className="max-h-16 w-auto max-w-full object-contain" />
+                    ) : null}
+                  </span>
+                  <span>
+                    <span className="font-semibold">{s.nl ?? s.name ?? s.scientific}</span>
+                    {s.nl && s.name && s.name !== s.nl ? <span className="text-muted"> · {s.name}</span> : null}
+                    {s.nl || s.name ? <span className="italic text-muted"> · {s.scientific}</span> : null}
+                    <span className="block text-sm text-muted mt-1">
+                      reported {s.reported} times · {s.clips.length} clips · right {tally.right ?? 0}, wrong {tally.wrong ?? 0}, not sure {tally.unsure ?? 0}
+                    </span>
+                  </span>
                 </span>
               </summary>
+              {s.image && (s.image.author || s.image.license) ? (
+                <div className="-mt-2 px-4 pb-2 text-xs text-muted">
+                  Photo: {s.image.sourceUrl ? <a href={s.image.sourceUrl} className="underline" target="_blank" rel="noreferrer">{s.image.author ?? "Wikimedia Commons"}</a> : s.image.author}
+                  {s.image.license ? `, ${s.image.license}` : ""}, background removed
+                </div>
+              ) : null}
               <ul className="grid gap-3 px-4 pb-4">
                 {clips.map((c) => <ClipRow key={c.id} clip={c} onSaved={(v) => setDone((d) => ({ ...d, [c.id]: v }))} />)}
               </ul>

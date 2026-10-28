@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 28 October 2026
 
+### Every clip as loud as the next, with a picture beside it
+
+*Learning.* On the triage page the I2S microphone's clips were much softer than the AudioMoth's. Over the detected seconds of the first 256 bird clips its peaks lay 22 dB lower: a median of -49 against -27 dBFS, and a mean level of -60 against -40. The detector takes both as recorded. For a person judging by ear it made the I2S clips hard to hear at all, and with fifteen seconds per clip and the bird at 3 to 6, most of each clip was waiting.
+
+*Change.* On its way to the page each clip is now cut to the detected seconds with one second before and after them, and turned up until its loudest moment is at -2 dBFS, so every clip plays as loud as the next. A bat clip keeps a tenth of a second on each side, which is a second once it is slowed down. Each species on the page shows its picture, the cut-out the oracle makes from its Wikipedia photo with the photographer's credit, and its Dutch name. The first 288 clips were cut and levelled again in place, their verdicts kept. [#127](https://github.com/oncra/life/pull/127)
+
 ### Reachable from anywhere, never over the SIM
 
 *Learning.* A node on the bench answers only on its own network, so fetching node 1's clips or looking at it from anywhere else needed someone at home with a laptop. Tailscale makes a node reachable from anywhere, but an idle Tailscale keeps a line open to its coordination server and to a relay all day, and the SIM's budget has no room for that. Two things keep it off the SIM. It runs only while the node's way out to the internet is the cable or the WiFi: on node 1, with the default route moved to an empty test interface, it stopped 0.4 s later and was back 40 ms after the route was, and the stick sent 0 bytes meanwhile. And the node's systemd (Debian 13) can have the kernel refuse a service every interface but the ones named: under that rule a connection to the stick's own web page timed out while the home router answered. The systemd on our Ubuntu server cannot, and there it skips the rule without a word, which is why the route check comes first.

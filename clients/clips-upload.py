@@ -12,6 +12,8 @@ the node is off or out of reach.
     clips-upload.py --send --replace   send again, and let each clip's new sound take the old one's place on the oracle
                                (verdicts stay): for clips first sent in a form nobody could judge; take a batch from
                                done/ back to incoming/ and strike its detections from sent.txt first
+    clips-upload.py --resend   cut, level and send again every clip kept here, done/ included, each in its old one's
+                               place (verdicts stay): after a change in how clips are cut or levelled
 
 Steps:
 1. on the node: if clips are waiting, `life-clips collect --to /tmp/life-clips-out`: the sample, its clips.csv and
@@ -20,9 +22,12 @@ Steps:
 2. that batch comes here over ssh as a tar stream and is checked against its SHA256SUMS again; on the node it is then
    renamed, so the next run does not fetch it twice;
 3. per clip, the microphone (BirdNET-Go's audio source for the detection) and the common name, from the node;
-4. each clip becomes AAC (.m4a), which every browser plays, Safari on a phone included. A clip recorded faster than
-   48 kHz (the AudioMoth on the bat model, a WAV at 192 kHz) is slowed down ten times on the way (.x10.m4a): AAC keeps
-   nothing above about 18 kHz, where every bat calls, and slowed down a call at 40 kHz is heard at 4 kHz;
+4. each clip becomes AAC (.m4a), which every browser plays, Safari on a phone included. It is cut to the detected part
+   with a second before and after it (the node keeps 15 s with the detection at 3 to 6), and turned up or down until its
+   loudest moment is at -2 dBFS, at most 60 dB up, so the I2S microphone is heard as well as the AudioMoth: in the
+   detected seconds of node 1's first 256 bird clips its peaks were 22 dB lower (median -49 against -27 dBFS). A clip recorded faster than 48 kHz (the AudioMoth on the bat model, a WAV at 192 kHz) is slowed
+   down ten times on the way (.x10.m4a): AAC keeps nothing above about 18 kHz, where every bat calls, and slowed down a
+   call at 40 kHz is heard at 4 kHz; its second before and after is a tenth of a second of the recording;
 5. clip by clip to POST /api/v1/clips with the node's own token, read from the node over ssh and kept in memory only,
    then bands.csv to /api/v1/clips/bands. A batch whose every clip went is moved to done/.
 
@@ -38,6 +43,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -55,6 +61,10 @@ SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", NODE]
 OUT = "/tmp/life-clips-out"
 ENV = "set -a; . /data/life-node/env >/dev/null 2>&1; set +a"
 SLOW = 10  # time expansion for a clip recorded faster than 48 kHz: 192 kHz becomes 19.2 kHz, a call at 40 kHz plays at 4
+LEAD_S, TAIL_S = 1.0, 1.0  # heard seconds before and after the detected part
+PEAK_DB = -2.0  # every clip's loudest moment ends up here, with room for the AAC encoder to overshoot
+MAX_GAIN_DB = 60.0  # enough for the I2S microphone, whose clips peak near -49 dBFS; digital silence stays silent
+CUT = "c1"  # the cut and level above; a clip converted another way is converted again
 
 
 def say(msg: str) -> None:
@@ -161,6 +171,35 @@ def rate(clip: Path) -> int:
         return 48000
 
 
+def window(r: dict, slow: int) -> tuple[float, float] | None:
+    """Where to cut a clip, in seconds of the recording: LEAD_S heard before the detected part to TAIL_S after it; None
+    when its row does not say where the detection is."""
+    try:
+        a, b, n = float(r["detection_from_s"]), float(r["detection_to_s"]), float(r["clip_s"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if not 0 <= a < b <= n:
+        return None
+    return max(0.0, a - LEAD_S / slow), min(n, b + TAIL_S / slow)
+
+
+def convert(ff: str, clip: Path, out: Path, sr: int, slow: int, cut: tuple[float, float] | None) -> str | None:
+    """Step 4: cut, slow down, level and encode one clip; None when it worked, else what ffmpeg said."""
+    chain = [f"atrim=start={cut[0]:.3f}:end={cut[1]:.3f},asetpts=PTS-STARTPTS"] if cut else []
+    if slow > 1:
+        chain.append(f"asetrate={sr // slow},aresample=48000")
+    probe = subprocess.run([ff, "-nostdin", "-hide_banner", "-i", str(clip), "-af", ",".join(chain + ["volumedetect"]), "-f", "null", "-"],
+                           capture_output=True, text=True)
+    m = re.search(r"max_volume:\s*(-inf|-?[\d.]+) dB", probe.stderr)
+    if probe.returncode != 0 or not m:
+        return (probe.stderr.strip() or "no level measured")[-200:]
+    peak = -91.0 if m.group(1) == "-inf" else float(m.group(1))
+    chain.append(f"volume={min(PEAK_DB - peak, MAX_GAIN_DB):.1f}dB")
+    t = subprocess.run([ff, "-nostdin", "-loglevel", "error", "-y", "-i", str(clip), "-af", ",".join(chain), "-ac", "1", "-c:a", "aac", "-b:a", "96k", str(out)],
+                       capture_output=True)
+    return None if t.returncode == 0 else t.stderr.decode(errors="replace").strip()[:200]
+
+
 def token() -> str | None:
     r = node("sudo bash -c '. /data/life-node/env >/dev/null 2>&1; printf %s \"$LIFE_DEVICE_TOKEN\"'")
     t = r.stdout.decode().strip()
@@ -197,7 +236,7 @@ def send() -> int:
     if not tok:
         say("no device token from the node (is it on?); the batches wait here")
         return 0
-    replace = "--replace" in sys.argv[1:]
+    replace = "--replace" in sys.argv[1:] or "--resend" in sys.argv[1:]
     ff = ffmpeg()
     if not ff:
         say("no ffmpeg on this computer; install it (brew install ffmpeg) to send the clips")
@@ -214,15 +253,19 @@ def send() -> int:
             clip = batch / r["file"]
             sr = rate(clip)
             slow = SLOW if sr > 48000 else 1
-            m4a = clip.with_suffix(f".x{slow}.m4a" if slow > 1 else ".m4a")
+            cut = window(r, slow)
+            m4a = clip.with_suffix(f".x{slow}.{CUT}.m4a" if slow > 1 else f".{CUT}.m4a")
             if not m4a.exists():
-                af = ["-af", f"asetrate={sr // slow},aresample=48000"] if slow > 1 else []
-                t = subprocess.run([ff, "-nostdin", "-loglevel", "error", "-y", "-i", str(clip), *af, "-ac", "1", "-c:a", "aac", "-b:a", "96k", str(m4a)], capture_output=True)
-                if t.returncode != 0:
-                    say(f"{clip.name}: ffmpeg failed: {t.stderr.decode(errors='replace').strip()[:200]}")
+                err = convert(ff, clip, m4a, sr, slow, cut)
+                if err:
+                    say(f"{clip.name}: ffmpeg failed: {err}")
                     failed += 1
                     continue
             fields = {k: r.get(k) for k in ("detection", "time_utc", "scientific", "score", "band", "detector", "clip_s", "detection_from_s", "detection_to_s")}
+            if cut:  # the timing of the cut clip: where the detected part now starts and ends in it
+                fields["clip_s"] = f"{cut[1] - cut[0]:.3f}"
+                fields["detection_from_s"] = f"{float(r['detection_from_s']) - cut[0]:.3f}"
+                fields["detection_to_s"] = f"{float(r['detection_to_s']) - cut[0]:.3f}"
             fields["source"] = src.get(r["detection"])
             fields["species"] = common.get(r["scientific"])
             fields["expansion"] = slow if slow > 1 else None
@@ -253,9 +296,21 @@ def send() -> int:
     return 1 if failed else 0
 
 
+def again() -> None:
+    """--resend: every batch back to incoming/ with its sent list struck, so each clip goes out again in its new form."""
+    for csv_file in sorted((HOME / "done").glob("life-clips/*/*/clips.csv")):
+        back = HOME / "incoming" / csv_file.parent.relative_to(HOME / "done")
+        back.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(csv_file.parent), str(back))
+    for sent in (HOME / "incoming").glob("life-clips/*/*/sent.txt"):
+        sent.unlink()
+
+
 def main() -> int:
     HOME.mkdir(parents=True, exist_ok=True)
-    if "--send" not in sys.argv[1:]:
+    if "--resend" in sys.argv[1:]:
+        again()
+    elif "--send" not in sys.argv[1:]:
         fetch()
     return send()
 
