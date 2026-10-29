@@ -16,7 +16,11 @@ Three ways to listen, chosen with LIFE_BIRD_MIC:
 - `both`: the comparison of the two. Birds on the I2S microphone as in `i2s`, and on the AudioMoth BirdNET by day and
   only the bat model at night, so the processor carries no more than in `i2s`: the bat model alone keeps a Pi 4 about
   90 per cent busy (`kit/bench-log.csv`, 1.5). With LIFE_TEST_SOURCES=AudioMoth in the node's env, life-push marks the
-  AudioMoth's bird detections as test, so the oracle keeps them for the comparison and counts them nowhere.
+  AudioMoth's bird detections as test, so the oracle keeps them for the comparison and counts them nowhere. BirdNET-Go
+  keeps one pause per species for all its sources together (`realtime.interval`, 15 s): with both microphones on the
+  bird model, the first to report a bird takes it, and the other's detection of the same bird is never saved, even when
+  the first was a faint test detection and the second a sure one that would have counted. So `both` sets the pause to 0
+  while the AudioMoth hears birds, and the pause goes back to BirdNET-Go's 15 s when that ends.
 
 Why one source and not two on the AudioMoth: BirdNET-Go refuses two sources on one device, and its own
 `bat.nighttimeonly` waits for civil dusk, 35 to 50 minutes into the hour after sunset in which the bats come out. So
@@ -86,6 +90,7 @@ MOTH = "AudioMoth"           # the AudioMoth as the node's microphone (modes aud
 I2S = "I2S microphone"       # the name of a bird source this program writes itself
 MIN_RATE = 96000  # BirdNET-Go's floor for its bat model
 BIRD_RATE = 48000  # what the bird model listens at; below it the AudioMoth is no bird microphone either
+PAUSE = 15  # BirdNET-Go's own realtime.interval: seconds between two saved detections of one species, all sources
 
 
 def say(msg: str) -> None:
@@ -416,6 +421,18 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
                 del lines[s[0]:s[1]]
             did.append("models.enabled - bat")
     birds = [m for m in enabled if m != "bat"] or ["birdnet"]
+
+    # one pause per species for every source together: two microphones on the bird model would take each other's
+    # detections, so in `both` each keeps its own (pause 0), and BirdNET-Go's 15 s comes back after; a pause someone
+    # set by hand to anything but 0 is left as it is
+    own = mode == "both" and moth_birds
+    j = yaml_find(lines, ("realtime", "interval"))
+    m = VALUE.match(lines[j]) if j is not None else None
+    pause = m.group(2).strip().strip("'\"") if m else None
+    if own and pause != "0" and yaml_set(lines, ("realtime", "interval"), "0") in ("set", "added"):
+        did.append("realtime.interval 0: each microphone keeps its own detections of a bird")
+    elif not own and pause == "0" and yaml_set(lines, ("realtime", "interval"), str(PAUSE)) == "set":
+        did.append(f"realtime.interval {PAUSE} again: one microphone on the bird model")
 
     # the audio sources
     span = list_span(lines, ("realtime", "audio", "sources"))
