@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { canSeeExact, publicPlace } from "@/lib/privacy";
-import { asRange, lastHeard, nodeData, nodeSignals, RANGES, signalPoint } from "@/lib/node";
+import { asRange, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: p ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: the life index, soil, sound, battery and heartbeats." };
 }
 
-const STATUS_TEXT = { live: "on", stale: "quiet", silent: "silent" } as const;
-const STATUS_BG = { live: "bg-accent", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
+const STATUS_TEXT = { live: "on", asleep: "asleep", stale: "quiet", silent: "silent" } as const;
+const STATUS_BG = { live: "bg-accent", asleep: "bg-white border border-[#7a7a72]", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
 const DIM_LABEL: Record<string, string> = { PRODUCTIVITY: "Productivity", DIVERSITY: "Diversity", STRUCTURE: "Structure", RENEWAL: "Renewal", CYCLING: "Cycling", RESILIENCE: "Resilience", AUTONOMY: "Autonomy" };
 const DIR_CLASS: Record<string, string> = { RISING: "text-green-800 bg-green-50 border-green-200", HOLDING: "text-lime-800 bg-lime-50 border-lime-200", FALLING: "text-red-800 bg-red-50 border-red-200", UNKNOWN: "text-gray-600 bg-gray-50 border-gray-200" };
 const VERDICT_BG: Record<string, string> = { thriving: "bg-green-700", holding: "bg-lime-600", declining: "bg-red-700", insufficient: "bg-gray-500" };
@@ -44,14 +44,16 @@ export default async function NodePage({ params, searchParams }: Props) {
   if (!stored) notFound();
   const [exact, data] = await Promise.all([canSeeExact(stored), nodeData(stored, range)]);
   if (!data) notFound();
-  const [index, heard, clips] = await Promise.all([
+  const [index, heard, clips, states] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
     // the clips on /triage are for whoever may see the place exactly, as the page itself
     exact ? prisma.clip.count({ where: { device: { placeId: stored.id } } }) : 0,
+    // asleep after a planned shutdown, between its listening windows: not the same as a late post
+    nodeStates(data.now, stored.id),
   ]);
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
-  const status = signalStatus(data.last.heardAt, data.now);
+  const status = states[0]?.status === "asleep" ? "asleep" : signalStatus(data.last.heardAt, data.now);
   const { last } = data;
   const lastSpecies = data.species.reduce<(typeof data.species)[number] | null>((a, s) => (!a || s.last > a.last ? s : a), null);
   const signal: NodeSignal = {
