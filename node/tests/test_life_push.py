@@ -45,7 +45,7 @@ class Oracle(BaseHTTPRequestHandler):
         pass
 
 
-def database(path: Path, with_sources: bool = True) -> None:
+def database(path: Path, with_sources: bool = True, i2s_name: str = "Sound Card 1") -> None:
     con = sqlite3.connect(path)
     con.executescript(f"""
         create table label_types (id integer primary key, name text);
@@ -63,9 +63,9 @@ def database(path: Path, with_sources: bool = True) -> None:
         con.executescript("""
             create table audio_sources (id integer primary key, source_uri text, node_name text, source_type text,
                                         display_name text);
-            insert into audio_sources values (1, ':0,0', 'node', 'alsa', 'Sound Card 1'),
+            insert into audio_sources values (1, ':0,0', 'node', 'alsa', '{i2s_name}'),
                                              (2, ':1,0', 'node', 'alsa', 'AudioMoth');
-        """)
+        """.replace("{i2s_name}", i2s_name))
     now = int(time.time()) - 600
     rows = [(1, 1, 1, now, 0, 3000, 0.9, 0, 1),        # a blackbird on the I2S microphone
             (2, 1, 1, now + 1, 0, 3000, 0.8, 0, 2),    # the same blackbird on the AudioMoth
@@ -92,9 +92,9 @@ class Push(unittest.TestCase):
         self.server.server_close()
         self.tmp.cleanup()
 
-    def push(self, test_sources: str | None, with_sources: bool = True) -> list[dict]:
+    def push(self, test_sources: str | None, with_sources: bool = True, i2s_name: str = "Sound Card 1") -> list[dict]:
         db = self.root / "birdnet.db"
-        database(db, with_sources)
+        database(db, with_sources, i2s_name)
         url = f"http://127.0.0.1:{self.server.server_address[1]}"
         env = {k: v for k, v in os.environ.items() if not k.startswith(("LIFE_", "BIRDNET_"))}
         env.update({"LIFE_API": url + "/api/v1", "BIRDNET_API": url + "/api/v2", "LIFE_DEVICE_TOKEN": "lo_dev_test",
@@ -127,6 +127,14 @@ class Push(unittest.TestCase):
         dets = self.push(None)
         self.assertEqual([d.get("test") for d in dets], [None, None, None])
         self.assertEqual(dets[1]["detector"], "birdnet-go:birdnet")
+
+    def test_the_i2s_witness_is_always_test(self):
+        # mode audiomoth: the AudioMoth's birds count, the I2S microphone beside it is the check and goes out as test
+        i2s, moth, bat = self.push(None, i2s_name="I2S witness")
+        self.assertIs(i2s["test"], True)
+        self.assertEqual(i2s["detector"], "birdnet-go:birdnet@i2s-witness")
+        self.assertNotIn("test", moth)
+        self.assertNotIn("test", bat)
 
     def test_without_sources_in_the_database_it_says_so(self):
         dets = self.push("AudioMoth", with_sources=False)

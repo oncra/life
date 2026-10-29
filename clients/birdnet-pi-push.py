@@ -43,7 +43,8 @@ MINCONF = max(float(os.environ.get("LIFE_MIN_CONFIDENCE", "0.5")), float(os.envi
 CURSOR = Path(os.environ.get("LIFE_CURSOR", str(Path.home() / ".life-oracle-cursor")))
 SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
 KEEP = {m.strip().lower() for m in os.environ.get("LIFE_KEEP_MODELS", "").split(",") if m.strip()}
-TEST_SOURCES = {m.strip().lower() for m in os.environ.get("LIFE_TEST_SOURCES", "").split(",") if m.strip()}
+# the I2S microphone as the AudioMoth's witness (node/life-mic.py) is always test: its birds are the AudioMoth's twice
+TEST_SOURCES = {m.strip().lower() for m in os.environ.get("LIFE_TEST_SOURCES", "").split(",") if m.strip()} | {"i2s witness"}
 BAT_MODELS = {"battybirdnet", "bat"}
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")

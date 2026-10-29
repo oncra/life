@@ -1,6 +1,7 @@
 import { prisma } from "./db";
 import type { AlertKind } from "@/generated/prisma/client";
 import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
+import { micText, micVerdict, MIC_HISTORY_DAYS, type MicDay } from "./mics";
 
 /**
  * Node liveness and theft, without hardware.
@@ -13,7 +14,9 @@ import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
  * area the node has been in before is added quietly, and a cell in an area it has never been in opens a
  * MOVED alert: the box has travelled, and the cell says roughly where to. A device that has ever sent a
  * heartbeat and then stays quiet for SILENT_AFTER_H hours gets a SILENT alert; the next heartbeat resolves it.
- * Silent and moved are different failures and are kept apart on purpose.
+ * Silent and moved are different failures and are kept apart on purpose. A node with two microphones sends their
+ * day's check on its heartbeat (`metrics.mics`), and a MIC alert opens when one has moved against the other or gave
+ * no sound (src/lib/mics.ts).
  *
  * Each opened alert is pushed to ALERT_WEBHOOK_URL as {title, body, url, tag} with ALERT_WEBHOOK_TOKEN as
  * bearer, when those are set. Any endpoint that takes that shape will do; there is no mail from here.
@@ -127,6 +130,7 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   if (kind === "MOVED") await notify(`Life node moved: ${d.place.name}`, `${where} is on another cell than it was installed in. Check the box.`, `${site}/places/${d.place.slug}/node`, `life-moved-${deviceId}`);
   else if (kind === "TAMPER") await notify(`Life node tamper: ${d.place.name}`, `${where}: ${String(detail.loop ?? "a loop")} opened, ${detail.cellChanged ? "cell changed" : "cell unchanged"}${detail.maintenance ? ", inside a maintenance window" : ", no maintenance window"}.`, `${site}/places/${d.place.slug}/node`, `life-tamper-${deviceId}`);
   else if (kind === "LOW_BATTERY") await notify(`Life node battery low: ${d.place.name}`, `${where}: battery ${detail.v == null ? "unknown" : `${String(detail.v)} V`}${detail.charge ? `, charger ${String(detail.charge)}` : ""}${typeof detail.pvW === "number" ? `, panel ${detail.pvW} W` : ""}. ${detail.guard ? "It switched itself off to keep the battery" : "Below 12.6 V it switches itself off to keep the battery"}, and starts again when the panel charges.`, `${site}/places/${d.place.slug}/node`, `life-battery-${deviceId}`);
+  else if (kind === "MIC") await notify(`Life node microphone: ${d.place.name}`, `${where}: ${micText(detail)}`, `${site}/places/${d.place.slug}/node`, `life-mic-${deviceId}`);
   else await notify(`Life node silent: ${d.place.name}`, `${where} has not been heard for ${SILENT_AFTER_H} h.`, `${site}/places/${d.place.slug}/node`, `life-silent-${deviceId}`);
   return alert;
 }
@@ -178,6 +182,8 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   let lowBattery = null;
   if (guard || (batt && batt.v < LOW_BATTERY_V)) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt?.v ?? null, src: batt?.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, guard: guard || undefined, at: ts.toISOString() });
   else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
+  const mics = hb.metrics?.mics;
+  const mic = mics && typeof mics === "object" ? await checkMics(deviceId, mics as MicDay) : null;
   if (process.env.CHECKIN_WEBHOOK_URL) {
     const d = await placeOf(deviceId);
     const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
@@ -185,7 +191,19 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
     // whoever reads the line, signed in or not (a private place page answers 404 to a reader without a session)
     await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}/node`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
   }
-  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
+  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, mic: mic !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
+}
+
+/** A day's microphone check against the node's own last weeks: opens MIC on a drift or a missing microphone,
+ * resolves it when every bird band is back. The heartbeat that carried it is already stored, and is today's. */
+export async function checkMics(deviceId: string, today: MicDay) {
+  const since = new Date(Date.now() - MIC_HISTORY_DAYS * 86400e3);
+  const rows = await prisma.heartbeat.findMany({ where: { deviceId, ts: { gte: since } }, select: { metrics: true }, orderBy: { ts: "asc" } });
+  const history = rows.map((r) => (r.metrics as Record<string, unknown> | null)?.mics).filter((m) => m != null);
+  const v = micVerdict(history, today);
+  if (v.state === "missing" || v.state === "drift") return openAlert(deviceId, "MIC", { ...v, day: today.day, n: today.n });
+  if (v.state === "ok") await resolveAlerts(deviceId, "MIC", "heartbeat");
+  return null;
 }
 
 /** Worker sweep: devices that have sent heartbeats and then stopped. */

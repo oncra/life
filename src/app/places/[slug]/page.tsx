@@ -1,3 +1,4 @@
+import { micText } from "@/lib/mics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -137,7 +138,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
           <p className="text-sm text-muted"><Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>: soil, sound, battery and heartbeats over time.</p>
           {alerts.length > 0 && (
             <ul className="mt-2 text-sm">
-              {alerts.map((a) => <li key={a.id} className="text-falling">{a.kind === "SILENT" ? `${a.device.model}: silent since ${((a.detail as { lastHeartbeatAt?: string } | null)?.lastHeartbeatAt ?? a.createdAt.toISOString()).slice(0, 16).replace("T", " ")} UTC` : a.kind === "LOW_BATTERY" ? `${a.device.model}: battery low, ${(a.detail as { v?: number } | null)?.v ?? "?"} V at ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : a.kind === "TAMPER" ? `${a.device.model}: ${(a.detail as { loop?: string } | null)?.loop ?? "a loop"} opened outside a maintenance window, ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : `${a.device.model}: on another cell than it was installed in, since ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC`}</li>)}
+              {alerts.map((a) => <li key={a.id} className="text-falling">{a.kind === "SILENT" ? `${a.device.model}: silent since ${((a.detail as { lastHeartbeatAt?: string } | null)?.lastHeartbeatAt ?? a.createdAt.toISOString()).slice(0, 16).replace("T", " ")} UTC` : a.kind === "LOW_BATTERY" ? `${a.device.model}: battery low, ${(a.detail as { v?: number } | null)?.v ?? "?"} V at ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : a.kind === "TAMPER" ? `${a.device.model}: ${(a.detail as { loop?: string } | null)?.loop ?? "a loop"} opened outside a maintenance window, ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : a.kind === "MIC" ? `${a.device.model}: ${micText(a.detail as { state?: string; mic?: string; db?: number; bands?: number[] } | null)}` : `${a.device.model}: on another cell than it was installed in, since ${a.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC`}</li>)}
             </ul>
           )}
           <table className="mt-2 text-sm w-full"><thead><tr className="text-left text-muted"><th className="py-1">Kind</th><th>Model</th><th>Position</th><th>Installed</th><th>Last seen</th><th>Heartbeat</th></tr></thead>

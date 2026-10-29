@@ -32,7 +32,9 @@ Environment:
                         home-made cable
     LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait for a visit (`clipsWaiting`)
     LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
-                        outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept)
+                        outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept); its mics.json
+                        is the microphones' check of the day (life-mic levels), sent as `mics` at the end of a window
+                        and with the first post that has a new day's check, so about 300 bytes once or twice a day
 """
 import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -266,6 +268,28 @@ def listening():
     return out
 
 
+def mics(event):
+    """The day's check of the two microphones (life-mic writes it), when it is due: at the end of a window, or when the
+    day has a check the oracle has not had yet."""
+    state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
+    try:
+        d = json.loads((state / "mics.json").read_text())
+    except Exception:  # noqa: BLE001 - one microphone, or no check yet
+        return None
+    sent = state / "mics-sent"
+    try:
+        last = sent.read_text().strip()
+    except Exception:  # noqa: BLE001
+        last = ""
+    if event != "shutdown" and last == str(d.get("day")):
+        return None
+    try:
+        sent.write_text(str(d.get("day")))
+    except Exception:  # noqa: BLE001
+        pass
+    return d
+
+
 def guard():
     """What the tamper guard reports, when the board is fitted (GUARD=1); see life-guard.py."""
     if os.environ.get("GUARD", "0") != "1":
@@ -279,6 +303,9 @@ def guard():
 
 def build(event):
     hb = {"ts": datetime.now(timezone.utc).isoformat(), "event": event, "metrics": metrics()}
+    m = mics(event)
+    if m:
+        hb["metrics"]["mics"] = m
     g = guard()
     if g and g.get("enabled"):
         hb["metrics"]["guardAlarm"] = bool(g.get("alarm"))

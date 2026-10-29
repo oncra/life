@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 29 October 2026
 
+### Two microphones that watch each other
+
+*Change.* The node keeps both microphones. The AudioMoth now hears the birds as well as the bats, and the soldered I2S microphone stays beside it as its witness: by day it runs the bird model too, its detections stored as test, and BirdNET-Go measures both microphones' sound in 1/3 octave bands. They hear the same air, so the difference between them is a fixed number on a healthy node: on node 1 the AudioMoth reads 35 to 37 dB higher in every bird band. A covered port, water behind a membrane or a failing microphone moves that number, and the oracle now raises a MIC alert when it moves 6 dB in two bird bands against the node's own last weeks, or when one microphone gives no sound at all. If the AudioMoth fails, the witness still hears the birds. It costs a few euros, a second hole and the processor time of a second bird model by day; at night it steps aside for the bat model. [#134](https://github.com/oncra/life/pull/134)
+
+*Learning.* BirdNET-Go's quiet hours are not per microphone. In version 20261014 one sound card inside its quiet hours stops every sound card, and the bat microphone of the old standard setup was kept quiet by day that way: on a node with an AudioMoth it would have silenced the bird microphone through the whole dawn window. Node 1 ran that setup for only one evening, when the bat source was not quiet, so nothing was lost. No source has quiet hours any more; the bat source comes and goes with the sun, like the bat model.
+
 ### Two microphones, one pause per bird
 
 *Learning.* After eight dawns side by side (22 to 29 October) the two microphones could not be compared bird for bird, and the reason lies in BirdNET-Go, not in the microphones. BirdNET-Go saves a species at most once every 15 seconds, and that pause is shared by all its microphones: whichever reports a bird first takes it, and the other's detection of the same bird is never saved. With the threshold at 0.1 for the clip sample, a faint AudioMoth detection, which counts nowhere, could even take the place of a sure one on the I2S microphone that would have counted. Of about 400 detections per microphone at 0.7 or more, in the hours both ran the bird model, only 5 had a twin on the other microphone within ten seconds; the nearest was usually 10 to 50 seconds away. Each microphone named 37 species, 27 of them the same. We had expected most detections to come in pairs.
