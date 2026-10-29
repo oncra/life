@@ -2,18 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { NodeWhy, NODE_LEAD, NODE_SCALE } from "@/components/NodeWhy";
 import { prisma } from "@/lib/db";
-import { nodeSignals } from "@/lib/node";
-import { signalStatus } from "@/lib/node-signal";
+import { nodeStates } from "@/lib/node";
 export const dynamic = "force-dynamic";
 
-const NODE_DOT = { live: "bg-accent sig-glow", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
-const NODE_WORD = { live: "on", stale: "quiet", silent: "silent" } as const;
+const NODE_DOT = { listening: "bg-accent sig-glow", asleep: "bg-white border border-[#7a7a72]", quiet: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
 
-/** The first node that ever reported and how it is doing: one tap from the top of the page instead of through the map. */
+/** The first node that ever reported and how it is doing (asleep between its listening windows is not quiet): one
+ * tap from the top of the page instead of through the map. */
 async function firstNode() {
-  const now = Date.now();
-  const first = (await nodeSignals(now).catch(() => []))[0];
-  return first ? { ...first, status: signalStatus(first.heardAt, now) } : null;
+  const first = (await nodeStates().catch(() => []))[0];
+  return first ? { href: `/places/${first.slug}/node`, status: first.status } : null;
 }
 
 export default async function Home() {
@@ -30,7 +28,7 @@ export default async function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Open the map</Link>
             {first && (
-              <Link href={first.href} title={`${first.name}: ${NODE_WORD[first.status]}`} className="px-4 py-2 rounded-md border border-line bg-white text-sm font-medium inline-flex items-center gap-2 hover:border-accent">
+              <Link href={first.href} title={`Life Node 1: ${first.status}`} className="px-4 py-2 rounded-md border border-line bg-white text-sm font-medium inline-flex items-center gap-2 hover:border-accent">
                 <span className={`inline-block w-2.5 h-2.5 rounded-full ${NODE_DOT[first.status]}`} aria-hidden="true" />Life Node 1 →
               </Link>
             )}
