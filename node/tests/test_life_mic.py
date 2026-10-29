@@ -360,6 +360,28 @@ class Modes(unittest.TestCase):
         n.run("setup", mode="i2s", at=EVENING)
         self.assertNotIn("name: AudioMoth", n.config)
         self.assertIn("name: Bat microphone", n.config)
+        self.assertIn("realtime:\n    interval: 15\n", n.config)
+
+    def test_both_gives_each_microphone_its_own_detections(self):
+        # BirdNET-Go's pause per species is shared by its sources: in `both` it goes to 0, after `both` back to 15
+        n = self.node()
+        n.run("setup", mode="both", at=DAWN)
+        self.assertIn("realtime:\n    interval: 0\n", n.config)
+        n.run("setup", mode="both", at=EVENING)  # the bat model by night changes the models, not the pause
+        self.assertIn("realtime:\n    interval: 0\n", n.config)
+        n.run("setup", mode="audiomoth", at=DAWN)
+        self.assertIn("realtime:\n    interval: 15\n", n.config)
+
+    def test_both_without_the_audiomoth_keeps_the_pause(self):
+        n = self.node(plugged=False)
+        n.run("setup", mode="both", at=DAWN)
+        self.assertIn("realtime:\n    interval: 15\n", n.config)
+
+    def test_a_pause_set_by_hand_is_left_alone(self):
+        n = self.node()
+        (n.bng / "config.yaml").write_text(CONFIG.replace("    interval: 15\n", "    interval: 30\n"))
+        n.run("setup", mode="i2s", at=DAWN)
+        self.assertIn("realtime:\n    interval: 30\n", n.config)
 
     def test_unplugged_audiomoth_falls_back_to_the_i2s_microphone(self):
         n = self.node()
