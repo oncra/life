@@ -44,7 +44,11 @@ export default async function NodePage({ params, searchParams }: Props) {
   if (!stored) notFound();
   const [exact, data] = await Promise.all([canSeeExact(stored), nodeData(stored, range)]);
   if (!data) notFound();
-  const [index, heard] = await Promise.all([lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5)]);
+  const [index, heard, clips] = await Promise.all([
+    lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
+    // the clips on /triage are for whoever may see the place exactly, as the page itself
+    exact ? prisma.clip.count({ where: { device: { placeId: stored.id } } }) : 0,
+  ]);
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
   const status = signalStatus(data.last.heardAt, data.now);
@@ -88,6 +92,13 @@ export default async function NodePage({ params, searchParams }: Props) {
           {RANGES.map((r) => <Link key={r.key} href={q(r.key)} className={`rounded-full px-3 py-1 border ${r.key === range ? "bg-foreground text-white border-foreground" : "border-line bg-white hover:border-accent"}`}>{r.label}</Link>)}
         </div>
       </div>
+
+      {clips > 0 && (
+        <div className="mt-3 text-sm">
+          <Link href="/triage" className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 font-medium hover:border-accent">Triage: was the detector right? →</Link>
+          <span className="ml-2 text-muted">{clips} clips to listen to and judge</span>
+        </div>
+      )}
 
       <LastHeard items={heard} now={data.now} zone={data.zone} />
 

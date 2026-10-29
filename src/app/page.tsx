@@ -2,10 +2,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { NodeWhy, NODE_LEAD, NODE_SCALE } from "@/components/NodeWhy";
 import { prisma } from "@/lib/db";
+import { nodeSignals } from "@/lib/node";
+import { signalStatus } from "@/lib/node-signal";
 export const dynamic = "force-dynamic";
+
+const NODE_DOT = { live: "bg-accent sig-glow", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
+const NODE_WORD = { live: "on", stale: "quiet", silent: "silent" } as const;
+
+/** The first node that ever reported and how it is doing: one tap from the top of the page instead of through the map. */
+async function firstNode() {
+  const now = Date.now();
+  const first = (await nodeSignals(now).catch(() => []))[0];
+  return first ? { ...first, status: signalStatus(first.heardAt, now) } : null;
+}
 
 export default async function Home() {
   const [places, obs, devices] = await Promise.all([prisma.place.count(), prisma.satelliteObs.count(), prisma.device.count()]).catch(() => [0, 0, 0]);
+  const first = await firstNode();
   return (
     <div className="mx-auto max-w-6xl px-4">
       <section className="py-16 md:py-24 grid md:grid-cols-5 gap-10 items-start">
@@ -16,6 +29,11 @@ export default async function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/map" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Open the map</Link>
+            {first && (
+              <Link href={first.href} title={`${first.name}: ${NODE_WORD[first.status]}`} className="px-4 py-2 rounded-md border border-line bg-white text-sm font-medium inline-flex items-center gap-2 hover:border-accent">
+                <span className={`inline-block w-2.5 h-2.5 rounded-full ${NODE_DOT[first.status]}`} aria-hidden="true" />Life Node 1 →
+              </Link>
+            )}
             <Link href="/node" className="px-4 py-2 rounded-md bg-foreground text-white text-sm font-medium">Build a Life Node yourself →</Link>
             <Link href="/places/new" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Register a place</Link>
             <Link href="/docs/greenpaper" className="px-4 py-2 rounded-md border border-line text-sm font-medium">Read the green paper</Link>
