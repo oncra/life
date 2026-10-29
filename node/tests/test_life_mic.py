@@ -8,6 +8,7 @@ layout BirdNET-Go 20260823 writes (four spaces, a list of sources), with the Per
 """
 import importlib.machinery
 import importlib.util
+import json
 import os
 import stat
 import tempfile
@@ -61,6 +62,19 @@ webserver:
     port: "8080"
 """
 
+# the same config with the two blocks BirdNET-Go writes on its first run for its sound levels and its metrics page
+FULL = CONFIG.replace("""        ffmpegpath: ""
+""", """        ffmpegpath: ""
+        soundlevel:
+            enabled: false
+            interval: 10
+""").replace("""webserver:
+""", """    telemetry:
+        enabled: false
+        listen: localhost:9090
+webserver:
+""")
+
 STREAM = """AudioMoth USB Microphone at usb-xhci-hcd.0-1.3, full speed : USB Audio
 
 Capture:
@@ -82,14 +96,16 @@ DAWN = "2026-10-21T07:45:00+02:00"     # five minutes after civil dawn (07:40), 
 class Node:
     """A temporary node: /proc, /sys, BirdNET-Go's directory, the model files and the microphone's tool."""
 
-    def __init__(self, moth_card=1, bird_card=0, rate=192000, plugged=True, files=True, tool=True):
+    def __init__(self, moth_card=1, bird_card=0, rate=192000, plugged=True, files=True, tool=True, config=CONFIG):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.proc, self.sys = self.root / "proc", self.root / "sys"
         self.bng = self.root / "birdnet-go"
         self.models = self.bng / "models" / "bat"
         self.models.mkdir(parents=True)
-        (self.bng / "config.yaml").write_text(CONFIG)
+        (self.bng / "config.yaml").write_text(config)
+        self.state = self.root / "state"
+        self.metrics = self.root / "metrics.txt"
         (self.proc / "asound").mkdir(parents=True)
         (self.sys / "bus" / "usb" / "devices").mkdir(parents=True)
         self.card(bird_card, usbid=None)
@@ -137,13 +153,15 @@ exit 0
                 f.rmdir() if f.is_dir() else f.unlink()
             d.rmdir()
 
-    def run(self, *args, on="1", mode="i2s", at=DAY):
+    def run(self, *args, on="1", mode="i2s", at=DAY, check="1"):
         # every path set here, also the ones with a default: other test files leave theirs in the environment
         env = {"LIFE_BATS": on, "BIRDNET_DIR": str(self.bng), "BIRDNET_CONFIG": str(self.bng / "config.yaml"),
                "BAT_MODEL_DIR": str(self.models), "LIFE_BATS_PROC": str(self.proc),
                "LIFE_BATS_SYS": str(self.sys), "AUDIOMOTH_CMD": str(self.tool), "LIFE_BATS_WAIT_S": "1",
                "LIFE_BIRD_MIC": mode, "LIFE_MIC_NOW": at, "NODE_LAT": "52.37", "NODE_LON": "4.90",
-               "NODE_TZ": "Europe/Amsterdam", "LIFE_MIC_RESTART_CMD": f"sh -c 'echo restart >> {self.restarts}'"}
+               "NODE_TZ": "Europe/Amsterdam", "LIFE_MIC_RESTART_CMD": f"sh -c 'echo restart >> {self.restarts}'",
+               "LIFE_MIC_CHECK": check, "LIFE_STATE": str(self.state), "LIFE_MIC_METRICS": self.metrics.as_uri(),
+               "LIFE_MIC_SAMPLES": "1", "LIFE_MIC_SAMPLE_GAP_S": "0"}
         old = {k: os.environ.get(k) for k in env}
         os.environ.update(env)
         try:
@@ -188,14 +206,12 @@ class Setup(unittest.TestCase):
 
     def test_bats_in_when_plugged_and_set(self):
         n = self.node()
-        self.assertEqual(n.run("setup"), 0)
+        self.assertEqual(n.run("setup", at=EVENING), 0)
         c = n.config
         self.assertIn("        - perch_v2\n        - bat\nlowmemory:", c)
         self.assertIn("            - name: Bat microphone\n              device: \":1,0\"\n              samplerate: 192000", c)
-        self.assertIn("              models:\n                - bat\n              quietHours:\n                enabled: true\n"
-                      "                mode: solar", c)
-        self.assertIn("startEvent: sunrise\n                startOffset: -60\n", c)  # quiet before the dawn window
-        self.assertIn("endEvent: sunset\n                endOffset: -15", c)       # on from 15 minutes before sunset
+        # no quiet hours: in BirdNET-Go one sound card in its quiet hours stops every sound card
+        self.assertIn("              models:\n                - bat\n              quietHours:\n                enabled: false\n", c)
         self.assertIn(f"    embeddingmodel: {n.models}/birdnet-v24-embeddings.onnx", c)
         self.assertIn(f"    classifiermodel: {n.models}/BattyBirdNET-EU-256kHz_fp32.onnx", c)
         self.assertIn(f"    labelpath: {n.models}/BattyBirdNET-EU-256kHz_Labels.txt", c)
@@ -206,6 +222,16 @@ class Setup(unittest.TestCase):
         self.assertTrue(c.endswith('webserver:\n    port: "8080"\n'))
         self.assertEqual(n.tool_calls(), [])  # already at 192 kHz: nothing sent to the microphone
 
+    def test_by_day_the_bat_microphone_is_taken_out(self):
+        n = self.node()
+        n.run("setup", at=EVENING)
+        self.assertIn("name: Bat microphone", n.config)
+        n.run("setup", at=DAWN)
+        c = n.config
+        self.assertNotIn("Bat microphone", c)
+        self.assertIn("        - perch_v2\n        - bat\nlowmemory:", c)  # the model stays loaded for the evening
+        self.assertIn('            - name: Sound Card 1\n              device: ":0,0"', c)
+
     def test_second_run_changes_nothing(self):
         n = self.node()
         n.run("setup")
@@ -215,7 +241,7 @@ class Setup(unittest.TestCase):
 
     def test_microphone_at_another_rate_is_set_and_persisted(self):
         n = self.node(rate=48000)
-        n.run("setup")
+        n.run("setup", at=EVENING)
         self.assertEqual(n.tool_calls(), ["config 192000", "persist"])
         self.assertIn("samplerate: 192000", n.config)
 
@@ -226,7 +252,7 @@ class Setup(unittest.TestCase):
 
     def test_without_the_tool_a_high_rate_is_used_as_it_is(self):
         n = self.node(rate=384000, tool=False)
-        n.run("setup")
+        n.run("setup", at=EVENING)
         self.assertIn("samplerate: 384000", n.config)
 
     def test_unplugged_takes_everything_out_again(self):
@@ -254,7 +280,7 @@ class Setup(unittest.TestCase):
     def test_swapped_cards_move_the_bird_source(self):
         # the USB microphone came up first and took card 0; the I2S microphone is card 1
         n = self.node(moth_card=0, bird_card=1)
-        n.run("setup")
+        n.run("setup", at=EVENING)
         c = n.config
         self.assertIn('            - name: Sound Card 1\n              device: ":1,0"', c)
         self.assertIn('            - name: Bat microphone\n              device: ":0,0"', c)
@@ -266,10 +292,10 @@ class Setup(unittest.TestCase):
 
     def test_card_change_updates_our_source(self):
         n = self.node()
-        n.run("setup")
+        n.run("setup", at=EVENING)
         n.unplug(1)
         n.plug(2, 192000)
-        n.run("setup")
+        n.run("setup", at=EVENING)
         c = n.config
         self.assertIn('            - name: Bat microphone\n              device: ":2,0"', c)
         self.assertEqual(c.count("Bat microphone"), 1)
@@ -369,7 +395,7 @@ class Modes(unittest.TestCase):
         self.assertIn("realtime:\n    interval: 0\n", n.config)
         n.run("setup", mode="both", at=EVENING)  # the bat model by night changes the models, not the pause
         self.assertIn("realtime:\n    interval: 0\n", n.config)
-        n.run("setup", mode="audiomoth", at=DAWN)
+        n.run("setup", mode="audiomoth", at=EVENING)  # one microphone on the bird model at night: the pause is back
         self.assertIn("realtime:\n    interval: 15\n", n.config)
 
     def test_both_without_the_audiomoth_keeps_the_pause(self):
@@ -425,6 +451,147 @@ class Modes(unittest.TestCase):
         n = self.node()
         n.run("setup", mode="both", at=EVENING)
         self.assertEqual(n.run("status", "--json", mode="both", at=EVENING), 0)
+
+
+class Witness(unittest.TestCase):
+    """Mode audiomoth: the I2S microphone beside the AudioMoth by day, and both microphones' levels for the check."""
+
+    def setUp(self):
+        self.nodes = []
+
+    def tearDown(self):
+        for n in self.nodes:
+            n.close()
+
+    def node(self, **kw):
+        n = Node(config=FULL, **kw)
+        self.nodes.append(n)
+        return n
+
+    def test_by_day_the_i2s_microphone_is_the_witness(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        c = n.config
+        self.assertIn('            - name: AudioMoth\n              device: ":1,0"\n              samplerate: 192000\n'
+                      "              gain: 0\n              models:\n                - birdnet\n                - perch_v2\n", c)
+        self.assertIn('            - name: I2S witness\n              device: ":0,0"\n              gain: 0\n'
+                      "              models:\n                - birdnet\n              quietHours:\n                enabled: false", c)
+        self.assertNotIn("Sound Card 1", c)
+        self.assertIn("realtime:\n    interval: 0\n", c)                  # each microphone keeps its own detections
+        self.assertIn("        soundlevel:\n            enabled: true\n", c)
+        self.assertIn('    telemetry:\n        enabled: true\n        listen: "127.0.0.1:9090"\n', c)
+
+    def test_at_night_the_witness_leaves_and_the_levels_stop(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        n.run("setup", mode="audiomoth", at=EVENING)
+        c = n.config
+        self.assertNotIn("I2S witness", c)
+        self.assertIn("                - perch_v2\n                - bat\n", c)
+        self.assertIn("realtime:\n    interval: 15\n", c)
+        self.assertIn("        soundlevel:\n            enabled: false\n", c)
+        self.assertIn("    telemetry:\n        enabled: true\n", c)    # the page stays: no restart for it at dawn
+        n.run("setup", mode="audiomoth", at=DAWN)
+        self.assertIn("name: I2S witness", n.config)
+
+    def test_the_check_switched_off(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY, check="0")
+        c = n.config
+        self.assertNotIn("I2S witness", c)
+        self.assertIn("realtime:\n    interval: 15\n", c)
+        self.assertIn("        soundlevel:\n            enabled: false\n", c)
+        self.assertIn("    telemetry:\n        enabled: false\n", c)
+
+    def test_without_the_audiomoth_the_i2s_microphone_hears_the_birds(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        n.unplug(1)
+        n.run("setup", mode="audiomoth", at=DAY)
+        c = n.config
+        self.assertNotIn("I2S witness", c)
+        self.assertIn('            - name: I2S microphone\n              device: ":0,0"', c)
+        self.assertIn("realtime:\n    interval: 15\n", c)
+        self.assertIn("        soundlevel:\n            enabled: false\n", c)
+
+    def test_both_measures_both_by_day(self):
+        n = self.node()
+        n.run("setup", mode="both", at=DAWN)
+        self.assertIn("        soundlevel:\n            enabled: true\n", n.config)
+        n.run("setup", mode="both", at=EVENING)
+        self.assertIn("        soundlevel:\n            enabled: false\n", n.config)
+
+    # --- life-mic levels ---
+
+    LABELS = {250: "250.0_Hz", 500: "500.0_Hz", 1000: "1.0_kHz", 2000: "2.0_kHz", 4000: "4.0_kHz", 8000: "8.0_kHz",
+              12500: "12.5_kHz"}
+
+    @staticmethod
+    def sid(card):
+        import hashlib
+        return "audio_card_" + hashlib.sha256(f":{card},0".encode()).hexdigest()[:8]
+
+    def page(self, n, updates, moth=-40.0, i2s=-75.0, with_i2s=True):
+        lines = ["# HELP myaudio_octave_band_mean_db Mean sound level", "# TYPE myaudio_octave_band_mean_db gauge"]
+        mics = [(self.sid(1), moth, updates)] + ([(self.sid(0), i2s, updates + 100)] if with_i2s else [])
+        for sid, level, upd in mics:
+            lines.append(f'myaudio_sound_level_updates_total{{name="{sid}",source="{sid}"}} {upd}')
+            for hz, label in list(self.LABELS.items()) + [(25, "25.0_Hz")]:
+                lines.append(f'myaudio_octave_band_mean_db{{frequency_band="{label}",name="{sid}",source="{sid}"}} {level + hz / 1000}')
+                lines.append(f'myaudio_octave_band_min_db{{frequency_band="{label}",name="{sid}",source="{sid}"}} {level - 20}')
+        n.metrics.write_text("\n".join(lines) + "\n")
+
+    def summary(self, n):
+        return json.loads((n.state / "mics.json").read_text())
+
+    def test_levels_give_the_day_its_difference(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        self.page(n, 1)
+        n.run("levels", mode="audiomoth", at=DAY)
+        self.page(n, 2, moth=-38.0)
+        n.run("levels", mode="audiomoth", at=DAY)
+        d = self.summary(n)
+        self.assertEqual(d["day"], "2026-10-21")
+        self.assertEqual(d["n"], 2)
+        self.assertEqual(d["bands"], [250, 500, 1000, 2000, 4000, 8000, 12500])
+        self.assertEqual(d["diff"], [36.0] * 7)                       # medians of 35 and 37
+        self.assertEqual(d["fi"], [-95.0] * 7)
+        self.assertNotIn("missing", d)
+        rows = (n.state / "mic-levels" / "2026-10-21.jsonl").read_text().splitlines()
+        self.assertEqual(len(rows), 2)
+
+    def test_the_same_ten_seconds_are_read_once(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        self.page(n, 5)
+        n.run("levels", mode="audiomoth", at=DAY)
+        n.run("levels", mode="audiomoth", at=DAY)
+        self.assertEqual(self.summary(n)["n"], 1)
+
+    def test_a_microphone_that_gives_no_levels_is_reported(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        for k in range(3):
+            self.page(n, k, with_i2s=False)
+            n.run("levels", mode="audiomoth", at=DAY)
+            self.assertEqual("missing" in self.summary(n), k == 2)   # three runs, a quarter of an hour
+        self.assertEqual(self.summary(n)["missing"], ["i2s"])
+
+    def test_no_levels_with_one_microphone(self):
+        n = self.node()
+        n.run("setup", mode="i2s", at=DAY)
+        self.page(n, 1)
+        n.run("levels", mode="i2s", at=DAY)
+        self.assertFalse((n.state / "mics.json").exists())
+
+    def test_sync_reads_the_levels_unless_it_restarted_birdnet_go(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        self.page(n, 1)
+        n.run("sync", mode="audiomoth", at=DAY)
+        self.assertEqual(n.restart_count(), 0)
+        self.assertEqual(self.summary(n)["n"], 1)
 
 
 class Sync(unittest.TestCase):

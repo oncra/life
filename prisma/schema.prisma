@@ -49,6 +49,7 @@ enum AlertKind {
   MOVED
   TAMPER
   LOW_BATTERY
+  MIC
 }
 
 model Place {

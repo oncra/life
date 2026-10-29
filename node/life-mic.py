@@ -5,14 +5,17 @@
     life-mic sync              every five minutes (life-mic.timer): the same, and BirdNET-Go restarted when its config
                                changed, which on a node that stays on is the bat model coming or going with the sun
     life-mic status [--json]   what is plugged in, the mode, and what BirdNET-Go is told
+    life-mic levels            read both microphones' sound levels and write the day's check (sync runs it)
 
 Three ways to listen, chosen with LIFE_BIRD_MIC:
-- `i2s` (the default): birds on the I2S microphone, and the AudioMoth beside it as the bat microphone, a second source
-  "Bat microphone" that runs only the bat model and is quiet from an hour before sunrise until BAT_LEAD_MIN minutes
-  before sunset, so it never runs in the dawn window;
-- `audiomoth`: the AudioMoth is the node's one microphone. One source, "AudioMoth", runs the bird models all the time
-  and adds the bat model from BAT_LEAD_MIN minutes before sunset until just before civil dawn. The I2S source is taken
-  out;
+- `audiomoth` (the default since 29 October 2026): the AudioMoth hears the birds, in one source "AudioMoth" that runs
+  the bird models and adds the bat model from BAT_LEAD_MIN minutes before sunset until just before civil dawn. By day
+  the I2S microphone listens beside it as its witness, a source "I2S witness" with BirdNET alone, whose detections
+  life-push always sends as test: it is the check on the AudioMoth (`levels`, below) and the node's ears when the
+  AudioMoth fails. At night the witness is taken out, because the bat model leaves the processor no room for it;
+- `i2s`: birds on the I2S microphone, and the AudioMoth as the bat microphone only, a second source "Bat microphone"
+  with the bat model alone, there from BAT_LEAD_MIN minutes before sunset until just before civil dawn and taken out by
+  day;
 - `both`: the comparison of the two. Birds on the I2S microphone as in `i2s`, and on the AudioMoth BirdNET by day and
   only the bat model at night, so the processor carries no more than in `i2s`: the bat model alone keeps a Pi 4 about
   90 per cent busy (`kit/bench-log.csv`, 1.5). With LIFE_TEST_SOURCES=AudioMoth in the node's env, life-push marks the
@@ -21,6 +24,22 @@ Three ways to listen, chosen with LIFE_BIRD_MIC:
   bird model, the first to report a bird takes it, and the other's detection of the same bird is never saved, even when
   the first was a faint test detection and the second a sure one that would have counted. So `both` sets the pause to 0
   while the AudioMoth hears birds, and the pause goes back to BirdNET-Go's 15 s when that ends.
+
+No source gets quiet hours. In BirdNET-Go 20261014 one sound card source inside its quiet hours stops the capture of
+every sound card ("suppress if ANY source is in quiet hours", internal/audiocore/schedule/quiet_hours.go), so a bat
+microphone kept quiet by day would have silenced the bird microphone through the whole dawn window. Sources and models
+come and go with the sun instead.
+
+The check. The two microphones hear the same air, so the difference between their sound levels in each band is a fixed
+number on a healthy node; a covered port, water behind a membrane or a failing microphone moves it. By day, while two
+microphones listen, BirdNET-Go measures every source in 1/3 octave bands (realtime.audio.soundlevel; off at night, where
+the bat model needs the processor) and shows the levels on its own metrics page (realtime.telemetry, 127.0.0.1:9090,
+which only the node itself can reach). `levels` reads both microphones there four times, ten seconds apart, keeps the
+day's readings in LIFE_STATE/mic-levels/ for three days, and writes the day's medians per band to LIFE_STATE/mics.json:
+the difference between the two (AudioMoth minus I2S), each one's level and each one's floor. The heartbeat carries that
+file to the oracle once a day and at the end of every window, and the oracle compares the difference with the node's own
+last weeks (MIC alert, src/lib/mics.ts). BirdNET-Go names a sound card source audio_card_ and the first eight hex digits
+of the SHA-256 of its device string (internal/audiocore/source_registry.go), which is how `levels` tells the two apart.
 
 Why one source and not two on the AudioMoth: BirdNET-Go refuses two sources on one device, and its own
 `bat.nighttimeonly` waits for civil dusk, 35 to 50 minutes into the hour after sunset in which the bats come out. So
@@ -47,31 +66,35 @@ its bat model was trained on and to the 48 kHz of the bird model, and 192 kHz is
 Every change goes into BirdNET-Go's config only if it differs, and setup never stops BirdNET-Go from starting: when
 something is not as expected it says so and leaves that part out.
 
-env: LIFE_BIRD_MIC (i2s | audiomoth | both), LIFE_BATS (1; 0 takes the bats out), BAT_SAMPLE_RATE (192000),
+env: LIFE_BIRD_MIC (audiomoth | i2s | both), LIFE_BATS (1; 0 takes the bats out), BAT_SAMPLE_RATE (192000),
      BAT_LEAD_MIN (15), NODE_LAT, NODE_LON, NODE_TZ (the place and its clock, as for the schedule),
      BAT_MODEL_DIR (/data/birdnet-go/models/bat), AUDIOMOTH_CMD (/usr/local/bin/AudioMoth-USB-Microphone),
      BIRDNET_DIR (/data/birdnet-go), BIRDNET_CONFIG, LIFE_MIC_RESTART_CMD (systemctl try-restart birdnet-go.service),
-     LIFE_MIC_NOW (an ISO time, for tests), LIFE_BATS_PROC (/proc), LIFE_BATS_SYS (/sys), LIFE_BATS_WAIT_S (20)
+     LIFE_MIC_NOW (an ISO time, for tests), LIFE_BATS_PROC (/proc), LIFE_BATS_SYS (/sys), LIFE_BATS_WAIT_S (20),
+     LIFE_MIC_CHECK (1; 0 leaves out the witness and the levels), LIFE_STATE (/data/life-node),
+     LIFE_MIC_METRICS (http://127.0.0.1:9090/metrics), LIFE_MIC_SAMPLES (4), LIFE_MIC_SAMPLE_GAP_S (10)
 """
+import hashlib
 import json
 import math
 import os
 import re
 import shlex
+import statistics
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from datetime import time as clock
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 MODES = ("i2s", "audiomoth", "both")
-MODE = (os.environ.get("LIFE_BIRD_MIC") or "i2s").strip().lower()
+MODE = (os.environ.get("LIFE_BIRD_MIC") or "audiomoth").strip().lower()
 ON = os.environ.get("LIFE_BATS", "1").strip() != "0"
 RATE = int(os.environ.get("BAT_SAMPLE_RATE") or 192000)
 LEAD = int(os.environ.get("BAT_LEAD_MIN") or 15)
-DAWN_QUIET = 60  # minutes before sunrise the bat source goes quiet in mode i2s: before civil dawn in every season
 LAT = float(os.environ.get("NODE_LAT") or 52.37)
 LON = float(os.environ.get("NODE_LON") or 5.0)
 TZ = ZoneInfo(os.environ.get("NODE_TZ") or "Europe/Amsterdam")
@@ -88,6 +111,17 @@ SETUP_ID = ("10c4", "0002")  # the same board with its switch on USB/OFF: AudioM
 SOURCE = "Bat microphone"    # the AudioMoth as the bat microphone only (mode i2s)
 MOTH = "AudioMoth"           # the AudioMoth as the node's microphone (modes audiomoth and both)
 I2S = "I2S microphone"       # the name of a bird source this program writes itself
+WITNESS = "I2S witness"      # the I2S microphone beside the AudioMoth by day in mode audiomoth: the check and the spare
+CHECK = os.environ.get("LIFE_MIC_CHECK", "1").strip() != "0"
+STATE = Path(os.environ.get("LIFE_STATE") or "/data/life-node")
+LEVELS = STATE / "mic-levels"  # the day's readings, one line per ten seconds read, kept three days
+SUMMARY = STATE / "mics.json"  # the day's check, which the heartbeat carries
+METRICS = os.environ.get("LIFE_MIC_METRICS") or "http://127.0.0.1:9090/metrics"
+TELEMETRY = '"127.0.0.1:9090"'  # BirdNET-Go's metrics page, on the node's own loopback only
+SAMPLES = int(os.environ.get("LIFE_MIC_SAMPLES") or 4)
+SAMPLE_GAP_S = float(os.environ.get("LIFE_MIC_SAMPLE_GAP_S") or 10)
+BANDS = (250, 500, 1000, 2000, 4000, 8000, 12500)  # 1/3 octave bands, Hz: the bird bands and one below and above
+MISSING_RUNS = 3  # a microphone absent from this many runs of a day (15 minutes) is reported missing
 MIN_RATE = 96000  # BirdNET-Go's floor for its bat model
 BIRD_RATE = 48000  # what the bird model listens at; below it the AudioMoth is no bird microphone either
 PAUSE = 15  # BirdNET-Go's own realtime.interval: seconds between two saved detections of one species, all sources
@@ -353,10 +387,8 @@ def quiet_off(c: str) -> list[str]:
 
 def bat_source(i: int, card: int, rate: int) -> list[str]:
     a, b, c = " " * i, " " * (i + 2), " " * (i + 4)
-    return [f"{a}- name: {SOURCE}", f'{b}device: ":{card},0"', f"{b}samplerate: {rate}", f"{b}gain: 0",
-            f"{b}models:", f"{c}- bat", f"{b}quietHours:", f"{c}enabled: true", f"{c}mode: solar",
-            f'{c}startTime: ""', f'{c}endTime: ""', f"{c}startEvent: sunrise", f"{c}startOffset: -{DAWN_QUIET}",
-            f"{c}endEvent: sunset", f"{c}endOffset: -{LEAD}"]
+    return ([f"{a}- name: {SOURCE}", f'{b}device: ":{card},0"', f"{b}samplerate: {rate}", f"{b}gain: 0",
+             f"{b}models:", f"{c}- bat", f"{b}quietHours:"] + quiet_off(c))
 
 
 def moth_source(i: int, card: int, rate: int, models: list[str]) -> list[str]:
@@ -365,9 +397,9 @@ def moth_source(i: int, card: int, rate: int, models: list[str]) -> list[str]:
              f"{b}models:"] + [f"{c}- {m}" for m in models] + [f"{b}quietHours:"] + quiet_off(c))
 
 
-def i2s_source(i: int, card: int, models: list[str]) -> list[str]:
+def i2s_source(i: int, card: int, models: list[str], name: str = I2S) -> list[str]:
     a, b, c = " " * i, " " * (i + 2), " " * (i + 4)
-    return ([f"{a}- name: {I2S}", f'{b}device: ":{card},0"', f"{b}gain: 0", f"{b}models:"]
+    return ([f"{a}- name: {name}", f'{b}device: ":{card},0"', f"{b}gain: 0", f"{b}models:"]
             + [f"{c}- {m}" for m in models] + [f"{b}quietHours:"] + quiet_off(c))
 
 
@@ -421,11 +453,14 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
                 del lines[s[0]:s[1]]
             did.append("models.enabled - bat")
     birds = [m for m in enabled if m != "bat"] or ["birdnet"]
+    first = "birdnet" if "birdnet" in birds else birds[0]
+    # the I2S microphone as the AudioMoth's witness: by day in mode audiomoth, with the check on and its card known
+    witness = mode == "audiomoth" and moth_birds and CHECK and not night and bird is not None
 
     # one pause per species for every source together: two microphones on the bird model would take each other's
-    # detections, so in `both` each keeps its own (pause 0), and BirdNET-Go's 15 s comes back after; a pause someone
-    # set by hand to anything but 0 is left as it is
-    own = mode == "both" and moth_birds
+    # detections, so while two listen for birds each keeps its own (pause 0), and BirdNET-Go's 15 s comes back after;
+    # a pause someone set by hand to anything but 0 is left as it is
+    own = (mode == "both" and moth_birds) or witness
     j = yaml_find(lines, ("realtime", "interval"))
     m = VALUE.match(lines[j]) if j is not None else None
     pause = m.group(2).strip().strip("'\"") if m else None
@@ -434,26 +469,43 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
     elif not own and pause == "0" and yaml_set(lines, ("realtime", "interval"), str(PAUSE)) == "set":
         did.append(f"realtime.interval {PAUSE} again: one microphone on the bird model")
 
+    # the check: band levels of every source while two microphones listen by day, on BirdNET-Go's own metrics page
+    page = CHECK and moth_birds and mode in ("both", "audiomoth")
+    sound = page and not night and (mode == "both" or witness)
+    for path, on in ((("realtime", "audio", "soundlevel", "enabled"), sound), (("realtime", "telemetry", "enabled"), page)):
+        what = yaml_set(lines, path, "true" if on else "false")
+        if what in ("set", "added"):
+            did.append(f"{'.'.join(path)} {'true' if on else 'false'}")
+        elif what == "missing" and on:
+            did.append(f"no {'.'.join(path[:-1])} block in BirdNET-Go's config: the microphones' check is off")
+    if page and yaml_set(lines, ("realtime", "telemetry", "listen"), TELEMETRY) in ("set", "added"):
+        did.append(f"realtime.telemetry.listen {TELEMETRY.strip(chr(34))}")
+
     # the audio sources
     span = list_span(lines, ("realtime", "audio", "sources"))
     if span is None:
         did.append("no realtime.audio.sources list; sources not written")
         return "\n".join(lines), did
     k, i, items, end = span
-    want_bat = mode == "i2s" and bats            # the AudioMoth as the bat microphone only
-    want_moth = moth_birds                       # the AudioMoth as a bird (and bat) microphone
-    want_i2s = mode != "audiomoth" or not moth_birds  # in audiomoth mode the I2S source is only the fallback
+    want_bat = mode == "i2s" and bats and night   # the AudioMoth as the bat microphone only, at bat time only
+    want_moth = moth_birds                        # the AudioMoth as a bird (and bat) microphone
+    want_i2s = mode != "audiomoth" or not moth_birds  # in audiomoth mode the I2S bird source is only the fallback
     if mode == "both":  # one model at a time beside the I2S microphone's: the processor has no room for more
-        moth_models = ["bat"] if bats and night else ["birdnet" if "birdnet" in birds else birds[0]]
+        moth_models = ["bat"] if bats and night else [first]
     else:
         moth_models = birds + (["bat"] if bats and night else [])
-    have = {SOURCE: False, MOTH: False, "i2s": False}
+    keep_ours = {SOURCE: want_bat, MOTH: want_moth, WITNESS: witness}
+    have = {SOURCE: False, MOTH: False, WITNESS: False, "i2s": False}
     for s in reversed(items):  # from the end, so a change never moves an item still to be looked at
         name = item_name(lines, s)
-        if name in (SOURCE, MOTH):
-            keep = want_bat if name == SOURCE else want_moth
-            if keep and not have[name]:
-                block = bat_source(i, card, rate) if name == SOURCE else moth_source(i, card, rate, moth_models)
+        if name in keep_ours:
+            if keep_ours[name] and not have[name]:
+                if name == SOURCE:
+                    block = bat_source(i, card, rate)
+                elif name == MOTH:
+                    block = moth_source(i, card, rate, moth_models)
+                else:
+                    block = i2s_source(i, bird, [first], WITNESS)
                 if lines[s[0]:s[1]] != block:
                     old = item_models(lines, s)
                     lines[s[0]:s[1]] = block
@@ -488,11 +540,147 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
     if want_moth and not have[MOTH]:
         add += moth_source(i, card, rate, moth_models)
         did.append(f"{MOTH} added on :{card},0 at {rate} Hz with {'+'.join(moth_models)}")
+    if witness and not have[WITNESS]:
+        add += i2s_source(i, bird, [first], WITNESS)
+        did.append(f"{WITNESS} added on :{bird},0 with {first}")
     if want_bat and not have[SOURCE]:
         add += bat_source(i, card, rate)
         did.append(f"{SOURCE} added on :{card},0 at {rate} Hz")
     lines[end:end] = add
     return "\n".join(lines), did
+
+
+# --- the check: both microphones' sound levels, from BirdNET-Go's metrics page ---
+
+METRIC = re.compile(r"^(myaudio_octave_band_(?:mean|min)_db|myaudio_sound_level_updates_total)\{([^}]*)\}\s+(\S+)\s*$")
+LABEL = re.compile(r'(\w+)="((?:[^"\\]|\\.)*)"')
+
+
+def roles(lines: list[str]) -> dict[str, str]:
+    """BirdNET-Go's id of the AudioMoth's source and of the I2S microphone's, from the devices the config gives them."""
+    span = list_span(lines, ("realtime", "audio", "sources"))
+    out: dict[str, str] = {}
+    for s in (span[2] if span else []):
+        dev = item_card(lines, s)
+        if dev is None:
+            continue
+        role = "audiomoth" if item_name(lines, s) in (MOTH, SOURCE) else "i2s"
+        out.setdefault(role, "audio_card_" + hashlib.sha256(f":{dev[1]},{dev[2]}".encode()).hexdigest()[:8])
+    return out
+
+
+def band_hz(label: str) -> int | None:
+    m = re.match(r"^([\d.]+)_(k?)Hz$", label)
+    return round(float(m.group(1)) * (1000 if m.group(2) else 1)) if m else None
+
+
+def scrape(text: str, ids: dict[str, str]) -> tuple[dict[str, dict[int, list]], dict[str, float]]:
+    """{role: {band: [mean dB, min dB]}} and {role: count of BirdNET-Go's measurements} from its metrics page."""
+    who = {v: k for k, v in ids.items()}
+    bands: dict[str, dict[int, list]] = {r: {} for r in ids}
+    updates: dict[str, float] = {}
+    for line in text.splitlines():
+        m = METRIC.match(line)
+        if not m:
+            continue
+        labels = dict(LABEL.findall(m.group(2)))
+        role = who.get(labels.get("source", ""))
+        if role is None:
+            continue
+        try:
+            v = float(m.group(3))
+        except ValueError:
+            continue
+        if not math.isfinite(v):
+            continue
+        if m.group(1) == "myaudio_sound_level_updates_total":
+            updates[role] = v
+            continue
+        hz = band_hz(labels.get("frequency_band", ""))
+        if hz in BANDS:
+            bands[role].setdefault(hz, [None, None])[0 if m.group(1).endswith("mean_db") else 1] = round(v, 1)
+    return bands, updates
+
+
+def median(xs) -> float | None:
+    xs = [x for x in xs if x is not None]
+    return round(statistics.median(xs), 1) if xs else None
+
+
+def summarize(day: str, missing: list[str]) -> dict:
+    """The day's check: per band the median of AudioMoth minus I2S, each microphone's level and each one's floor."""
+    f = LEVELS / f"{day}.jsonl"
+    rows = [json.loads(x) for x in f.read_text().splitlines() if x.strip()] if f.exists() else []
+    out: dict = {"day": day, "n": len(rows), "bands": list(BANDS)}
+    for key, role, k in (("a", "a", 0), ("i", "i", 0), ("fa", "a", 1), ("fi", "i", 1)):
+        out[key] = [median(r[role][b][k] for r in rows) for b in range(len(BANDS))]
+    out["diff"] = [median(r["a"][b][0] - r["i"][b][0] for r in rows
+                          if r["a"][b][0] is not None and r["i"][b][0] is not None) for b in range(len(BANDS))]
+    if missing:
+        out["missing"] = missing
+    out["at"] = now().isoformat(timespec="seconds")
+    tmp = SUMMARY.with_suffix(".tmp")
+    tmp.write_text(json.dumps(out, separators=(",", ":")) + "\n")
+    os.replace(tmp, SUMMARY)
+    return out
+
+
+def sample(samples: int = SAMPLES, gap: float = SAMPLE_GAP_S) -> int:
+    """Read both microphones' latest band levels a few times, keep what is new, and rewrite the day's check."""
+    if not CONFIG.exists():
+        return 0
+    lines = CONFIG.read_text().split("\n")
+    j = yaml_find(lines, ("realtime", "audio", "soundlevel", "enabled"))
+    m = VALUE.match(lines[j]) if j is not None else None
+    if not m or m.group(2).strip().lower() != "true":
+        return 0  # one microphone, the check off, or night: nothing to compare
+    ids = roles(lines)
+    if set(ids) != {"audiomoth", "i2s"}:
+        say("levels: not two microphones in BirdNET-Go's config; nothing to compare")
+        return 0
+    day = now().astimezone(TZ).date().isoformat()
+    LEVELS.mkdir(parents=True, exist_ok=True)
+    state_f = LEVELS / f"{day}.state.json"
+    try:
+        state = json.loads(state_f.read_text())
+    except (OSError, ValueError):
+        state = {}
+    last, absent = state.get("updates", {}), state.get("absent", {})
+    got, gone = 0, set(ids)
+    for k in range(samples):
+        if k:
+            time.sleep(gap)
+        try:
+            with urllib.request.urlopen(METRICS, timeout=5) as r:
+                text = r.read().decode("utf-8", "replace")
+        except Exception as e:  # noqa: BLE001 - BirdNET-Go starting, or its metrics page off
+            say(f"levels: no metrics at {METRICS} ({e})")
+            break
+        bands, updates = scrape(text, ids)
+        gone &= {r for r in ids if not bands[r]}
+        if any(not bands[r] for r in ids):
+            continue
+        if updates and all(updates.get(r) == last.get(r) for r in ids):
+            continue  # the same ten seconds as the last reading
+        last = updates
+        rec = {"t": now().isoformat(timespec="seconds")}
+        for role, key in (("audiomoth", "a"), ("i2s", "i")):
+            rec[key] = [bands[role].get(b, [None, None]) for b in BANDS]
+        with open(LEVELS / f"{day}.jsonl", "a") as f:
+            f.write(json.dumps(rec, separators=(",", ":")) + "\n")
+        got += 1
+    if 0 < len(gone) < len(ids):  # one microphone gave levels, the other none in the whole run
+        for r in gone:
+            absent[r] = absent.get(r, 0) + 1
+    state_f.write_text(json.dumps({"updates": last, "absent": absent}))
+    summary = summarize(day, sorted(r for r, n in absent.items() if n >= MISSING_RUNS))
+    for old in LEVELS.glob("*"):
+        if old.name[:10] < (now().astimezone(TZ).date() - timedelta(days=3)).isoformat():
+            old.unlink(missing_ok=True)
+    say(f"levels: {got} new reading(s), {summary['n']} today; AudioMoth minus I2S "
+        + ", ".join(f"{b // 1000 if b >= 1000 else b}{'k' if b >= 1000 else ''} {d:+.1f}"
+                    for b, d in zip(BANDS, summary["diff"]) if d is not None))
+    return got
 
 
 # --- commands ---
@@ -567,6 +755,11 @@ def sync() -> int:
     if apply(wait=False):
         r = subprocess.run(shlex.split(RESTART), capture_output=True, text=True)
         say(f"BirdNET-Go restarted ({RESTART}: {r.returncode})")
+        return 0  # its sound levels come back with the next run
+    try:
+        sample()
+    except Exception as e:  # noqa: BLE001 - the check never stops the timer
+        say(f"levels: {e}")
     return 0
 
 
@@ -577,7 +770,8 @@ def status(as_json: bool) -> int:
     sources = {item_name(lines, s): item_models(lines, s) for s in span[2]} if span else {}
     st = {"mode": MODE, "plugged": on_usb(), "switchOff": usb_state() == "switch", "card": card, "rate": rate,
           "birdCard": bird, "modelFiles": model_files() is not None, "batTime": bat_time(now()),
-          "configured": SOURCE in sources or MOTH in sources, "sources": sources, "enabled": ON}
+          "configured": SOURCE in sources or MOTH in sources, "sources": sources, "enabled": ON,
+          "check": json.loads(SUMMARY.read_text()) if SUMMARY.exists() else None}
     print(json.dumps(st) if as_json else "\n".join(f"{k}: {v}" for k, v in st.items()))
     return 0
 
@@ -589,6 +783,9 @@ def main(argv: list[str]) -> int:
         return sync()
     if argv[:1] == ["status"]:
         return status("--json" in argv)
+    if argv[:1] == ["levels"]:
+        sample()
+        return 0
     print(__doc__.strip().split("\n\n")[1])
     return 2
 
