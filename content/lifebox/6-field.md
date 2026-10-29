@@ -18,7 +18,7 @@ The box keeps its name and its history. The old card stops sending.
 
 ![The finished box on a wooden post at a field edge, panel above the green box, two probe cables running to a small soil pit](../../public/img/build/s4-post.webp "Rendered impression. Post 80 cm deep, box at 50 cm, probes 1.5 m to the south.")
 
-1. Choose a spot at the edge of a field or path, where machines do not drive. Mark it on the farmer's map.
+1. Choose the spot with the farmer. The probes read the plants and the soil right above them, so the box goes in the part of the place it should speak for (the meadow, a tree row, the field), at a spot that looks like the rest of that part: not a corner, a gateway, a wet patch or a bare patch. Machines may drive past the post, and the farmer mows, grazes or sows over the probes as everywhere else. On ploughed land the box goes at the edge, and then it speaks for the edge. The four steps are in [the soil probe protocol](../install-soil.md). Mark the spot on the farmer's map.
 2. Drive the **2 m post** 80 cm into the ground.
 3. Fix the box on the post at knee height (about 50 cm), on the side that gets the least sun.
 4. Bolt the panel brackets **through** the post with the M8 bolts, panel facing south, above the box so it shades it. A panel is a sail in a storm: straps loosen, bolts do not.

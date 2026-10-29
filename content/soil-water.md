@@ -6,7 +6,7 @@ order: 14.5
 
 # The soil's water loop
 
-Method `cycling-v0.3`. The rule is in the [specification](spec.md), section 3.5; the code is `src/lib/soilwater.ts`; every number on this page comes from `scripts/soil-noise/run.ts` and can be reproduced from open data.
+Method `cycling-v0.3`. The rule is in the [specification](spec.md), section 3.5; the code is `src/lib/soilwater.ts`; every number on this page comes from `scripts/soil-noise/run.ts` and the scripts named beside it, and can be reproduced from open data.
 
 ## The question
 
@@ -49,6 +49,16 @@ The change between seasons at stations whose land use stayed the same, with no p
 | Three against three | 5 | 0.15 | 0.20 |
 
 A field where nothing changed moves from one year to the next about as much as grass differs from maize. Mowing dates, the droughts of 2018 and 2019, a shower the KNMI station did not catch and the farmer's own choices all move it. Within one season the daily share runs from about zero, when a heat wave has dried out the top 40 cm and the roots draw from deeper down, to above one in April, when wet soil is still draining; the season's median depends on how its dry days fall between those two. The thresholds are the 90th percentiles: a place where nothing changed reads holding in nine comparisons out of ten.
+
+## Dry and wet summers
+
+The twelve test summers include the drought of 2018, with a precipitation deficit of about 345 mm in Twente, the largest of the twelve, and 2019 and 2020 were dry too. Each season at a station was set against that station's own median under the same land use (`scripts/soil-noise/extremes.py`):
+
+- A dry summer pulls the number down a little: the stations' middle shift in a year follows that year's deficit (correlation -0.53 over the twelve summers). But 2018 moved it by only -0.04 and 2019 by -0.11, and the largest shift, +0.15, came in 2017, an ordinary summer.
+- About an eighth (13%) of the variation from one season to the next is shared by all stations in the same year, which is what the weather would do; the rest belongs to each field. That is also why taking off the neighbours did not help (below).
+- A field where nothing changed crossed the one-season threshold in 5 of 38 comparisons ending in one of the three driest or three wettest summers (13%), and in 3 of the 29 others (10%). At these numbers the difference can be chance.
+
+The rule counts only dry days, divides each by that day's evaporation and takes the season's median, so a heat wave or a wet spell is a few days among many, and a summer too wet for ten dry days gives no value rather than a wrong one. If summers keep getting more extreme, the thresholds are measured again on the same kind of data.
 
 ## What did not work
 
