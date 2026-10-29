@@ -38,11 +38,12 @@ class Mics(unittest.TestCase):
     def test_no_check_no_field(self):
         self.assertIsNone(self.beat("hourly"))
 
-    def test_a_new_day_once_and_every_window_end(self):
-        self.check("2026-10-30", 4)
-        self.assertEqual(self.beat("hourly")["n"], 4)      # the day's first check the oracle has not had
+    def test_sent_once_as_it_stands(self):
+        self.check("2026-11-01", 4)
+        self.assertEqual(self.beat("hourly")["n"], 4)      # a check the oracle has not had
         self.assertIsNone(self.beat("hourly"))              # not with every post: the SIM pays for each byte
-        self.check("2026-10-30", 40)
-        self.assertEqual(self.beat("shutdown")["n"], 40)   # the end of the window carries the day as it stands
-        self.check("2026-10-31", 3)
-        self.assertEqual(self.beat("hourly")["day"], "2026-10-31")
+        self.assertIsNone(self.beat("shutdown"))            # nor at every window's end in a week without a check
+        self.check("2026-11-01", 40)
+        self.assertEqual(self.beat("shutdown")["n"], 40)   # more readings of the same day: sent as it now stands
+        self.check("2026-11-08", 38)
+        self.assertEqual(self.beat("hourly")["day"], "2026-11-08")

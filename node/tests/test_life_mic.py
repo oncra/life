@@ -153,7 +153,7 @@ exit 0
                 f.rmdir() if f.is_dir() else f.unlink()
             d.rmdir()
 
-    def run(self, *args, on="1", mode="i2s", at=DAY, check="1"):
+    def run(self, *args, on="1", mode="i2s", at=DAY, check="1", check_day="sun"):
         # every path set here, also the ones with a default: other test files leave theirs in the environment
         env = {"LIFE_BATS": on, "BIRDNET_DIR": str(self.bng), "BIRDNET_CONFIG": str(self.bng / "config.yaml"),
                "BAT_MODEL_DIR": str(self.models), "LIFE_BATS_PROC": str(self.proc),
@@ -161,7 +161,7 @@ exit 0
                "LIFE_BIRD_MIC": mode, "LIFE_MIC_NOW": at, "NODE_LAT": "52.37", "NODE_LON": "4.90",
                "NODE_TZ": "Europe/Amsterdam", "LIFE_MIC_RESTART_CMD": f"sh -c 'echo restart >> {self.restarts}'",
                "LIFE_MIC_CHECK": check, "LIFE_STATE": str(self.state), "LIFE_MIC_METRICS": self.metrics.as_uri(),
-               "LIFE_MIC_SAMPLES": "1", "LIFE_MIC_SAMPLE_GAP_S": "0"}
+               "LIFE_MIC_SAMPLES": "1", "LIFE_MIC_SAMPLE_GAP_S": "0", "LIFE_MIC_CHECK_DAY": check_day}
         old = {k: os.environ.get(k) for k in env}
         os.environ.update(env)
         try:
@@ -520,6 +520,55 @@ class Witness(unittest.TestCase):
         self.assertIn("        soundlevel:\n            enabled: true\n", n.config)
         n.run("setup", mode="both", at=EVENING)
         self.assertIn("        soundlevel:\n            enabled: false\n", n.config)
+
+    # --- once a week ---
+
+    SUNDAY = "2026-10-25T12:00:00+01:00"
+
+    def learned(self, n):
+        n.state.mkdir(parents=True, exist_ok=True)
+        (n.state / "mic-checks.json").write_text(json.dumps({f"2026-10-0{d}": 40 for d in range(1, 6)}))
+
+    def test_once_learned_the_witness_listens_on_the_check_day_only(self):
+        n = self.node()
+        self.learned(n)
+        n.run("setup", mode="audiomoth", at=DAY)          # a Wednesday: the AudioMoth alone
+        c = n.config
+        self.assertNotIn("I2S witness", c)
+        self.assertIn("realtime:\n    interval: 15\n", c)
+        self.assertIn("        soundlevel:\n            enabled: false\n", c)
+        n.run("setup", mode="audiomoth", at=self.SUNDAY)  # the check day
+        c = n.config
+        self.assertIn("name: I2S witness", c)
+        self.assertIn("realtime:\n    interval: 0\n", c)
+        self.assertIn("        soundlevel:\n            enabled: true\n", c)
+
+    def test_the_check_day_can_be_another_day(self):
+        n = self.node()
+        self.learned(n)
+        n.run("setup", mode="audiomoth", at=DAY, check_day="wed")
+        self.assertIn("name: I2S witness", n.config)
+
+    def test_a_new_node_checks_every_day_until_it_has_five_good_check_days(self):
+        n = self.node()
+        n.state.mkdir(parents=True, exist_ok=True)
+        (n.state / "mic-checks.json").write_text(json.dumps({"2026-10-01": 40, "2026-10-02": 3, "2026-10-03": 40,
+                                                             "2026-10-04": 40, "2026-10-05": 40}))
+        n.run("setup", mode="audiomoth", at=DAY)          # four good days and one with three readings: still learning
+        self.assertIn("name: I2S witness", n.config)
+
+    def test_the_comparison_measures_every_day(self):
+        n = self.node()
+        self.learned(n)
+        n.run("setup", mode="both", at=DAY)
+        self.assertIn("        soundlevel:\n            enabled: true\n", n.config)
+
+    def test_levels_count_the_check_day(self):
+        n = self.node()
+        n.run("setup", mode="audiomoth", at=DAY)
+        self.page(n, 1)
+        n.run("levels", mode="audiomoth", at=DAY)
+        self.assertEqual(json.loads((n.state / "mic-checks.json").read_text()), {"2026-10-21": 1})
 
     # --- life-mic levels ---
 

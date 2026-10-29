@@ -33,8 +33,8 @@ Environment:
     LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait for a visit (`clipsWaiting`)
     LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
                         outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept); its mics.json
-                        is the microphones' check of the day (life-mic levels), sent as `mics` at the end of a window
-                        and with the first post that has a new day's check, so about 300 bytes once or twice a day
+                        is the microphones' check of the day (life-mic levels), sent as `mics` with the first post after
+                        it has changed: about 300 bytes a few times on a check day, once a week on a standard node
 """
 import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -269,8 +269,8 @@ def listening():
 
 
 def mics(event):
-    """The day's check of the two microphones (life-mic writes it), when it is due: at the end of a window, or when the
-    day has a check the oracle has not had yet."""
+    """The two microphones' check (life-mic writes it) when the oracle has not had it as it stands: a new check day, or
+    more readings of the same one. `event` is kept for the call; the check goes out on whichever post comes first."""
     state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
     try:
         d = json.loads((state / "mics.json").read_text())
@@ -281,10 +281,11 @@ def mics(event):
         last = sent.read_text().strip()
     except Exception:  # noqa: BLE001
         last = ""
-    if event != "shutdown" and last == str(d.get("day")):
+    mark = f"{d.get('day')} {d.get('n')}"
+    if last == mark:
         return None
     try:
-        sent.write_text(str(d.get("day")))
+        sent.write_text(mark)
     except Exception:  # noqa: BLE001
         pass
     return d
