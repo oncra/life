@@ -78,7 +78,7 @@ export default async function TriagePage() {
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Triage: was the detector right?</h1>
       <p className="mt-2 text-muted text-sm">
-        Clips a Life Node kept while it stood on the bench{allowed.length ? ` (${allowed.map((d) => d.place.name).join(", ")})` : ""}: per species up to five
+        Clips a Life Node kept while it stood on the bench{allowed.length ? <> ({allowed.map((d, i) => <span key={d.id}>{i ? ", " : ""}<Link href={`/places/${d.place.slug}/node`} className="underline">{d.place.name}</Link></span>)})</> : null}: per species up to five
         in each score band of 0.1, so the low scores are heard as well as the high ones. Listen, look at the spectrogram if it helps, and say whether
         it is the species named. Each clip starts a second before the detected part and stops a second after it, and every clip is
         brought to the same loudness, so the quieter microphone is heard as well as the louder one. Your verdicts set each species&apos; own
