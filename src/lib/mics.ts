@@ -1,15 +1,16 @@
 /**
  * The microphones' check. A standard node has two microphones: the AudioMoth, which hears its birds and bats, and the
  * I2S microphone beside it as a witness (node/life-mic.py). Both hear the same air, so the difference between their
- * sound levels in a 1/3 octave band is a fixed number on a healthy node. Each day the node sends the median of that
- * difference per band (`metrics.mics` on the heartbeat, AudioMoth minus I2S, dB). A covered port, water behind a
- * membrane or a failing microphone moves it; the weather, the season and the birds do not, because they reach both.
+ * sound levels in a 1/3 octave band is a fixed number on a healthy node. On its check day, once a week (every day for a
+ * new node's first five), the node sends the median of that difference per band (`metrics.mics` on the heartbeat,
+ * AudioMoth minus I2S, dB). A covered port, water behind a membrane or a failing microphone moves it; the weather, the
+ * season and the birds do not, because they reach both.
  *
- * A day is judged against the node's own earlier days: the median difference of each bird band over the last weeks.
+ * A check day is judged against the node's own earlier ones: the median difference of each bird band over ten weeks.
  * Two or more bird bands that moved MIC_DRIFT_DB the same way open a MIC alert, naming the microphone that now hears
  * less against the other; all bird bands back within MIC_OK_DB resolve it. A microphone that gave no levels at all
  * for a quarter of an hour in a day while the other did opens one too. A node is not judged before it has
- * MIC_MIN_DAYS days of at least MIC_MIN_N readings.
+ * MIC_MIN_DAYS check days of at least MIC_MIN_N readings.
  */
 
 export type MicDay = {
@@ -36,9 +37,9 @@ export type MicVerdict =
 
 export const MIC_DRIFT_DB = Number(process.env.MIC_DRIFT_DB ?? 6);
 export const MIC_OK_DB = Number(process.env.MIC_OK_DB ?? 3);
-export const MIC_MIN_DAYS = Number(process.env.MIC_MIN_DAYS ?? 5);
+export const MIC_MIN_DAYS = Number(process.env.MIC_MIN_DAYS ?? 4);
 export const MIC_MIN_N = Number(process.env.MIC_MIN_N ?? 10);
-export const MIC_HISTORY_DAYS = 28;
+export const MIC_HISTORY_DAYS = 70;  // about ten weekly check days
 /** The bands birds sing in; the check is read there, where both microphones have sound to compare. */
 export const BIRD_BANDS = [1000, 2000, 4000, 8000];
 

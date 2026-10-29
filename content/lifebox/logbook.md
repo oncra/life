@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 29 October 2026
 
+### Once a week is enough
+
+*Change.* The two microphones are now compared once a week, on Sunday, instead of every day. The I2S microphone listens beside the AudioMoth only on that day, through the dawn window, and the sound levels are read only then; on the other six days the AudioMoth listens alone. A new node checks every day until it has five check days, so the oracle has its baseline within a week, and after that each check is judged against the node's own earlier ones. Every day was more than the check needs: a port with a web in it cannot be cleared within the day anyway, and a second bird model through every dawn costs processor time and energy. If the AudioMoth is gone, the node still falls back to the I2S microphone on any day of the week. The status report carries the check only when it has changed, so most posts carry nothing extra over the SIM. [#135](https://github.com/oncra/life/pull/135)
+
 ### Two microphones that watch each other
 
 *Change.* The node keeps both microphones. The AudioMoth now hears the birds as well as the bats, and the soldered I2S microphone stays beside it as its witness: by day it runs the bird model too, its detections stored as test, and BirdNET-Go measures both microphones' sound in 1/3 octave bands. They hear the same air, so the difference between them is a fixed number on a healthy node: on node 1 the AudioMoth reads 35 to 37 dB higher in every bird band. A covered port, water behind a membrane or a failing microphone moves that number, and the oracle now raises a MIC alert when it moves 6 dB in two bird bands against the node's own last weeks, or when one microphone gives no sound at all. If the AudioMoth fails, the witness still hears the birds. It costs a few euros, a second hole and the processor time of a second bird model by day; at night it steps aside for the bat model. [#134](https://github.com/oncra/life/pull/134)

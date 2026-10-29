@@ -9,10 +9,11 @@
 
 Three ways to listen, chosen with LIFE_BIRD_MIC:
 - `audiomoth` (the default since 29 October 2026): the AudioMoth hears the birds, in one source "AudioMoth" that runs
-  the bird models and adds the bat model from BAT_LEAD_MIN minutes before sunset until just before civil dawn. By day
-  the I2S microphone listens beside it as its witness, a source "I2S witness" with BirdNET alone, whose detections
-  life-push always sends as test: it is the check on the AudioMoth (`levels`, below) and the node's ears when the
-  AudioMoth fails. At night the witness is taken out, because the bat model leaves the processor no room for it;
+  the bird models and adds the bat model from BAT_LEAD_MIN minutes before sunset until just before civil dawn. On the
+  check day, once a week (LIFE_MIC_CHECK_DAY, Sunday), the I2S microphone listens beside it by day as its witness, a
+  source "I2S witness" with BirdNET alone, whose detections life-push always sends as test: the check on the AudioMoth
+  (`levels`, below). The first five check days of a node come one a day, so the oracle has its baseline within a week.
+  On the other days the AudioMoth listens alone, and if it is gone the node falls back to the I2S microphone anyway;
 - `i2s`: birds on the I2S microphone, and the AudioMoth as the bat microphone only, a second source "Bat microphone"
   with the bat model alone, there from BAT_LEAD_MIN minutes before sunset until just before civil dawn and taken out by
   day;
@@ -31,14 +32,17 @@ microphone kept quiet by day would have silenced the bird microphone through the
 come and go with the sun instead.
 
 The check. The two microphones hear the same air, so the difference between their sound levels in each band is a fixed
-number on a healthy node; a covered port, water behind a membrane or a failing microphone moves it. By day, while two
-microphones listen, BirdNET-Go measures every source in 1/3 octave bands (realtime.audio.soundlevel; off at night, where
+number on a healthy node; a covered port, water behind a membrane or a failing microphone moves it. Once a week is enough
+to find that: nobody can go and clear a port within the day anyway, and a second bird model running through every dawn
+would cost a summer node, by our estimate (not measured), half a watt-hour to a watt-hour a day. While two microphones listen by day (the check day in mode audiomoth, every
+day in mode both), BirdNET-Go measures every source in 1/3 octave bands (realtime.audio.soundlevel; off at night, where
 the bat model needs the processor) and shows the levels on its own metrics page (realtime.telemetry, 127.0.0.1:9090,
-which only the node itself can reach). `levels` reads both microphones there four times, ten seconds apart, keeps the
-day's readings in LIFE_STATE/mic-levels/ for three days, and writes the day's medians per band to LIFE_STATE/mics.json:
-the difference between the two (AudioMoth minus I2S), each one's level and each one's floor. The heartbeat carries that
-file to the oracle once a day and at the end of every window, and the oracle compares the difference with the node's own
-last weeks (MIC alert, src/lib/mics.ts). BirdNET-Go names a sound card source audio_card_ and the first eight hex digits
+which only the node itself can reach). `sync`, which the timer runs every five minutes while the node is awake, then
+runs `levels`: it reads both microphones there four times, ten seconds apart (a few tenths of a second of processor),
+keeps the day's readings in LIFE_STATE/mic-levels/ for three days, and writes the day's medians per band to
+LIFE_STATE/mics.json: the difference between the two (AudioMoth minus I2S), each one's level and each one's floor. The
+heartbeat carries that file to the oracle when it has changed, and the oracle compares the difference with the node's
+own earlier check days (MIC alert, src/lib/mics.ts). LIFE_STATE/mic-checks.json counts the check days a node has had. BirdNET-Go names a sound card source audio_card_ and the first eight hex digits
 of the SHA-256 of its device string (internal/audiocore/source_registry.go), which is how `levels` tells the two apart.
 
 Why one source and not two on the AudioMoth: BirdNET-Go refuses two sources on one device, and its own
@@ -71,7 +75,8 @@ env: LIFE_BIRD_MIC (audiomoth | i2s | both), LIFE_BATS (1; 0 takes the bats out)
      BAT_MODEL_DIR (/data/birdnet-go/models/bat), AUDIOMOTH_CMD (/usr/local/bin/AudioMoth-USB-Microphone),
      BIRDNET_DIR (/data/birdnet-go), BIRDNET_CONFIG, LIFE_MIC_RESTART_CMD (systemctl try-restart birdnet-go.service),
      LIFE_MIC_NOW (an ISO time, for tests), LIFE_BATS_PROC (/proc), LIFE_BATS_SYS (/sys), LIFE_BATS_WAIT_S (20),
-     LIFE_MIC_CHECK (1; 0 leaves out the witness and the levels), LIFE_STATE (/data/life-node),
+     LIFE_MIC_CHECK (1; 0 leaves out the witness and the levels), LIFE_MIC_CHECK_DAY (sun; mon to sun),
+     LIFE_STATE (/data/life-node),
      LIFE_MIC_METRICS (http://127.0.0.1:9090/metrics), LIFE_MIC_SAMPLES (4), LIFE_MIC_SAMPLE_GAP_S (10)
 """
 import hashlib
@@ -122,6 +127,12 @@ SAMPLES = int(os.environ.get("LIFE_MIC_SAMPLES") or 4)
 SAMPLE_GAP_S = float(os.environ.get("LIFE_MIC_SAMPLE_GAP_S") or 10)
 BANDS = (250, 500, 1000, 2000, 4000, 8000, 12500)  # 1/3 octave bands, Hz: the bird bands and one below and above
 MISSING_RUNS = 3  # a microphone absent from this many runs of a day (15 minutes) is reported missing
+CHECKS = STATE / "mic-checks.json"  # check day -> readings: a node's first LEARN_DAYS good ones come one a day
+LEARN_DAYS = 5     # check days with at least GOOD_READINGS before the check goes weekly (the oracle's baseline)
+GOOD_READINGS = 10
+WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+_day = (os.environ.get("LIFE_MIC_CHECK_DAY") or "sun").strip().lower()[:3]
+CHECK_DAY = WEEKDAYS.index(_day) if _day in WEEKDAYS else 6
 MIN_RATE = 96000  # BirdNET-Go's floor for its bat model
 BIRD_RATE = 48000  # what the bird model listens at; below it the AudioMoth is no bird microphone either
 PAUSE = 15  # BirdNET-Go's own realtime.interval: seconds between two saved detections of one species, all sources
@@ -171,6 +182,18 @@ def bat_time(t: datetime) -> bool:
 
 
 # --- the hardware ---
+
+def check_day(t: datetime) -> bool:
+    """Whether the witness listens and the levels are read today: on the weekly check day, and every day until the node
+    has had LEARN_DAYS good check days."""
+    if t.astimezone(TZ).weekday() == CHECK_DAY:
+        return True
+    try:
+        done = json.loads(CHECKS.read_text())
+    except (OSError, ValueError):
+        done = {}
+    return sum(1 for n in done.values() if isinstance(n, int) and n >= GOOD_READINGS) < LEARN_DAYS
+
 
 def usb_state() -> str | None:
     """'mic' when the microphone is plugged in (whatever ALSA has made of it yet), 'switch' when an AudioMoth is
@@ -415,9 +438,10 @@ def model_files() -> dict | None:
 
 def configure(text: str, card: int | None, rate: int | None, files: dict | None, bird: int | None = None,
               moth: int | None = None, recording: set[int] | None = None, mode: str = "i2s",
-              night: bool = False) -> tuple[str, list[str]]:
+              night: bool = False, check: bool = True) -> tuple[str, list[str]]:
     """BirdNET-Go's config for the mode. `card` and `rate` are the AudioMoth's when it can be used (else None),
-    `files` the bat model's (None leaves the bats out), `bird` the I2S card, `night` whether it is bat time.
+    `files` the bat model's (None leaves the bats out), `bird` the I2S card, `night` whether it is bat time, `check`
+    whether today is a check day.
     Returns (text, changes)."""
     lines, did = text.split("\n"), []
     usable = card is not None and rate is not None
@@ -454,8 +478,8 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
             did.append("models.enabled - bat")
     birds = [m for m in enabled if m != "bat"] or ["birdnet"]
     first = "birdnet" if "birdnet" in birds else birds[0]
-    # the I2S microphone as the AudioMoth's witness: by day in mode audiomoth, with the check on and its card known
-    witness = mode == "audiomoth" and moth_birds and CHECK and not night and bird is not None
+    # the I2S microphone as the AudioMoth's witness: by day on a check day in mode audiomoth, its card known
+    witness = mode == "audiomoth" and moth_birds and CHECK and check and not night and bird is not None
 
     # one pause per species for every source together: two microphones on the bird model would take each other's
     # detections, so while two listen for birds each keeps its own (pause 0), and BirdNET-Go's 15 s comes back after;
@@ -674,6 +698,12 @@ def sample(samples: int = SAMPLES, gap: float = SAMPLE_GAP_S) -> int:
             absent[r] = absent.get(r, 0) + 1
     state_f.write_text(json.dumps({"updates": last, "absent": absent}))
     summary = summarize(day, sorted(r for r, n in absent.items() if n >= MISSING_RUNS))
+    try:
+        done = json.loads(CHECKS.read_text())
+    except (OSError, ValueError):
+        done = {}
+    done[day] = summary["n"]
+    CHECKS.write_text(json.dumps(dict(sorted(done.items())[-60:])) + "\n")
     for old in LEVELS.glob("*"):
         if old.name[:10] < (now().astimezone(TZ).date() - timedelta(days=3)).isoformat():
             old.unlink(missing_ok=True)
@@ -727,7 +757,7 @@ def apply(wait: bool) -> bool:
     card, rate, files, bird, moth, recording = look(wait)
     night = bat_time(now())
     text = CONFIG.read_text()
-    new, did = configure(text, card, rate, files, bird, moth, recording, MODE, night)
+    new, did = configure(text, card, rate, files, bird, moth, recording, MODE, night, check_day(now()))
     if new != text:
         tmp = CONFIG.with_suffix(".yaml.life-mic")
         tmp.write_text(new)

@@ -9,8 +9,8 @@ const week = ["2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-0
   day(d, usual.map((v) => v + (k % 2 ? 0.8 : -0.6))));
 const moved = (by: Record<number, number>) => usual.map((v, k) => v + (by[bands[k]] ?? 0));
 
-// a new node is learning until it has five days of at least ten readings
-assert.deepEqual(micVerdict(week.slice(0, 4), day("2026-11-07", usual)), { state: "learning", days: 4 });
+// a new node is learning until it has four check days of at least ten readings
+assert.deepEqual(micVerdict(week.slice(0, 3), day("2026-11-07", usual)), { state: "learning", days: 3 });
 assert.equal(micVerdict(week, day("2026-11-07", usual, 6)).state, "learning");
 
 // a healthy day: every bird band within 3 dB of the node's own median
