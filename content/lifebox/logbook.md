@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 29 October 2026
 
+### Where the box stands decides what the probes read
+
+*Change.* The guide sent the box to the edge of a field or a path, where machines do not drive, with the probes 1.5 m south of the post. That keeps the post safe, but then the probes read the edge, and the water loop reads whatever grows right above them: on the Twente network it gives about 0.6 under permanent grass and about 0.4 under maize. A strip that is not sown, driven or mown like the field grows its own plants and reads as a place of its own. We had counted the post itself as the bias (the panel's drip line and the trampled ground, all under a metre); the larger one is how the spot is managed. The guide now starts from the part of the place the box speaks for, and [the soil probe protocol](../install-soil.md) has the four steps and a table per kind of land.
+
+*Learning.* Dry and wet summers move the soil number less than the field itself does. At Twente stations where nothing changed, about an eighth of the variation from one season to the next was shared by all stations in the same year, which is what the weather would do, and the drought of 2018 shifted their middle value by only 0.04. In the three driest and three wettest summers a field where nothing changed crossed the threshold 5 times in 38, against 3 in 29 in the others. Details on [the soil's water loop](../soil-water.md). [#136](https://github.com/oncra/life/pull/136)
+
 ### Once a week is enough
 
 *Change.* The two microphones are now compared once a week, on Sunday, instead of every day. The I2S microphone listens beside the AudioMoth only on that day, through the dawn window, and the sound levels are read only then; on the other six days the AudioMoth listens alone. A new node checks every day until it has five check days, so the oracle has its baseline within a week, and after that each check is judged against the node's own earlier ones. Every day was more than the check needs: a port with a web in it cannot be cleared within the day anyway, and a second bird model through every dawn costs processor time and energy. If the AudioMoth is gone, the node still falls back to the I2S microphone on any day of the week. The status report carries the check only when it has changed, so most posts carry nothing extra over the SIM. [#135](https://github.com/oncra/life/pull/135)

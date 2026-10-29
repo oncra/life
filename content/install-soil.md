@@ -1,6 +1,6 @@
 ---
 title: "Installation protocol: soil probe"
-summary: "Depth, position, backfill and marking for moisture and temperature probes, wiring them into the node, and the LoRaWAN join for probes that stand alone."
+summary: "Choosing the spot, depth, backfill and marking for moisture and temperature probes, wiring them into the node, and the LoRaWAN join for probes that stand alone."
 order: 10
 ---
 
@@ -8,9 +8,24 @@ order: 10
 
 ## Where
 
-- **Representative spot**, not the wettest corner, not the field gate: away from ditches, drains, gateways and tramlines. With a [node](kit.md) the probes sit **1.5 m south of the post** on their own 2 m leads, so the post itself has to stand somewhere representative. South because the panel's shadow always falls north. The bias sources are all sub-metre: a drip line reaches 0.3 to 0.5 m, the disturbed ground round a driven post 0.2 to 0.3 m.
-- One probe per field at **10 cm**. For deep-rooting crops (maize, miscanthus, trees) add a second at **30 cm**. Register each as its own device with its `depthCm`.
-- Note the position to a metre (phone GPS) and mark it: a short stake 30 cm away, or a buried magnet plus a note in the field map, so machinery does not hit it and you can find it in five years.
+The probes read the soil under the plants right above them, and the water loop reads what the roots of those plants do ([the soil's water loop](soil-water.md)). So the spot decides what the reading is about. Choose it in four steps.
+
+1. **Decide what the node speaks for.** One part of the place: the meadow, the field, a tree row, the alley between two rows, the shrub layer of a food forest, the margin. One node speaks for one part; another part that matters needs its own node. Write the part in the device notes, because the reading says nothing about the parts it does not stand in.
+2. **Pick a typical spot on the map, before going out.** Inside that part: its most common soil type (the national soil map; SoilGrids elsewhere), not in a hollow or on a ridge (the AHN height map in the Netherlands, a contour map elsewhere), and a spot that looks like the rest of the part on aerial photos of several years, not wetter, barer or greener. Away from ditches, drains, gateways, tramlines and headlands, and about a tree height from a hedge or tree line, unless the part is that tree line. The panel needs its winter sun ([the kit](kit.md)); if the probe spot is shaded, the panel can stand a few metres away on a longer solar cable, the probes cannot.
+3. **Check it on the spot.** The plants there are the plants of the part, the same grass, crop or herb layer, with no bare patch, rut, old track or wet hollow. The soil in the pit looks like the soil around it, without rubble or a drain.
+4. **Agree how it is managed.** The farmer mows, grazes, sows and harvests over the probes as over the rest; only the post is in the way. A ring that is left alone grows its own plants, and the reading follows the ring: on the Twente network the water loop gives about 0.6 under permanent grass and about 0.4 under maize, so weeds round a post in a maize field would read more like grass than like maize.
+
+With a [node](kit.md) both probes sit at one spot, at **10 and 30 cm** (the water loop reads the top 40 cm as two layers), **1.5 m south of the post** on their own 2 m leads. South because the panel's shadow always falls north; along a tree row running east to west, east or west of the post will do when south leads out of the part. The disturbances of the post itself are all under a metre: a drip line reaches 0.3 to 0.5 m, the disturbed ground round a driven post 0.2 to 0.3 m. Register each probe as its own device with its `depthCm`.
+
+| Land | Where the node stands | What the reading speaks for |
+| --- | --- | --- |
+| Permanent grass | inside the field at a typical spot; machines pass the post | the field |
+| Agroforestry | in a tree row | the row and its edge; the middle of an alley is out of reach of 2 m leads |
+| Food forest | under its most common cover, not on a path | that cover |
+| Orchard | in the grass between two rows, or in the tree strip | the strip chosen |
+| Ploughed arable | at the field edge, or lifted before ploughing and put back | the edge; or a new series every year ([kit](kit.md)) |
+
+Note the position to a metre (phone GPS), take a photo of the spot looking north, and mark it: a short stake 30 cm away, or a buried magnet plus a note in the field map, so machinery does not hit it and you can find it in five years.
 
 ## How
 
