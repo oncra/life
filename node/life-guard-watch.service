@@ -1,0 +1,12 @@
+[Unit]
+Description=Life node: tamper guard watcher (a contact opened while the Pi is already up is checked at once, not at the next push)
+After=life-guard.service network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-guard watch
+Restart=on-failure
+RestartSec=10
+[Install]
+WantedBy=multi-user.target

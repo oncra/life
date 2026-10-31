@@ -9,7 +9,8 @@
  *   SIREN          -> continuous for 20 min, then a chirp every 5 s until disarmed (a beeping box, not a flat battery)
  *   DISARM pulse from the Pi (only ever sent after the oracle confirmed a maintenance window, or the node holds a
  *                  cached one): 0.1 to 1.5 s -> BYPASS 4 h; 2 s or longer -> BYPASS 24 h; two pulses within 1 s -> re-arm
- *   BYPASS         -> silent, green LED blink; at expiry re-arm, but only once every contact is closed (WAIT_CLOSE)
+ *   BYPASS         -> silent, a 50 ms green flash every 8 s; at expiry re-arm, but only once every contact is closed
+ *                     (WAIT_CLOSE, a double flash)
  *
  * To the Pi: ALARM (high in ENTRY/SIREN/CHIRP), LOOP_A/LOOP_B (00 none, 01 lid, 10 panel, 11 tilt; held until re-arm).
  * Those three lines double as the ISP lines, so the Pi programs the guard in circuit (node/firmware/life-guard/flash.sh).
@@ -50,7 +51,6 @@ Loop lastLoop = NONE;
 uint32_t stateSince = 0;     // millis() at entry into the state
 uint32_t bypassLeftS = 0;    // counted down in 8 s watchdog ticks
 uint32_t lastChirp = 0;
-uint32_t lastDisarmEdge = 0; // for the double pulse
 
 ISR(PCINT0_vect) { woke = true; }
 ISR(WDT_vect) { woke = true; }
@@ -85,16 +85,26 @@ static void enter(State s) {
   if (s == ARMED) { lastLoop = NONE; showLoop(NONE); digitalWrite(PIN_LED, LOW); }
 }
 
-/* DISARM: measure the pulse the Pi holds high. Returns 0 (none), 1 (short), 2 (long), 3 (double = re-arm). */
-static uint8_t readDisarm() {
-  if (digitalRead(PIN_DISARM) != HIGH) return 0;
+static uint32_t pulseLen() {
   uint32_t t0 = millis();
   while (digitalRead(PIN_DISARM) == HIGH && millis() - t0 < 5000) delay(5);
-  uint32_t len = millis() - t0;
+  return millis() - t0;
+}
+
+/* DISARM: measure the pulse the Pi holds high. Returns 0 (none), 1 (short), 2 (long), 3 (double = re-arm).
+ * The second pulse of a double is waited for awake, straight after the first: millis() stands still in power-down
+ * sleep, so a time stamp kept across a sleep made two pulses minutes apart (the boot check's and the push's, in
+ * the same short window) look like a double, and re-armed the guard the steward had just disarmed. */
+static uint8_t readDisarm() {
+  if (digitalRead(PIN_DISARM) != HIGH) return 0;
+  uint32_t len = pulseLen();
   if (len < 60) return 0;                                   // noise
   uint8_t kind = len >= 2000 ? 2 : 1;
-  if (millis() - lastDisarmEdge < 1000) kind = 3;           // second pulse within a second
-  lastDisarmEdge = millis();
+  uint32_t t1 = millis();
+  while (millis() - t1 < 1000) {                            // a second pulse within a second: re-arm
+    if (digitalRead(PIN_DISARM) == HIGH && pulseLen() >= 60) return 3;
+    delay(5);
+  }
   return kind;
 }
 
@@ -165,7 +175,7 @@ void loop() {
     case BYPASS: {
       uint8_t d = readDisarm();
       if (d) { applyDisarm(d); break; }
-      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+      digitalWrite(PIN_LED, HIGH); delay(50); digitalWrite(PIN_LED, LOW);  // 50 ms: a 10 ms flash is lost in daylight
       if (bypassLeftS <= 8) { enter(openLoop() == NONE ? ARMED : WAIT_CLOSE); break; }
       bypassLeftS -= 8;
       sleepNow(true);
@@ -175,8 +185,8 @@ void loop() {
       uint8_t d = readDisarm();
       if (d) { applyDisarm(d); break; }
       if (openLoop() == NONE) { delay(5000); if (openLoop() == NONE) { enter(ARMED); break; } }
-      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW); delay(150);
-      digitalWrite(PIN_LED, HIGH); delay(10); digitalWrite(PIN_LED, LOW);
+      digitalWrite(PIN_LED, HIGH); delay(40); digitalWrite(PIN_LED, LOW); delay(150);
+      digitalWrite(PIN_LED, HIGH); delay(40); digitalWrite(PIN_LED, LOW);
       sleepNow(true);
       break;
     }

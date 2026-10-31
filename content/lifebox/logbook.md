@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 31 October 2026
+
+### The guard would have failed before anyone touched it
+
+*Learning.* The tamper guard's parts are in a bag and none has been built yet, so before the first one is soldered we read every step of it against the system it will run on. Three things would have gone wrong. The flashing script could not have worked: the node runs Debian 13, whose avrdude (7.1) drives the Pi's pins through an old kernel interface that numbers them from 512 on current kernels, and that avrdude refuses any pin number above 400. The guard's reset line was wired straight to the Pi, and a Pi that is switched off can pull that line low through its protection diodes: the guard would have been held in reset while the Pi sleeps, which is most of the day. And the guard's clock stands still while it sleeps, so two disarm pulses minutes apart, one at boot and one with the first message, could look like the quick double pulse that means *arm again*: a steward with a short maintenance window would have been re-armed three minutes after the light went green.
+
+*Change.* The guard is now flashed through the Pi's SPI bus, switched on for that minute only. The reset lead is on the guard only while flashing and parked on a dead pin after. The guard waits for the second pulse of a double while it is awake, and the Pi never sends two pulses within a second and a half by accident. With the Pi already up in a listening window, which the guard cannot signal, a watcher on the Pi now runs the same check as an alarm boot the moment the guard alarms, instead of leaving it to the next message hours later. The green light flashes for 50 ms instead of 10, which daylight would have swallowed. And the guard draws about 10 µA asleep, not under 1: the pull-ups of the three closed contacts take most of it, still well under 0.01 Wh a day. [#137](https://github.com/oncra/life/pull/137)
+
 ## 29 October 2026
 
 ### Where the box stands decides what the probes read
