@@ -58,7 +58,7 @@ def pulse(seconds, times=1):
             last = float(f.read().strip() or 0)
         except ValueError:
             last = 0.0
-        wait = last + GAP_S - time.time()
+        wait = min(GAP_S, last + GAP_S - time.monotonic())  # monotonic: an NTP step must not hold a disarm back
         if wait > 0:
             time.sleep(wait)
         for i in range(times):
@@ -69,7 +69,7 @@ def pulse(seconds, times=1):
             subprocess.run(["pinctrl", "set", str(PIN["DISARM"]), "dl"], check=True)
         f.seek(0)
         f.truncate()
-        f.write(str(time.time()))
+        f.write(str(time.monotonic()))  # /run is cleared at boot, and monotonic time is one clock for every process
 
 
 def status():
