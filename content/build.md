@@ -106,7 +106,7 @@ Gate for stage 1: both probes answer on their own addresses, one detection and t
 
 **2.3 Brown-out and recovery.** Pull the supply mid-cycle, three times. The node must come back on its own with no card corruption and no lost queue. Coming back on its own depends on the Witty Pi's **default ON** setting, which the image sets at every boot (`life-wittypi`); from the factory the board waits for a press on its K1 button. This is the single most likely field failure and it is trivial to test on a desk.
 
-**2.4 Twenty-four hours unattended**, with the meter logging. Compare against the modelled 54.6 Wh/day summer and 9.6 Wh/day winter, including the roughly 4.6 Wh/day parasitic floor from the charge controller's own consumption. A measurement more than about 20 percent above the model means the kit page's energy section is wrong and gets corrected, not explained.
+**2.4 Twenty-four hours unattended**, with the meter logging. Compare against the modelled 25 Wh/day summer and 11 Wh/day winter, including the roughly 4.6 Wh/day parasitic floor from the charge controller's own consumption. A measurement more than about 20 percent above the model means the kit page's energy section is wrong and gets corrected, not explained.
 
 Gate: three unattended cycles completed, and a measured Wh/day in the log.
 
@@ -162,8 +162,8 @@ Everything in this column is currently a model. That is the only reason to build
 | Claim | Modelled | Measured by |
 | :-- | :-- | :-- |
 | awake power | about 5 W | stage 1.2 |
-| summer energy | 54.6 Wh/day | stage 2.4 |
-| winter energy | 9.6 Wh/day | stage 2.4, extrapolated from the one hour schedule |
+| summer energy | 25 Wh/day | stage 2.4 |
+| winter energy | 11 Wh/day | stage 2.4 |
 | parasitic floor | 4.6 Wh/day | stage 2.4, node powered down |
 | SIM budget | 500 MB lasts 9.7 years at hourly batches | stage 1.6 |
 | 4G through a plastic wall | adequate | stage 3.6 |

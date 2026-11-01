@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 1 November 2026
+
+### Three days of harvest with nothing to feed
+
+*Learning.* From 30 October to 1 November node 1 ran on its adapter, so the battery took only what the panel gave: 28, 11 and 35 Wh. Those are the first clean days of harvest, and we had expected about 56 Wh a day for November. KNMI measured 5.6 hours of sun at Schiphol on 30 October, a day on which a free panel would have given about 100 Wh; ours gave 28. On 20 October, the sunniest day of the month, it gave 7 of a possible 165. No hour reached more than 7 W of the panel's 40, so the bench spot gets the sky's light and not the sun, and a bright cloudy day can beat a clear one. The draw held: in the heartbeats from the middle of the dawn window the node takes 3.1 W, so a winter day is about 12 Wh against the 11 we had planned. The post three minutes after boot reads 5.5 W, and a mean over all the posts had first made it look like 4.
+
+*Change.* The bench log has the harvest and the draw, and a new row for what is still missing: a full day's load on the battery. The kit page now says what a site needs: open sky to the south down to about 10 degrees, where the December sun stands from 10:30 to 14:30. The check behind that sentence runs ten real winters on KNMI's measurements (`kit/winter-energy.py`). [#138](https://github.com/oncra/life/pull/138)
+
 ## 31 October 2026
 
 ### The guard would have failed before anyone touched it
