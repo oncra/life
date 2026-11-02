@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 2 November 2026
+
+### The panel lies flat, and the house stands in the way
+
+*Learning.* Yesterday's entry blamed the spot alone. Since the last days of October the panel has been lying flat on a shed roof about 3 m up, 8.6 m from the back wall of a three-storey house to the south-west whose ridge stands 8.8 m high. From the panel that house puts the skyline at 24 degrees to the south and 28 to the south-west; to the south-east, where the gardens leave a gap, it drops to 6 to 13 degrees. We read the skyline off AHN's 0.5 m surface model. The sun clears it on a November morning, from mid-November to the end of January only for short spells in the morning, and not at all around the shortest day, when it stands 14 degrees high at noon. Lying flat costs about as much as the house: a free panel lying flat harvests 17 Wh a day in December, against 29 at 40 degrees. On 30 October a flat panel behind this skyline should have given 46 Wh, and it gave 28. The calculation puts the sun over the roof from half past eight to one, with 12 Wh in the hour after noon, but the app's hourly bars stay at 4 to 5 Wh from ten to three. Either the midday sun did not reach the panel, or Amsterdam-Noord had more cloud than Schiphol that day. The days KNMI has not published yet will show which.
+
+*Change.* `kit/winter-energy.py` now takes a skyline and a tilt and runs the ten winters behind them. For this shed and a flat panel it gives about 22 Wh a day in November, 11 in December, 16 in January and 39 in February, against a winter day of 12 Wh. The script also stopped keeping KNMI's answer for a day that has not been published yet, which had held 31 October and 1 November at zero. The bench log and the kit page now give the panel's real position. [#139](https://github.com/oncra/life/pull/139)
+
 ## 1 November 2026
 
 ### Three days of harvest with nothing to feed
