@@ -5,6 +5,7 @@ import { micText, micVerdict, MIC_HISTORY_DAYS, type MicDay } from "./mics";
 import { batchesReceived } from "./grant";
 import { visitFor } from "./node-visit";
 import { NIGHT_SELECT, nightFor } from "./node-night";
+import { configFor } from "./node-config";
 
 /**
  * Node liveness and theft, without hardware.
@@ -155,13 +156,14 @@ export function maintenanceOut(d: { maintenanceFrom: Date | null; maintenanceUnt
 
 /** Store a heartbeat, keep the device's cell and home cell, open or resolve alerts. The answer also carries the
  * visit settings and the meadow-bird window when the node's are out of date (`visit`, src/lib/node-visit.ts; `night`,
- * src/lib/node-night.ts) and the laptop batches the oracle now has in full (`clipsReceived`, src/lib/grant.ts), so the
- * node can delete those clips. */
+ * src/lib/node-night.ts), the laptop batches the oracle now has in full (`clipsReceived`, src/lib/grant.ts), so the
+ * node can delete those clips, and the settings over the air when the node runs others (`config`,
+ * src/lib/node-config.ts). */
 export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   const ts = hb.ts ? new Date(hb.ts) : new Date();
   const dev = await prisma.device.findUniqueOrThrow({
     where: { id: deviceId },
-    select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true, visitSsid: true, visitPsk: true, visitApPsk: true, visitRev: true, ...NIGHT_SELECT },
+    select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true, visitSsid: true, visitPsk: true, visitApPsk: true, visitRev: true, ...NIGHT_SELECT, config: true, configN: true },
   });
   await prisma.heartbeat.create({ data: { deviceId, ts, event: hb.event, cell: hb.cell as object | undefined, metrics: hb.metrics as object | undefined } });
   const key = cellKey(hb.cell);
@@ -195,6 +197,7 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   const mic = mics && typeof mics === "object" && !Array.isArray(mics) ? await checkMics(deviceId, mics as MicDay) : null;
   const visit = await visitFor(deviceId, dev, hb.metrics?.visitRev);
   const night = nightFor(dev, hb.metrics?.nightRev);
+  const config = configFor(dev, hb.metrics);
   const handed = hb.metrics?.clipsHanded;
   const clipsReceived = typeof handed === "string" && handed ? await batchesReceived(deviceId, handed) : [];
   if (process.env.CHECKIN_WEBHOOK_URL) {
@@ -206,7 +209,7 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   }
   return {
     recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, mic: mic !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance,
-    ...(visit ? { visit } : {}), ...(night ? { night } : {}), ...(clipsReceived.length ? { clipsReceived } : {}),
+    ...(visit ? { visit } : {}), ...(night ? { night } : {}), ...(clipsReceived.length ? { clipsReceived } : {}), ...(config ? { config } : {}),
   };
 }
 

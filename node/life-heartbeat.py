@@ -36,6 +36,10 @@ Environment:
                         outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept); its mics.json
                         is the microphones' check of the day (life-mic levels), sent as `mics` with the first post after
                         it has changed: about 300 bytes a few times on a check day, once a week on a standard node
+    LIFE_CONFIG_BIN     default /usr/local/bin/life-config: the settings the node took from the oracle over the air
+                        (`cfgRev`, 8 characters on every post; on trial, refused or left out when so), and after a change
+                        the settings it now runs (`settings`, once, about 400 bytes): the oracle sends new ones only when
+                        the rev it hears is not its own
 """
 import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -328,6 +332,20 @@ def mics(event):
     return d
 
 
+def config():
+    """What life-config reports: the rev of the settings the node runs, and after a change the settings themselves.
+    Nothing on a node without life-config, so the oracle sends such a node none."""
+    exe = os.environ.get("LIFE_CONFIG_BIN", "/usr/local/bin/life-config")
+    if not Path(exe).exists():
+        return {}
+    try:
+        out = json.loads(subprocess.run([exe, "report"], capture_output=True, text=True, timeout=20, check=True).stdout)
+        return out if isinstance(out, dict) else {}
+    except Exception as e:  # noqa: BLE001 - a missing report must not hold the heartbeat back
+        print(f"config: {e}", file=sys.stderr)
+        return {}
+
+
 def guard():
     """What the alarm reports, when a board is fitted (GUARD=simple or GUARD=1); see life-guard.py."""
     if os.environ.get("GUARD", "0") not in ("1", "simple"):
@@ -344,6 +362,7 @@ def build(event):
     m = mics(event)
     if m:
         hb["metrics"]["mics"] = m
+    hb["metrics"].update(config())
     g = guard()
     if g and g.get("enabled"):
         hb["metrics"]["guardAlarm"] = bool(g.get("alarm"))
