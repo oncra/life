@@ -10,6 +10,7 @@
     "worker": "tsx scripts/worker.ts",
     "sat:test": "tsx scripts/sat-test.ts",
     "mics:test": "tsx scripts/mics-test.ts",
+    "clips:test": "tsx scripts/clips-test.ts",
     "db:migrate": "prisma migrate deploy",
     "check:links": "node scripts/check-links.mjs"
   },

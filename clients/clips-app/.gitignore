@@ -1,0 +1,4 @@
+# what go build leaves here, and the release files
+/clips-app
+/clips-app.exe
+/dist/

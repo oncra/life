@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Life Clips</title>
+<style>
+  :root {
+    --bg: #f4f3ee; --card: #ffffff; --ink: #1c211e; --soft: #5b645f; --line: #dcdfd8;
+    --accent: #2c6a43; --on-accent: #ffffff; --track: #e6e9e3;
+    --warn: #8a5800; --bad: #a12a22;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111513; --card: #1a1f1c; --ink: #e6ebe8; --soft: #9aa49f; --line: #2b322e;
+      --accent: #74c08f; --on-accent: #0c140f; --track: #28302b;
+      --warn: #e3b55f; --bad: #f08b82;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; }
+  header p { margin: .25rem 0 0; color: var(--soft); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; margin-top: 1rem; }
+  h2 { font-size: 1.1rem; margin: 0 0 .5rem; display: flex; align-items: center; gap: .6rem; }
+  .n { display: inline-grid; place-items: center; flex: none; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent); font-size: .9rem; font-weight: 600; }
+  .hint { color: var(--soft); margin: 0 0 .8rem; font-size: .95rem; }
+  label { display: block; font-size: .9rem; color: var(--soft); margin-bottom: .7rem; }
+  input { display: block; width: 100%; margin-top: .25rem; padding: .6rem .7rem; font: inherit; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pw { display: flex; gap: .5rem; margin-top: .25rem; }
+  .pw input { flex: 1; margin-top: 0; min-width: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: .6rem; }
+  button { font: inherit; padding: .6rem 1rem; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  button:disabled { opacity: .45; cursor: default; }
+  .line { margin: .8rem 0 0; }
+  .bar { height: .5rem; background: var(--track); border-radius: 99px; overflow: hidden; margin-top: .9rem; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .4s ease; }
+  .nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .9rem; }
+  .nums div { border: 1px solid var(--line); border-radius: 8px; padding: .5rem .7rem; }
+  .nums b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+  .nums span { color: var(--soft); font-size: .85rem; }
+  .warn { color: var(--warn); }
+  .bad { color: var(--bad); }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: .35rem .4rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--soft); font-weight: 500; }
+  details { margin-top: .8rem; }
+  summary { cursor: pointer; }
+  ul.fails { margin: .5rem 0 0; padding-left: 1.1rem; font-size: .9rem; }
+  ul.fails code { font-size: .85em; }
+  .doing { min-height: 1.5em; margin: 0 0 .4rem; color: var(--soft); }
+  ol.msgs { list-style: none; margin: 0; padding: 0; font-size: .92rem; }
+  ol.msgs li { padding: .35rem 0; border-top: 1px solid var(--line); }
+  ol.msgs time { color: var(--soft); margin-right: .5rem; font-variant-numeric: tabular-nums; }
+  footer { margin-top: 1.2rem; color: var(--soft); font-size: .88rem; display: flex; flex-wrap: wrap; gap: .6rem;
+    align-items: center; justify-content: space-between; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Life Clips</h1>
+    <p>Takes the sound clips off a Life Node at a visit, and sends them to the Life Oracle.</p>
+  </header>
+
+  <p class="card bad" id="nokey" hidden>Open Life Clips from the address it printed in its window: this address lacks its key.</p>
+
+  <section class="card">
+    <h2><span class="n">1</span>Connect to the node</h2>
+    <p class="hint">The WiFi name and password are on the node's page in the Life Oracle. The node's WiFi is on only during a visit.</p>
+    <form id="join" autocomplete="off">
+      <label>WiFi name
+        <input id="ssid" list="ssids" spellcheck="false" autocapitalize="off" placeholder="life-x7k2qp">
+      </label>
+      <datalist id="ssids"></datalist>
+      <label>Password
+        <span class="pw">
+          <input id="pw" type="password" spellcheck="false" autocapitalize="off" placeholder="On the node's page">
+          <button type="button" id="show">Show</button>
+        </span>
+      </label>
+      <div class="row">
+        <button class="primary" id="joinBtn">Join the node's WiFi</button>
+        <button type="button" id="hereBtn">I am connected</button>
+      </div>
+    </form>
+    <p class="line" id="conn">Not connected to a node.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span>Download the clips</h2>
+    <p class="hint">Each clip is checked against its fingerprint (SHA-256), then the node signs the checked clips over to this laptop. The node keeps its own copies until the oracle has them.</p>
+    <div class="row">
+      <button class="primary" id="fetchBtn">Download the clips</button>
+      <button type="button" id="doneBtn">End the visit</button>
+    </div>
+    <div class="bar"><div id="bar1"></div></div>
+    <p class="line" id="dl"></p>
+    <div class="nums" id="nums"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span>Send to the oracle</h2>
+    <p class="hint">Works whenever this laptop is online, also days after the visit.</p>
+    <div class="row"><button class="primary" id="sendBtn">Send to the oracle</button></div>
+    <div class="bar"><div id="bar2"></div></div>
+    <p class="line" id="snd"></p>
+  </section>
+
+  <section class="card" id="nodesCard" hidden>
+    <h2>On this laptop</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Node</th><th>On the node</th><th>Downloaded</th><th>Handed over</th><th>Confirmed</th><th>Failed</th></tr></thead>
+        <tbody id="nodes"></tbody>
+      </table>
+    </div>
+    <details id="failBox" hidden><summary>Failures and their reasons</summary><ul class="fails" id="fails"></ul></details>
+  </section>
+
+  <section class="card">
+    <h2>Messages</h2>
+    <p class="doing" id="doing"></p>
+    <ol class="msgs" id="msgs"></ol>
+  </section>
+
+  <footer>
+    <span>Clips are kept in <code id="dir"></code></span>
+    <span class="row"><button type="button" id="stopBtn">Stop</button><button type="button" id="quitBtn">Quit</button></span>
+  </footer>
+</main>
+<script>
+"use strict";
+const key = new URLSearchParams(location.search).get("t") || "";
+const $ = (id) => document.getElementById(id);
+let st = null, timer = 0, filled = false;
+const local = []; // messages from the page itself
+
+async function api(path, body) {
+  const opt = { method: body === undefined ? "GET" : "POST", headers: { "X-Token": key } };
+  if (body !== undefined) { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+function act(path, body) {
+  api(path, body).then(poll, (e) => { local.push({ at: new Date().toISOString(), kind: "error", text: e.message }); render(); });
+}
+
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+const pct = (a, b) => (b > 0 ? Math.min(100, Math.round((100 * a) / b)) : 0) + "%";
+
+function left(s) {
+  if (s <= 0) return "the visit has ended";
+  if (s < 60) return "under a minute left in the visit";
+  return plural(Math.floor(s / 60), "minute", "minutes") + " left in the visit";
+}
+
+function render() {
+  if (!st) return;
+  const busy = !!st.job, node = st.node, run = st.run;
+  $("dir").textContent = st.dir;
+  document.title = "Life Clips" + (busy ? " (working)" : "");
+
+  // 1. connect
+  $("conn").textContent = node
+    ? `Connected to ${node.name}: ${plural(node.waiting, "clip", "clips")} (${node.mb.toFixed(1)} MB) waiting` +
+      (node.secondsLeft == null ? "." : `, ${left(node.secondsLeft)}.`)
+    : "Not connected to a node.";
+  $("conn").className = "line" + (node && node.secondsLeft != null && node.secondsLeft < 300 ? " warn" : "");
+  const list = $("ssids");
+  list.replaceChildren(...st.ssids.map((s) => { const o = el("option"); o.value = s; return o; }));
+  if (!filled && st.ssids.length && !$("ssid").value) $("ssid").value = st.ssids[0];
+  filled = true;
+  $("pw").placeholder = st.ssids.includes($("ssid").value.trim()) ? "Remembered; leave empty to use it" : "On the node's page";
+
+  // 2. download: this run, and what this laptop has of the node it is on (or saw last)
+  const name = node ? node.name : "";
+  const cur = st.nodes.find((n) => n.node === name) ||
+    [...st.nodes].sort((a, b) => String(b.seenAt || "").localeCompare(String(a.seenAt || "")))[0];
+  if (run.kind === "fetch" && (busy && st.job === "fetch" || run.total > 0)) {
+    $("bar1").style.width = pct(run.got + run.failed + run.gone, run.total);
+    $("dl").textContent = (st.job === "fetch" ? "Downloading: " : "Last download: ") +
+      `${run.got} of ${plural(run.total, "clip", "clips")} downloaded and checked` +
+      (run.failed ? `, ${run.failed} failed` : "") + (run.gone ? `, ${run.gone} had left the node` : "") +
+      (run.handed ? `; ${run.handed} handed over.` : ".");
+  } else {
+    $("bar1").style.width = "0";
+    $("dl").textContent = node ? "Ready to download." : "Connect to a node first.";
+  }
+  const nums = $("nums");
+  nums.replaceChildren();
+  if (cur) {
+    const tile = (n, label) => { const d = el("div"); d.append(el("b", String(n)), el("span", label)); nums.append(d); };
+    tile(node ? node.waiting : cur.onNode, node ? "waiting on " + cur.node : "on " + cur.node + " at the last visit");
+    tile(cur.verified, "downloaded and verified");
+    tile(cur.handed, "handed over to this laptop");
+    tile(cur.failed.length, "failed");
+  }
+
+  // 3. send, for every node
+  const toSend = st.nodes.reduce((t, n) => t + n.toSend, 0), sent = st.nodes.reduce((t, n) => t + n.sent, 0);
+  if (run.kind === "send" && run.toSend > 0) {
+    $("bar2").style.width = pct(run.sent + run.notSent, run.toSend);
+  } else {
+    $("bar2").style.width = "0";
+  }
+  const due = st.nodes.filter((n) => n.toSend > 0 && n.sendBy).map((n) => new Date(n.sendBy)).sort((a, b) => a - b)[0];
+  $("snd").textContent = (st.job === "send" ? `Sending: ${run.sent} of ${run.toSend} confirmed. ` : "") +
+    `${plural(toSend, "clip", "clips")} waiting to be sent; ${sent} sent and confirmed by the oracle.` +
+    (due ? ` Send them before ${due.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.` : "");
+
+  // buttons
+  $("joinBtn").disabled = busy || !key;
+  $("hereBtn").disabled = busy || !key;
+  $("fetchBtn").disabled = busy || !key;
+  $("doneBtn").disabled = busy || !node;
+  $("sendBtn").disabled = busy || !key;
+  $("stopBtn").disabled = !busy;
+
+  // per node, and failures
+  $("nodesCard").hidden = st.nodes.length === 0;
+  $("nodes").replaceChildren(...st.nodes.map((n) => {
+    const tr = el("tr");
+    [n.node, n.onNode, n.verified, n.handed, n.sent, n.failed.length].forEach((v) => tr.append(el("td", String(v))));
+    return tr;
+  }));
+  const fails = st.nodes.flatMap((n) => n.failed.map((f) => ({ node: n.node, ...f })))
+    .concat(st.nodes.flatMap((n) => n.batches.filter((b) => b.dead).map((b) => ({ node: n.node, ref: "batch " + b.id, why: b.dead }))));
+  $("failBox").hidden = fails.length === 0;
+  $("fails").replaceChildren(...fails.slice(0, 300).map((f) => {
+    const li = el("li");
+    li.append(el("code", f.node + " " + f.ref), document.createTextNode(": " + f.why));
+    return li;
+  }));
+
+  // messages, newest first
+  $("doing").textContent = st.doing ? st.doing + "..." : "";
+  const msgs = st.messages.concat(local).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 40);
+  $("msgs").replaceChildren(...msgs.map((m) => {
+    const li = el("li", undefined, m.kind === "error" ? "bad" : m.kind === "warn" ? "warn" : "");
+    const t = el("time", new Date(m.at).toLocaleTimeString());
+    li.append(t, document.createTextNode(m.text));
+    return li;
+  }));
+}
+
+async function poll() {
+  clearTimeout(timer);
+  try {
+    st = await api("/api/status");
+    render();
+  } catch (e) {
+    $("doing").textContent = "Life Clips does not answer. Is its window still open?";
+  }
+  timer = setTimeout(poll, st && (st.job || st.node) ? 1000 : 4000);
+}
+
+$("join").addEventListener("submit", (e) => {
+  e.preventDefault();
+  act("/api/connect", { ssid: $("ssid").value.trim(), password: $("pw").value });
+});
+$("ssid").addEventListener("input", render);
+$("show").addEventListener("click", () => {
+  const p = $("pw");
+  p.type = p.type === "password" ? "text" : "password";
+  $("show").textContent = p.type === "password" ? "Show" : "Hide";
+});
+$("hereBtn").addEventListener("click", () => act("/api/connected", {}));
+$("fetchBtn").addEventListener("click", () => act("/api/fetch", {}));
+$("doneBtn").addEventListener("click", () => {
+  if (confirm("End the visit now? The node switches its WiFi off soon after.")) act("/api/done", {});
+});
+$("sendBtn").addEventListener("click", () => act("/api/send", {}));
+$("stopBtn").addEventListener("click", () => act("/api/stop", {}));
+$("quitBtn").addEventListener("click", () => {
+  api("/api/quit", {}).finally(() => {
+    clearTimeout(timer);
+    document.querySelector("main").replaceChildren(el("h1", "Life Clips has stopped"), el("p", "You can close this tab."));
+  });
+});
+
+if (!key) {
+  $("nokey").hidden = false;
+  ["joinBtn", "hereBtn", "fetchBtn", "doneBtn", "sendBtn", "stopBtn", "quitBtn"].forEach((id) => { $(id).disabled = true; });
+} else {
+  poll();
+}
+</script>
+</body>
+</html>

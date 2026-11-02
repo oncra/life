@@ -1,0 +1,12 @@
+[Unit]
+Description=Life node: a visit (%i): the clips over the visitor's phone hotspot, or the node's own WiFi for a laptop
+After=NetworkManager.service
+Wants=NetworkManager.service
+[Service]
+Type=simple
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-visit run %i
+ExecStopPost=/usr/local/bin/life-visit teardown
+# VISIT_MAX_MIN (30, at most 60) ends a visit; this only stops one that hangs
+RuntimeMaxSec=65min
+TimeoutStopSec=90

@@ -36,17 +36,25 @@ export const CellIn = z.object({
   mode: z.string().max(16).optional(),
 });
 
-/** A node's liveness message: when, why, on which cell, and how it is doing. All optional but the shape. */
+const Scalar = z.union([z.number(), z.string(), z.boolean(), z.null()]);
+const Flat = z.union([Scalar, z.array(Scalar)]);
+export const METRICS_MAX_BYTES = 16_384;
+
+/** A node's liveness message: when, why, on which cell, and how it is doing. All optional but the shape. A metric is
+ * a number, a string, a flag, a list of those, or one object of them (`mics`, the microphones' check of the day); all
+ * metrics together stay under METRICS_MAX_BYTES. */
 export const HeartbeatIn = z.object({
   ts: z.string().datetime({ offset: true }).optional(),
   event: z.enum(["boot", "hourly", "shutdown", "manual", "alarm"]).optional(),
   /** with event "alarm": which loop opened and what the guard is doing about it */
   tamper: z.object({ loop: z.enum(["lid", "panel", "tilt", "unknown"]), state: z.enum(["entry", "siren", "chirp", "bypass", "armed"]).optional() }).optional(),
   cell: CellIn.optional(),
-  metrics: z.record(z.string(), z.union([z.number(), z.string(), z.boolean(), z.null()])).optional(),
+  metrics: z.record(z.string(), z.union([Flat, z.record(z.string(), Flat)]))
+    .refine((m) => Buffer.byteLength(JSON.stringify(m)) <= METRICS_MAX_BYTES, `metrics are at most ${METRICS_MAX_BYTES} bytes`).optional(),
 });
 
-export const SoundBody = z.object({ detections: z.array(Detection).max(5000).default([]), indices: z.array(Index).max(5000).default([]), heartbeat: HeartbeatIn.optional() });
+/** The heartbeat rides along and is read on its own (HeartbeatIn): one the oracle cannot read never costs the detections. */
+export const SoundBody = z.object({ detections: z.array(Detection).max(5000).default([]), indices: z.array(Index).max(5000).default([]), heartbeat: z.unknown().optional() });
 export const HeartbeatBody = z.object({ heartbeat: HeartbeatIn });
 
 export const SoilRow = z.object({

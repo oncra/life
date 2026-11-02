@@ -3,14 +3,19 @@ import path from "node:path";
 import { prisma } from "@/lib/db";
 import { authenticate, json } from "@/lib/auth";
 import { CLIP_MAX_BYTES, clipSender, dropClipFile, mimeOf, pruneClips, saveClipFile } from "@/lib/clips";
+import { grantOf, inBatch } from "@/lib/grant";
 export const dynamic = "force-dynamic";
 
-// One detection's clip for /triage, as multipart: the sound (`file`) and the fields of its row in the node's clips.csv
+// One detection's clip, as multipart: the sound (`file`) and the fields of its row in the node's clips.csv
 // (detection, time_utc, scientific, score, band, detector, clip_s, detection_from_s, detection_to_s), plus species and
-// source (the microphone) when known, and `expansion` when the sound is slowed down (a bat clip, ten times). Sent by
-// clients/clips-upload.py from a computer at a bench node, with the node's own token, or with an admin or steward key
-// and `device`. The same detection sent twice is kept once; with `replace=1` the second sound and its timing take the
-// first one's place and the verdicts stay: for a clip first sent in a form nobody could judge, or cut and levelled anew.
+// source (the microphone) when known, `expansion` when the sound is slowed down (a bat clip, ten times), `gain_db` when
+// the node levelled it, and `sha256` of the sound as the sender has it. Sent by the node itself over a visitor's
+// hotspot or a cable (node/life-clips.py upload), by a laptop that took the clips from the node with the node's grant
+// (`Authorization: Grant lg1...`, src/lib/grant.ts), or by clients/clips-upload.py with the node's token, or with an
+// admin or steward key and `device`. Every answer that keeps the clip carries the SHA-256 the oracle holds for it; the
+// sender deletes its copy only when that is its own. The same detection sent twice is kept once, and the answer then
+// names the first sound's SHA-256; with `replace=1` the second sound and its timing take the first one's place and the
+// verdicts stay: for a clip first sent in a form nobody could judge, or cut and levelled anew.
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   if (!form) return json({ error: "send multipart/form-data" }, 400);
@@ -25,7 +30,9 @@ export async function POST(req: Request) {
     const v = text(...keys);
     return v === null || !Number.isFinite(Number(v)) ? null : Number(v);
   };
-  const who = await clipSender(req, text("device"));
+  const granted = await grantOf(req);
+  if (granted && "error" in granted) return json({ error: granted.error }, granted.status);
+  const who = granted ? { deviceId: granted.grant.deviceId } : await clipSender(req, text("device"));
   if (who instanceof Response) return who;
   const file = form.get("file");
   if (!(file instanceof File)) return json({ error: "file is missing" }, 400);
@@ -39,31 +46,51 @@ export async function POST(req: Request) {
   if (!ref || Number.isNaN(ts.getTime()) || !scientific || confidence === null || confidence < 0 || confidence > 1) {
     return json({ error: "detection, time_utc, scientific and score are needed" }, 400);
   }
+  const data = Buffer.from(await file.arrayBuffer());
+  const sha256 = createHash("sha256").update(data).digest("hex");
+  const said = text("sha256")?.toLowerCase();
+  if (said && said !== sha256) return json({ error: "the sound does not match its sha256: it changed on the way or on the sender", sha256 }, 422);
+  const batch = granted?.grant.batch ?? null;
+  if (batch && !(await inBatch(who.deviceId, batch, { ref, sha256 }))) {
+    return json({ error: "this clip is not in the batch the node signed over, or the batch is not registered (POST /api/v1/clips/batches)" }, 403);
+  }
   const x = num("expansion");
   const expansion = x !== null && Number.isInteger(x) && x > 1 && x <= 100 ? x : null;
+  const g = num("gain_db");
+  const gainDb = g !== null && g >= -100 && g <= 100 ? g : null;
   const deviceId = who.deviceId;
-  const have = await prisma.clip.findUnique({ where: { deviceId_detectionRef: { deviceId, detectionRef: ref } }, select: { id: true, file: true } });
+  const have = await prisma.clip.findUnique({ where: { deviceId_detectionRef: { deviceId, detectionRef: ref } }, select: { id: true, file: true, sha256: true } });
   const replace = text("replace") === "1";
-  if (have && !replace) return json({ ok: true, id: have.id, created: false });
-  const data = Buffer.from(await file.arrayBuffer());
-  const name = `${deviceId}/${createHash("sha256").update(data).digest("hex").slice(0, 32)}${path.extname(file.name).toLowerCase()}`;
+  if (have && !replace) return json({ ok: true, id: have.id, created: false, sha256: have.sha256 });
+  const name = `${deviceId}/${sha256.slice(0, 32)}${path.extname(file.name).toLowerCase()}`;
   await saveClipFile(name, data);
   if (have) {
     const timing = { clipS: num("clip_s"), fromS: num("detection_from_s", "from_s"), toS: num("detection_to_s", "to_s") };
     const known = Object.fromEntries(Object.entries(timing).filter(([, v]) => v !== null));
-    await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion, ...known } });
+    await prisma.clip.update({ where: { id: have.id }, data: { file: name, mime, bytes: data.length, expansion, sha256, gainDb, ...(batch ? { batch } : {}), ...known } });
     if (have.file && have.file !== name) await dropClipFile(have.file);
-    return json({ ok: true, id: have.id, created: false, replaced: true });
+    return json({ ok: true, id: have.id, created: false, replaced: true, sha256 });
   }
   const clip = await prisma.clip.create({
     data: {
       deviceId, detectionRef: ref, ts, scientific: scientific.slice(0, 120), species: text("species")?.slice(0, 120) ?? null, confidence,
       band: text("band")?.slice(0, 8) ?? null, detector: text("detector")?.slice(0, 80) ?? null, source: text("source")?.slice(0, 80) ?? null,
       clipS: num("clip_s"), fromS: num("detection_from_s", "from_s"), toS: num("detection_to_s", "to_s"), file: name, mime, bytes: data.length, expansion,
+      sha256, gainDb, batch,
     },
+  }).catch(async (e: unknown) => {
+    // the same detection from two senders at once (the node over a hotspot and a laptop later the same hour): the
+    // unique key keeps one, and the second sender hears which sound the oracle has
+    if ((e as { code?: string }).code !== "P2002") throw e;
+    return null;
   });
+  if (!clip) {
+    const kept = await prisma.clip.findUniqueOrThrow({ where: { deviceId_detectionRef: { deviceId, detectionRef: ref } }, select: { id: true, sha256: true } });
+    await dropClipFile(name);
+    return json({ ok: true, id: kept.id, created: false, sha256: kept.sha256 });
+  }
   pruneClips().catch(() => {});
-  return json({ ok: true, id: clip.id, created: true }, 201);
+  return json({ ok: true, id: clip.id, created: true, sha256 }, 201);
 }
 
 // Every clip with its verdicts and without its sound, and the band weights, for fitting the per-species thresholds.

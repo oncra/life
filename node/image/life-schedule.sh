@@ -47,6 +47,8 @@ if [ "${SCHEDULE:-season}" = none ]; then
   rm -f $W/schedule.wpi
   wp clear_shutdown_time; wp clear_startup_time
   echo "life-schedule: SCHEDULE=none, no schedule; the node stays on"
+  # with visits on, a boot by the visit contact's magnet is a visit all the same; the node stays on after it
+  [ "${LIFE_VISIT:-0}" = 1 ] && /usr/local/sbin/life-window check
   exit 0
 fi
 
@@ -70,5 +72,6 @@ echo "life-schedule: applying $want schedule"; grep -v '^#' $W/schedule.wpi | tr
 # always run it, now that the clock is right: the daemon already ran the script at boot, possibly on the wrong time
 (cd $W && TZ=UTC ./runScript.sh >> $W/schedule.log 2>&1)
 tail -n 4 $W/schedule.log | grep -E 'Schedule next' || true
-# a boot the board made by itself outside the windows posts and goes back to sleep until the next window
-[ $want = season ] && /usr/local/sbin/life-window check || true
+# a boot the board made by itself outside the windows posts and goes back to sleep until the next window; with visits
+# on (LIFE_VISIT=1), a boot by the visit contact's magnet starts a visit, on any schedule
+if [ $want = season ] || [ "${LIFE_VISIT:-0}" = 1 ]; then /usr/local/sbin/life-window check || true; fi

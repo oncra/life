@@ -1,0 +1,11 @@
+[Unit]
+Description=Life node: the visit contact (a magnet held on the box starts a visit while the node is up)
+After=life-guard.service
+[Service]
+Type=simple
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-visit watch
+Restart=on-failure
+RestartSec=30
+[Install]
+WantedBy=multi-user.target

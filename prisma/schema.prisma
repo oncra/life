@@ -76,6 +76,8 @@ model Place {
   blurLon        Float?
   blurRadiusM    Int?
   context        Json?
+  /// days the oracle keeps a clip's sound for this place: null for CLIP_KEEP_DAYS, 0 for as long as the place exists
+  clipKeepDays   Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -116,6 +118,13 @@ model Device {
   /// steward-declared maintenance window: the node may silence its tamper alarm while now < maintenanceUntil
   maintenanceFrom  DateTime?
   maintenanceUntil DateTime?
+  /// the WiFi the node joins on a visit (the visitor's phone hotspot) and the password of its own WiFi for a laptop,
+  /// set by the place's owner (null: the defaults on the node); sent to the node with its heartbeat answer whenever
+  /// the rev it reports differs from visitRev. Not the Visit model, which is a verifier's visit to the place.
+  visitSsid   String?
+  visitPsk    String?
+  visitApPsk  String?
+  visitRev    Int        @default(0)
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]
@@ -125,6 +134,7 @@ model Device {
   alerts          Alert[]
   clips           Clip[]
   clipBands       ClipBand[]
+  clipBatches     ClipBatch[]
 
   @@index([placeId])
 }
@@ -489,6 +499,12 @@ model Clip {
   /// the sound plays this many times slower than it was heard: a bat clip is slowed down ten times, so a call at
   /// 40 kHz is heard at 4 kHz; null for real time
   expansion    Int?
+  /// SHA-256 of the sound as received; the sender deletes its copy only when the oracle echoes it
+  sha256       String?
+  /// dB the node raised the sound by to bring its peak to -2 dBFS
+  gainDb       Float?
+  /// the laptop batch it came in with (ClipBatch.batch), when a laptop carried it
+  batch        String?
   createdAt    DateTime     @default(now())
   reviews      ClipReview[]
 
@@ -525,4 +541,25 @@ model ClipBand {
   asOf       DateTime
 
   @@id([deviceId, month, scientific, band])
+}
+
+/// Clips a laptop took from a node over the node's own WiFi, as the node listed them when it signed them over
+/// (src/lib/grant.ts). The laptop sends them on with the node's grant; once the oracle has every one of them with the
+/// same SHA-256, the node hears so with its heartbeat answer (`clipsReceived`) and deletes its copies.
+model ClipBatch {
+  id         String    @id @default(cuid())
+  deviceId   String
+  device     Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  batch      String
+  n          Int
+  /// SHA-256 over "ref sha256\n" per clip, sorted by ref: what the grant signs
+  hash       String
+  /// [{ref, sha256}]
+  items      Json
+  laptop     String?
+  expiresAt  DateTime
+  completeAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([deviceId, batch])
 }
