@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { canSeeExact, publicPlace } from "@/lib/privacy";
+import { canManage, canSeeExact, publicPlace } from "@/lib/privacy";
+import { clipMonths, visitState } from "@/lib/node-visit";
+import OwnerPanel from "@/components/node/OwnerPanel";
 import { asRange, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
@@ -42,8 +44,11 @@ export default async function NodePage({ params, searchParams }: Props) {
   const indexRange = asIndexRange(sp.index);
   const stored = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
   if (!stored) notFound();
-  const [exact, data] = await Promise.all([canSeeExact(stored), nodeData(stored, range)]);
+  const [exact, data, owner] = await Promise.all([canSeeExact(stored), nodeData(stored, range), canManage(stored)]);
   if (!data) notFound();
+  // the owner's panel: visit WiFi, alarm window and clips, for each Life Node (the sound device that sends heartbeats)
+  const nodes = owner ? await prisma.device.findMany({ where: { placeId: stored.id, kind: "SOUND" }, select: { id: true }, orderBy: { createdAt: "asc" } }) : [];
+  const [panels, months] = owner ? await Promise.all([Promise.all(nodes.map((n) => visitState(n.id))), clipMonths(stored.id)]) : [[], []];
   const [index, heard, clips, states] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
     // the clips on /triage are open to every visitor; judging them takes a sign-in
@@ -101,6 +106,8 @@ export default async function NodePage({ params, searchParams }: Props) {
           <span className="ml-2 text-muted">{clips} clips to listen to</span>
         </div>
       )}
+
+      {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} months={months} zone={data.zone} />)}
 
       <LastHeard items={heard} now={data.now} zone={data.zone} />
 

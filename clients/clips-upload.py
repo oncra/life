@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Bring a bench node's clip sample to the oracle's triage page (/triage), over the local network.
 
+Since November 2026 a node sends its clips to the oracle itself while it is on a cable or a WiFi (`life-clips upload`),
+and a laptop takes them at a visit (life-visit); this pull from a computer stays for a node that runs an older
+life-clips, and understands both: a clip the node already cut (`ready` = 1 in clips.csv) goes as it is.
+
 A node in a field keeps its clip sample on its card for a visit (node/life-clips.py) and sends no sound over the air.
 A node on the bench, with its steward's yes (LIFE_KEEP_CLIPS=1 and LIFE_CLIPS_ANYTIME=1 in /data/life-node/env), can
 have its sample fetched by a computer on the same network, which is what this does. It never uses the node's SIM: the
@@ -249,34 +253,44 @@ def send() -> int:
         sent_log = batch / "sent.txt"
         sent = set(sent_log.read_text().split()) if sent_log.exists() else set()
         for r in todo:
-            if r["detection"] in sent:
+            name = r.get("ref") or r["detection"]  # det@ts from a node since November 2026, BirdNET-Go's bare id before
+            if name in sent:
                 continue
             clip = batch / r["file"]
-            sr = rate(clip)
-            slow = SLOW if sr > 48000 else 1
-            cut = window(r, slow)
-            m4a = clip.with_suffix(f".x{slow}.{CUT}.m4a" if slow > 1 else f".{CUT}.m4a")
-            if not m4a.exists():
-                err = convert(ff, clip, m4a, sr, slow, cut)
-                if err:
-                    say(f"{clip.name}: ffmpeg failed: {err}")
-                    failed += 1
-                    continue
-            fields = {k: r.get(k) for k in ("detection", "time_utc", "scientific", "score", "band", "detector", "clip_s", "detection_from_s", "detection_to_s")}
-            if cut:  # the timing of the cut clip: where the detected part now starts and ends in it
-                fields["clip_s"] = f"{cut[1] - cut[0]:.3f}"
-                fields["detection_from_s"] = f"{float(r['detection_from_s']) - cut[0]:.3f}"
-                fields["detection_to_s"] = f"{float(r['detection_to_s']) - cut[0]:.3f}"
-            fields["source"] = src.get(r["detection"])
+            fields = {k: r.get(k) for k in ("time_utc", "scientific", "score", "band", "detector", "clip_s", "detection_from_s", "detection_to_s")}
+            fields["detection"] = name
+            if r.get("ready") == "1":  # cut and levelled on the node already (.m4a): sent as it is, with its own timing
+                sound, upload_name = clip.read_bytes(), clip.name
+                fields["source"] = r.get("source") or src.get(r["detection"])
+                fields["expansion"] = r.get("expansion") or None
+                fields["gain_db"] = r.get("gain_db") or None
+                fields["sha256"] = r.get("sha256") or None
+            else:
+                sr = rate(clip)
+                slow = SLOW if sr > 48000 else 1
+                cut = window(r, slow)
+                m4a = clip.with_suffix(f".x{slow}.{CUT}.m4a" if slow > 1 else f".{CUT}.m4a")
+                if not m4a.exists():
+                    err = convert(ff, clip, m4a, sr, slow, cut)
+                    if err:
+                        say(f"{clip.name}: ffmpeg failed: {err}")
+                        failed += 1
+                        continue
+                if cut:  # the timing of the cut clip: where the detected part now starts and ends in it
+                    fields["clip_s"] = f"{cut[1] - cut[0]:.3f}"
+                    fields["detection_from_s"] = f"{float(r['detection_from_s']) - cut[0]:.3f}"
+                    fields["detection_to_s"] = f"{float(r['detection_to_s']) - cut[0]:.3f}"
+                fields["source"] = r.get("source") or src.get(r["detection"])
+                fields["expansion"] = slow if slow > 1 else None
+                sound, upload_name = m4a.read_bytes(), m4a.name
             fields["species"] = common.get(r["scientific"])
-            fields["expansion"] = slow if slow > 1 else None
             fields["replace"] = "1" if replace else None
             fields["device"] = os.environ.get("LIFE_DEVICE")
-            body, ctype = multipart(fields, m4a.name, m4a.read_bytes(), "audio/mp4")
+            body, ctype = multipart(fields, upload_name, sound, "audio/mp4")
             status, out = post("/clips", tok, body, ctype)
             if status in (200, 201):
                 with open(sent_log, "a") as f:
-                    f.write(r["detection"] + "\n")
+                    f.write(name + "\n")
             else:
                 say(f"{clip.name}: the oracle answered {status} {out.get('error', '')}")
                 failed += 1

@@ -1,5 +1,5 @@
 [Unit]
-Description=Life node: keep the clip sample for checking, delete every other clip BirdNET-Go wrote
+Description=Life node: keep the clip sample for checking, delete every other clip BirdNET-Go wrote, send the kept ones while on a cable or a WiFi
 RequiresMountsFor=/data
 [Service]
 Type=oneshot
@@ -7,3 +7,5 @@ Nice=10
 IOSchedulingClass=idle
 EnvironmentFile=/etc/life-node.env
 ExecStart=/usr/local/bin/life-clips sample
+# does nothing unless the node's way out is the cable or the WiFi; never the SIM. A failure here never fails the sample
+ExecStart=-/usr/local/bin/life-clips upload --for 600

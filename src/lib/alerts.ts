@@ -2,6 +2,8 @@ import { prisma } from "./db";
 import type { AlertKind } from "@/generated/prisma/client";
 import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
 import { micText, micVerdict, MIC_HISTORY_DAYS, type MicDay } from "./mics";
+import { batchesReceived } from "./grant";
+import { visitFor } from "./node-visit";
 
 /**
  * Node liveness and theft, without hardware.
@@ -150,10 +152,15 @@ export function maintenanceOut(d: { maintenanceFrom: Date | null; maintenanceUnt
   return { from: from?.toISOString() ?? null, until: d.maintenanceUntil.toISOString(), active: !from || from <= now };
 }
 
-/** Store a heartbeat, keep the device's cell and home cell, open or resolve alerts. */
+/** Store a heartbeat, keep the device's cell and home cell, open or resolve alerts. The answer also carries the
+ * visit settings when the node's are out of date (`visit`, src/lib/node-visit.ts) and the laptop batches the oracle
+ * now has in full (`clipsReceived`, src/lib/grant.ts), so the node can delete those clips. */
 export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   const ts = hb.ts ? new Date(hb.ts) : new Date();
-  const dev = await prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true } });
+  const dev = await prisma.device.findUniqueOrThrow({
+    where: { id: deviceId },
+    select: { homeCell: true, maintenanceFrom: true, maintenanceUntil: true, visitSsid: true, visitPsk: true, visitApPsk: true, visitRev: true },
+  });
   await prisma.heartbeat.create({ data: { deviceId, ts, event: hb.event, cell: hb.cell as object | undefined, metrics: hb.metrics as object | undefined } });
   const key = cellKey(hb.cell);
   const home = dev.homeCell as HomeCell | null;
@@ -183,7 +190,10 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   if (guard || (batt && batt.v < LOW_BATTERY_V)) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt?.v ?? null, src: batt?.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, guard: guard || undefined, at: ts.toISOString() });
   else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
   const mics = hb.metrics?.mics;
-  const mic = mics && typeof mics === "object" ? await checkMics(deviceId, mics as MicDay) : null;
+  const mic = mics && typeof mics === "object" && !Array.isArray(mics) ? await checkMics(deviceId, mics as MicDay) : null;
+  const visit = await visitFor(deviceId, dev, hb.metrics?.visitRev);
+  const handed = hb.metrics?.clipsHanded;
+  const clipsReceived = typeof handed === "string" && handed ? await batchesReceived(deviceId, handed) : [];
   if (process.env.CHECKIN_WEBHOOK_URL) {
     const d = await placeOf(deviceId);
     const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
@@ -191,7 +201,10 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
     // whoever reads the line, signed in or not (a private place page answers 404 to a reader without a session)
     await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}/node`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
   }
-  return { recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, mic: mic !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance };
+  return {
+    recovered: silent.count > 0, moved: moved !== null, tamper: tamper !== null, lowBattery: lowBattery !== null, mic: mic !== null, homeCell: key && !homeKey ? "set" : undefined, maintenance,
+    ...(visit ? { visit } : {}), ...(clipsReceived.length ? { clipsReceived } : {}),
+  };
 }
 
 /** A day's microphone check against the node's own last weeks: opens MIC on a drift or a missing microphone,

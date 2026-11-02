@@ -1,0 +1,88 @@
+# The Life Clips laptop app (clients/clips-app): tested on every push that touches it, and on a tag clips-app-v*
+# built for macOS and Windows and attached to that tag's release. Its releases are never marked latest: the node
+# image is linked through releases/latest/download/life-node-v1.img.xz, which must keep pointing at the image's release.
+name: clips-app
+
+on:
+  push:
+    # tags need branches beside them, or a branch push would not run this; paths are not checked for a tag
+    branches: ["**"]
+    tags: ["clips-app-v*"]
+    paths:
+      - "clients/clips-app/**"
+      - ".github/workflows/clips-app.yml"
+  pull_request:
+    paths:
+      - "clients/clips-app/**"
+      - ".github/workflows/clips-app.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: clients/clips-app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable   # a supported toolchain; go.mod keeps the language at 1.23 and vet flags newer APIs
+          cache: false         # nothing to cache: standard library only
+      - run: go vet ./...
+      - run: go test ./...
+      - name: Vet the other systems' code
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          GOOS=darwin GOARCH=arm64 go vet ./...
+          GOOS=windows GOARCH=amd64 go vet ./...
+
+  release:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/clips-app-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: clients/clips-app
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: false
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          build() {
+            CGO_ENABLED=0 GOOS="$1" GOARCH="$2" go build -trimpath -ldflags "-s -w -X main.version=$TAG" -o "dist/$3" .
+          }
+          build darwin arm64 life-clips-macos-arm64
+          build darwin amd64 life-clips-macos-amd64
+          build windows amd64 life-clips-windows-amd64.exe
+          (cd dist && sha256sum life-clips-* > SHA256SUMS)
+          ls -l dist
+      - name: Attach to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest=false \
+              --title "Life Clips ${TAG#clips-app-}" \
+              --notes "The Life Clips laptop app: download the file for your laptop. How to start it: clients/clips-app/README.md."
+          fi
+          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber

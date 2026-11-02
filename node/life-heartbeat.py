@@ -30,7 +30,8 @@ Environment:
     WITTYPI_BUS         default 1; set empty to skip the Witty Pi
     VEDIRECT_PORT       default: the first /dev/serial/by-id/*VE_Direct*; set "none" to skip; a /dev/ttyUSB0 for a
                         home-made cable
-    LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait for a visit (`clipsWaiting`)
+    LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait on the node (`clipsWaiting`)
+                        and which batches a laptop took at a visit (`clipsHanded`)
     LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
                         outside one, whether it goes back to sleep (`offWindow`: stop) or stays on (kept); its mics.json
                         is the microphones' check of the day (life-mic levels), sent as `mics` with the first post after
@@ -244,14 +245,34 @@ def metrics():
 
 
 def clips():
-    """The clip sample waiting for a visit (life-clips writes it after every run): how many, how big, last collected."""
+    """The clips waiting on the node (life-clips writes it after every run): how many, how big, last collected and last
+    sent, and the batches a laptop took at a visit (`clipsHanded`, "batch:clips,..."): the oracle answers with those it
+    has every clip of (`clipsReceived`), and the node deletes them. The settings for a visit the node has (`visitRev`,
+    -1 for none, only on a node with life-visit) let the oracle send them when they changed, and only then; how the
+    last visit went (`visitLast`) shows on the owner's page."""
+    out = {}
+    state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
+    try:
+        out["visitRev"] = int(json.loads((state / "visit.json").read_text()).get("rev", -1))
+    except Exception:  # noqa: BLE001 - none yet
+        if Path(os.environ.get("LIFE_VISIT_BIN", "/usr/local/bin/life-visit")).exists():
+            out["visitRev"] = -1
+    try:
+        last = json.loads((state / "visit-last.json").read_text())
+        out["visitLast"] = {k: last[k] for k in ("at", "reason", "how", "sent", "handed", "minutes", "laptop")
+                            if isinstance(last.get(k), (str, int, float, bool))}
+    except Exception:  # noqa: BLE001 - no visit yet
+        pass
     try:
         d = json.loads(Path(os.environ.get("LIFE_CLIPS_DIR", "/data/life-clips"), "status.json").read_text())
-    except Exception:  # noqa: BLE001 - no sample on this node (yet)
-        return {}
-    out = {"clipsKeep": bool(d.get("keep")), "clipsWaiting": int(d.get("waiting") or 0), "clipsMb": float(d.get("mb") or 0)}
-    if d.get("collectedAt"):
-        out["clipsCollectedAt"] = str(d["collectedAt"])
+    except Exception:  # noqa: BLE001 - no clips on this node (yet)
+        return out
+    out.update({"clipsKeep": bool(d.get("keep")), "clipsWaiting": int(d.get("waiting") or 0), "clipsMb": float(d.get("mb") or 0)})
+    for key, name in (("collectedAt", "clipsCollectedAt"), ("sentAt", "clipsSentAt"), ("handed", "clipsHanded")):
+        if d.get(key):
+            out[name] = str(d[key])
+    if d.get("full"):
+        out["clipsFull"] = True   # short of space: only the band sample still grows until a visit takes the clips
     return out
 
 
@@ -342,6 +363,8 @@ def main():
     req = urllib.request.Request(f"{API}/ingest/heartbeat", data=json.dumps({"heartbeat": hb}).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
     with urllib.request.urlopen(req, timeout=30) as resp:
         out = json.load(resp)
+    if isinstance(out.get("visit"), dict):   # the visit settings carry passwords; life-push applies them, not this
+        out["visit"] = {k: v for k, v in out["visit"].items() if "psk" not in k.lower()}
     print(f"heartbeat {event}: {out}")
 
 

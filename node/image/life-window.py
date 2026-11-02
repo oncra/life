@@ -10,16 +10,25 @@ life-schedule, ends such a boot: the node posts what it has and powers off GRACE
 next start set to the start of the next window. A boot by hand outside the windows (the button, a reboot, a USB supply) stays on,
 as before: somebody is at the node.
 
+With visits on (LIFE_VISIT=1), the button is a visit: the visit contact's magnet presses it (node/life-visit.py). Such
+a boot starts a visit and powers off when the visit is over, at the latest VISIT_MAX_MIN + 10 minutes after this
+check, so a node a visitor woke in winter is not left on for hours. With a maintenance window open (the owner set
+one on the oracle; life-guard keeps it in maintenance.json) the node stays on after the visit, as before. A node that
+was off inside one of its windows ends such a visit with the window; one without a schedule stays on after it. A boot
+by the tamper guard presses the same button, so a guard in alarm makes it no visit.
+
 Every boot is written to /data/life-node/window.json, and the heartbeat carries the window the node woke for
-(`window`, empty outside one) and, outside one, what it did about it (`offWindow`: "stop" or "kept").
+(`window`, empty outside one) and, outside one, what it did about it (`offWindow`: "stop", "visit" or "kept").
 
     life-window check [--dry-run] [--now 2026-08-15T13:00] [--wake voltage-restored]
-    life-window stop        the timer's job: unless a window has begun, set the next start, clear the shutdown alarm
-                            (a shutdown alarm that comes while the Pi is off wakes it), power off
+    life-window stop [--unless-maintenance]
+                            the timer's job: unless a window has begun (or, with the flag, a maintenance window is
+                            open), set the next start, clear the shutdown alarm (a shutdown alarm that comes while the
+                            Pi is off wakes it), power off
     life-window status
 
 env: SCHEDULE (only 'season' acts), OFFWINDOW_GRACE_MIN (default 10), WITTYPI_BUS (default 1),
-     LIFE_STATE (default /data/life-node)
+     LIFE_STATE (default /data/life-node), LIFE_VISIT, VISIT_MAX_MIN (default 30), GUARD
 """
 import json
 import os
@@ -30,8 +39,12 @@ from pathlib import Path
 
 STATE = Path(os.environ.get("LIFE_STATE", "/data/life-node"))
 DECISION = STATE / "window.json"
+MAINTENANCE = STATE / "maintenance.json"   # life-guard caches the owner's window here from the oracle's answers
 SCHEDULE = os.environ.get("SCHEDULE", "season").strip() or "season"
 GRACE_S = int(float(os.environ.get("OFFWINDOW_GRACE_MIN") or 10) * 60)
+VISIT = os.environ.get("LIFE_VISIT", "0").strip() == "1"
+_max = float(os.environ.get("VISIT_MAX_MIN") or 30)
+VISIT_S = min(_max if _max > 0 else 30, 60) * 60   # as life-visit reads it
 # the Witty Pi's reason for its latest action (register 11), as life-heartbeat names them
 WAKE = {1: "alarm", 2: "alarm", 3: "button", 4: "low-voltage", 5: "voltage-restored", 6: "over-temp", 7: "under-temp",
         8: "alarm", 9: "usb-5v", 10: "power-connected", 11: "reboot", 12: "guaranteed-wake"}
@@ -80,21 +93,91 @@ def uptime_s() -> float:
         return 0.0
 
 
+def maintenance() -> bool:
+    """Whether the owner has a maintenance window open now."""
+    try:
+        m = json.loads(MAINTENANCE.read_text())
+        frm, until = (datetime.fromisoformat(m[k].replace("Z", "+00:00")) if isinstance(m.get(k), str) else None for k in ("from", "until"))
+    except (OSError, ValueError, AttributeError):
+        return False
+    now = datetime.now(timezone.utc)
+    return until is not None and until > now and (frm is None or frm <= now)
+
+
+def guard_alarm() -> bool:
+    """The tamper guard wakes the Pi through the same button input as the visit contact."""
+    if os.environ.get("GUARD", "0").strip() != "1":
+        return False
+    try:
+        out = subprocess.run(["life-guard", "status"], capture_output=True, text=True, timeout=15)
+        return json.loads(out.stdout).get("alarm") is True
+    except Exception:  # noqa: BLE001 - no answer from the guard: no reason to think it is an alarm
+        return False
+
+
+def wake_of(args: list[str]) -> str | None:
+    return args[args.index("--wake") + 1] if "--wake" in args else wake_reason()
+
+
+def by_magnet(wake: str | None) -> bool:
+    """Whether this boot is a visit: the button (the magnet presses it), with visits on and the guard quiet."""
+    return VISIT and wake == "button" and not guard_alarm()
+
+
+def start_visit(unit: str, dry: bool) -> None:
+    cmd = ["systemctl", "start", "--no-block", unit]
+    if dry:
+        print(f"would run: {' '.join(cmd)}")
+    else:
+        subprocess.run(cmd)
+
+
+def visit(rec: dict, dry: bool) -> None:
+    kept = maintenance()
+    wait = int(VISIT_S + 600)
+    if kept:
+        log("woke by the button or the visit contact, with a maintenance window open: a visit, and the node stays on")
+        write({**rec, "offWindow": "kept"}, dry)
+    else:
+        log(f"woke by the button or the visit contact: a visit, then off until the next window at {rec['next']} (in {wait} s at the latest)")
+        write({**rec, "offWindow": "visit", "stopInS": wait}, dry)
+    stop_cmd = ["systemd-run", "--unit=life-window-stop", f"--on-active={wait}s", "/usr/local/sbin/life-window", "stop", "--unless-maintenance"]
+    if dry:
+        if not kept:
+            print(f"would run: {' '.join(stop_cmd)}")
+    elif not kept:
+        subprocess.run(["systemctl", "stop", "life-window-stop.timer"], capture_output=True)
+        if subprocess.run(stop_cmd).returncode != 0:
+            log("could not set the backstop; the visit powers the node off itself when it is over")
+    start_visit("life-visit@boot.service", dry)
+
+
 def check(args: list[str]) -> None:
     dry = "--dry-run" in args
     now_arg = args[args.index("--now") + 1] if "--now" in args else None
     if SCHEDULE != "season":
         log(f"SCHEDULE={SCHEDULE}: no listening windows, nothing to decide")
         write({"schedule": SCHEDULE, "window": None}, dry)
+        if VISIT and by_magnet(wake_of(args)):   # no window to end it: the visit leaves the node on, as a boot by hand did
+            start_visit("life-visit@magnet.service", dry)
         return
     info = windows(now_arg)
     w = info["active"]
     if w is not None:
         log(f"{w['name']} window, {w['start']} to {w['end']}")
-        write({"date": info["date"], "window": w["name"], "start": w["start"], "end": w["end"]}, dry)
+        rec = {"date": info["date"], "window": w["name"], "start": w["start"], "end": w["end"]}
+        if VISIT and by_magnet(wake_of(args)):   # a node that was off inside its window: the visit ends with it at the latest
+            log("woke by the button or the visit contact: a visit")
+            write({**rec, "visit": True}, dry)
+            start_visit("life-visit@boot.service", dry)
+            return
+        write(rec, dry)
         return
-    wake = args[args.index("--wake") + 1] if "--wake" in args else wake_reason()
+    wake = wake_of(args)
     rec = {"date": info["date"], "window": None, "wake": wake, "next": info["next"]}
+    if by_magnet(wake):
+        visit(rec, dry)
+        return
     if wake is None or wake in BY_HAND:
         log(f"woke outside the windows ({wake or 'no Witty Pi'}): started by hand, staying on")
         write({**rec, "offWindow": "kept"}, dry)
@@ -114,6 +197,9 @@ def stop(args: list[str]) -> None:
     info = windows(args[args.index("--now") + 1] if "--now" in args else None)
     if info["active"] is not None:
         log(f"the {info['active']['name']} window has begun; staying on, the schedule ends it")
+        return
+    if "--unless-maintenance" in args and maintenance():
+        log("a maintenance window is open; staying on")
         return
     start = datetime.fromisoformat(info["next"])
     # the board reads its alarm as clock fields against its RTC, which keeps UTC (wittypi.service, life-schedule)
@@ -145,7 +231,7 @@ def main() -> None:
     elif cmd == "status":
         status()
     else:
-        sys.exit("usage: life-window check [--dry-run] [--now T] [--wake REASON] | stop [--dry-run] [--now T] | status")
+        sys.exit("usage: life-window check [--dry-run] [--now T] [--wake REASON] | stop [--dry-run] [--now T] [--unless-maintenance] | status")
 
 
 if __name__ == "__main__":

@@ -9,6 +9,30 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 2 November 2026
 
+### The clips leave at a visit, and the box stays shut
+
+*Learning.* A sample of five clips per species, month and score band is enough to set a threshold, and not enough for whoever wants to study a place by ear. A field node has no cable or WiFi to send more over, the SIM has no room for sound, and the one way out so far, a stick, meant opening the lid and so dealing with the guard.
+
+*Change.* A node now keeps every clip from a score of 0.5 up while its card has 2 GB free. It cuts each one itself, to 7 seconds from the start of the detection, the cut the fetching server has made since 28 October, so the image now carries ffmpeg. On a cable or a WiFi it sends its clips on its own and deletes each one when the oracle confirms it by its SHA-256. In a field a magnet held for three seconds on a marked spot on the box starts a visit: the node joins the visitor's phone hotspot and sends its clips, or opens its own WiFi for the Life Clips app, which takes them onto a Mac or Windows laptop and sends them once that is online; a heartbeat answer of a few bytes then tells the node to delete them. The node's page gives its owner the hotspot settings, what is waiting, the last visit and the clips as a zip per month. [#141](https://github.com/oncra/life/pull/141)
+
+### A magnet that stays is one press
+
+*Learning.* The visit contact works through the Witty Pi's button input, so before soldering anything we read UUGear's firmware. The button acts on the press itself, a press while the Pi is up shuts it down, and a button held for seven seconds cuts the power. The contact therefore holds the input off while the Pi is up, and in our first drawing that made a fresh press every time the Pi went off with a magnet still on the box: one left there would have woken the node again after every visit.
+
+*Change.* A capacitor now makes the magnet one short press however long it stays, so a magnet left behind wakes the node once. The whole contact is a reed, two transistors, the capacitor and six resistors, about €6, and it draws nothing until a magnet closes it ([kit](../kit.md), row 22b). [#141](https://github.com/oncra/life/pull/141)
+
+### No phone has a default hotspot name
+
+*Learning.* There is no name a node could simply look for. An iPhone names its hotspot after the phone, with a curly apostrophe, and shows it only while its Personal Hotspot screen is open; Android phones choose names of their own. And a field node's WiFi radio is off: the stock root ships NetworkManager with wireless disabled, and only a bench node with a WiFi in its settings turns it on.
+
+*Change.* The owner sets the hotspot's name and password on the node's page ("hotspot" and 12345678 until then), and the node also takes a visible name that differs only in capitals, spaces or the kind of apostrophe. A visit switches the radio on and puts it back as it was. On a phone's hotspot a firewall table lets in only the answers to the node's own connections; on the node's own WiFi it lets in the clip server, DHCP and a ping and nothing else, and nothing crosses it to anywhere. [#141](https://github.com/oncra/life/pull/141)
+
+### The microphones' check cost a post
+
+*Learning.* Reading the oracle for this work, we found that the microphones' check of the day, which the heartbeat has carried since 29 October as one small object (`mics`), was not allowed in a heartbeat, where the oracle took only plain values. Because the heartbeat rides on the detections post, the whole post was refused. The node marks the check as sent before posting, so its next post went through without it: the detections and soil readings came one post late, and the check itself never arrived, so the MIC alert could not fire.
+
+*Change.* The oracle takes one object of plain values among the metrics, all of them together at most 16 kB, and reads the heartbeat apart from the detections: one it cannot read gets a `heartbeatError` in the answer and never costs the detections. [#141](https://github.com/oncra/life/pull/141)
+
 ### Anyone may listen to the clips
 
 *Change.* The [triage page](https://life.oncra.org/triage) no longer asks for a sign-in to listen. Every visitor hears the clips, sees the spectrogram and the tally of verdicts; signing in is only needed to judge a clip, and judging stays with the people who may see the node's place exactly. The page shows which node a clip came from, never where it stands. A researcher or a landowner can now hear what the node heard before deciding anything.

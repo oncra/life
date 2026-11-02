@@ -68,6 +68,23 @@ export async function canSeeExact(place: Pick<Place, "id">, req?: Request): Prom
   return boxes + access > 0;
 }
 
+/** Who may run a place's node from its dashboard (visit WiFi, alarm window): a managing key, or signed in as an admin,
+ * as the owner of a Life Node on it, or with owner access to it. Someone with viewer access may look, not change. */
+export async function canManage(place: Pick<Place, "id">, req?: Request): Promise<{ by: string } | null> {
+  if (req) {
+    const p = await authenticate(req);
+    if (canManagePlace(p, place.id)) return { by: p!.kind === "admin" ? "admin" : p!.kind === "key" ? p!.name : "key" };
+  }
+  const user = await currentUser().catch(() => null);
+  if (!user) return null;
+  if (isAdminEmail(user.email)) return { by: user.email };
+  const [boxes, access] = await Promise.all([
+    prisma.box.count({ where: { placeId: place.id, userId: user.id } }),
+    prisma.placeAccess.count({ where: { placeId: place.id, userId: user.id, role: "owner" } }),
+  ]);
+  return boxes + access > 0 ? { by: user.email } : null;
+}
+
 /** Whether a viewer may see this place at all: public places for everyone, private ones only for those who may see
  * them exactly. */
 export async function canView(place: Pick<Place, "id" | "public">, req?: Request) {

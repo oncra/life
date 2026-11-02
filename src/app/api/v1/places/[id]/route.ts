@@ -25,7 +25,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
 }
 
-const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional() });
+const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional(), clipKeepDays: z.number().int().min(0).max(3650).nullable().optional() });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -35,6 +35,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (!canManagePlace(p, place.id)) return unauthorized();
   const parsed = Patch.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "invalid body", issues: parsed.error.issues }, 400);
+  // how long the oracle keeps a place's clips is the oracle's disk, not the place's: admin only
+  if (parsed.data.clipKeepDays !== undefined && p?.kind !== "admin" && !(p?.kind === "key" && p.role === "ADMIN")) return json({ error: "clipKeepDays takes the admin key" }, 403);
   const { locationHidden, blurRadiusM, ...rest } = parsed.data;
   let updated = await prisma.place.update({ where: { id: place.id }, data: rest });
   if (locationHidden !== undefined || blurRadiusM !== undefined) updated = await setLocationHidden(updated, locationHidden ?? updated.locationHidden, blurRadiusM);

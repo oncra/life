@@ -17,8 +17,10 @@ Environment:
     LIFE_HEARTBEAT_CMD  optional: a command printing one JSON heartbeat (the Life node sets
                         `life-heartbeat --json`); it rides on the post, and a post goes out even with no detections
     LIFE_HEARTBEAT_EVENT optional: boot | hourly | shutdown | manual, passed to that command as --event
-    LIFE_HEARTBEAT_APPLY_CMD optional: gets the oracle's heartbeat answer on stdin (the Life node sets
-                        `life-guard apply`, which caches the maintenance window and disarms the guard inside it)
+    LIFE_HEARTBEAT_APPLY_CMD optional: commands separated by ";", each given the oracle's heartbeat answer on stdin,
+                        and only when there is one (the Life node sets `life-guard apply` for the maintenance window,
+                        `life-visit apply` for the visit WiFi and `life-clips apply` for the laptop batches the oracle
+                        has in full)
     LIFE_SOIL_QUEUE     optional: the soil agent's queue file (the Life node sets /var/lib/life-node/queue.jsonl).
                         Its rows are posted to /ingest/soil on the same connection, each under its own token
     LIFE_KEEP_MODELS    optional: BirdNET-Go models whose detections stay on the node, comma separated as the
@@ -192,12 +194,19 @@ for n, batch in enumerate(batches):
         CURSOR.write_text(batch[-1][0])
         print(f"pushed {out.get('detections')} detections up to {batch[-1][0]}")
     if "heartbeat" in body:
-        print(f"heartbeat: {out.get('heartbeat')}")
-        if os.environ.get("LIFE_HEARTBEAT_APPLY_CMD"):
-            try:
-                subprocess.run(shlex.split(os.environ["LIFE_HEARTBEAT_APPLY_CMD"]), input=json.dumps(out.get("heartbeat") or {}), text=True, timeout=30, check=False)
-            except Exception as e:  # noqa: BLE001
-                print(f"heartbeat apply skipped: {e}", file=sys.stderr)
+        answer = out.get("heartbeat")
+        # the visit settings carry passwords: the journal gets everything but those
+        shown = {**answer, "visit": {k: v for k, v in answer["visit"].items() if "psk" not in k.lower()}} if isinstance(answer, dict) and isinstance(answer.get("visit"), dict) else answer
+        print(f"heartbeat: {shown}" + (f" (not read: {out['heartbeatError']})" if out.get("heartbeatError") else ""))
+        # no answer means nothing to apply: an empty one would read as "no maintenance window" and clear the cached one
+        if isinstance(answer, dict) and answer and os.environ.get("LIFE_HEARTBEAT_APPLY_CMD"):
+            for cmd in os.environ["LIFE_HEARTBEAT_APPLY_CMD"].split(";"):
+                if not cmd.strip():
+                    continue
+                try:
+                    subprocess.run(shlex.split(cmd), input=json.dumps(answer), text=True, timeout=60, check=False)
+                except Exception as e:  # noqa: BLE001 - one that fails must not keep the others from their answer
+                    print(f"heartbeat apply skipped ({cmd.strip()}): {e}", file=sys.stderr)
 
 if SOIL_QUEUE:
     post_soil()
