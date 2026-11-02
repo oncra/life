@@ -2,7 +2,8 @@
 // place, on every day of a season and in every year. The node's own scheduler listens to exactly these windows
 // (node/image/life-schedule-wpi.py); other recorders may listen all day, but diversity, renewal and the detection half
 // of autonomy only see detections inside these windows, so a node and a station that never sleeps are counted on the
-// same hours. (Until 13 October 2026 the dawn window was 6 h in May to July and a node could add extra hours.)
+// same hours. (Until 13 October 2026 the dawn window was 6 h in May to July and a node could add extra hours.) A node
+// whose owner turned on the meadow-bird window listens after its dusk window too (src/lib/night.ts); never counted.
 //
 //   March to October      4 h from civil dawn and 1 h from sunset
 //   November to February  2 h from sunrise

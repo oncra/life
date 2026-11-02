@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { canManage, canSeeExact, publicPlace } from "@/lib/privacy";
 import { clipMonths, visitState } from "@/lib/node-visit";
+import { nightState } from "@/lib/node-night";
+import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
 import { asRange, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
@@ -46,9 +48,14 @@ export default async function NodePage({ params, searchParams }: Props) {
   if (!stored) notFound();
   const [exact, data, owner] = await Promise.all([canSeeExact(stored), nodeData(stored, range), canManage(stored)]);
   if (!data) notFound();
-  // the owner's panel: visit WiFi, alarm window and clips, for each Life Node (the sound device that sends heartbeats)
-  const nodes = owner ? await prisma.device.findMany({ where: { placeId: stored.id, kind: "SOUND" }, select: { id: true }, orderBy: { createdAt: "asc" } }) : [];
-  const [panels, months] = owner ? await Promise.all([Promise.all(nodes.map((n) => visitState(n.id))), clipMonths(stored.id)]) : [[], []];
+  // the owner's panel: visit WiFi, alarm window, clips and the meadow-bird window, for each Life Node (the sound device
+  // that sends heartbeats); the meadow-bird window, when it is on, shows to everyone
+  const nodes = await prisma.device.findMany({ where: { placeId: stored.id, kind: "SOUND" }, select: { id: true }, orderBy: { createdAt: "asc" } });
+  const [panels, months, nightStates] = await Promise.all([
+    owner ? Promise.all(nodes.map((n) => visitState(n.id))) : [],
+    owner ? clipMonths(stored.id) : [],
+    Promise.all(nodes.map((n) => nightState(n.id, data.now))),
+  ]);
   const [index, heard, clips, states] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
     // the clips on /triage are open to every visitor; judging them takes a sign-in
@@ -107,7 +114,15 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       )}
 
-      {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} months={months} zone={data.zone} />)}
+      {nightStates.filter((n) => n.settings.on).map((n) => (
+        <p key={n.device} className="mt-3 text-sm text-muted max-w-3xl">
+          Also listens for meadow birds after sunset, from {mdLabel(n.settings.from)} to {mdLabel(n.settings.to)}{n.settings.battery ? " when the battery allows" : ""}, outside the readings
+          {n.tonight ? <>: next {dayLabel(Date.parse(n.tonight.start), data.zone)} {spanText(n.tonight.start, n.tonight.end, data.zone)}.</> : "."}
+          {n.last ? ` Last window, ${nightLastText(n.last, data.zone)}.` : ""}
+        </p>
+      ))}
+
+      {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} months={months} zone={data.zone} />)}
 
       <LastHeard items={heard} now={data.now} zone={data.zone} />
 

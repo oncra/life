@@ -125,6 +125,18 @@ model Device {
   visitPsk    String?
   visitApPsk  String?
   visitRev    Int        @default(0)
+  /// the optional meadow-bird window after sunset, set by the place's owner and off until then: it starts nightStartMin
+  /// minutes after sunset and lasts nightLenMin, on the dates nightFrom to nightTo (MM-DD, inclusive), and with
+  /// nightBattery only when the Witty Pi reads at least nightMinV volts at its start. The readings never count it
+  /// (src/lib/listening.ts). Sent to the node with its heartbeat answer whenever the rev it reports differs from nightRev.
+  nightOn       Boolean  @default(false)
+  nightStartMin Int      @default(60)
+  nightLenMin   Int      @default(60)
+  nightFrom     String   @default("03-25")
+  nightTo       String   @default("06-30")
+  nightBattery  Boolean  @default(true)
+  nightMinV     Float    @default(13.1)
+  nightRev      Int      @default(0)
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]

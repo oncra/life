@@ -277,15 +277,31 @@ def clips():
 
 
 def listening():
-    """The window the node woke for, or what it does outside one (life-window writes it at boot)."""
-    p = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node")) / "window.json"
+    """The window the node woke for, or what it does outside one (life-window writes it at boot); the rev of the night
+    window settings the node has (`nightRev`, -1 for none yet, only on a node whose heartbeat answers go to life-window
+    apply), so the oracle sends them when they changed and only then; and how its last night window went (`nightLast`),
+    for the owner's page."""
+    state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
+    out = {}
     try:
-        d = json.loads(p.read_text())
+        d = json.loads((state / "window.json").read_text())
+        out["window"] = d.get("window")
+        if d.get("offWindow"):
+            out["offWindow"] = d["offWindow"]
     except Exception:  # noqa: BLE001 - no schedule (desk) or no decision yet
-        return {}
-    out = {"window": d.get("window")}
-    if d.get("offWindow"):
-        out["offWindow"] = d["offWindow"]
+        pass
+    try:
+        out["nightRev"] = int(json.loads((state / "night.json").read_text()).get("rev", -1))
+    except Exception:  # noqa: BLE001 - no settings yet
+        # a life-window older than the night window has no apply, and neither has a node that never got it in its list
+        if "life-window apply" in os.environ.get("LIFE_HEARTBEAT_APPLY_CMD", ""):
+            out["nightRev"] = -1
+    try:
+        last = json.loads((state / "night-last.json").read_text())
+        out["nightLast"] = {k: last[k] for k in ("date", "start", "end", "ran", "v", "minV", "at")
+                            if isinstance(last.get(k), (str, int, float, bool))}
+    except Exception:  # noqa: BLE001 - no night window yet
+        pass
     return out
 
 
