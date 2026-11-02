@@ -10,8 +10,9 @@
 # From a laptop with the repository: scp -r node clients life@<hostname>.local: and then, on the node,
 # cd ~ && sudo bash node/apply-visit.sh on 22. Root is a read-only overlay, so this writes to the live root and to the
 # one under it (/media/root-ro): the change takes effect now and holds after a reboot. It also brings the programs a
-# visit works with up to date (life-clips, life-heartbeat, life-push, life-window, life-schedule) and has life-push
-# hand the oracle's answer to life-visit and life-clips as well as life-guard.
+# visit works with up to date (life-clips, life-heartbeat, life-push, life-window, life-schedule, life-schedule-wpi)
+# and has life-push hand the oracle's answer to life-visit, life-clips and life-window (the owner's night window) as
+# well as life-guard.
 #
 # A visit needs ffmpeg (the clips' cut), nftables and dnsmasq (the node's own WiFi for a laptop). Without them the
 # hotspot works and the node's own WiFi stays closed. --install puts the missing ones in the root under the overlay
@@ -51,7 +52,7 @@ for a in "${@:2}"; do
 done
 for f in "$HERE/life-visit.py" "$HERE/life-visit@.service" "$HERE/life-visit-watch.service" "$HERE/life-clips.py" \
          "$HERE/life-clips.service" "$HERE/life-heartbeat.py" "$HERE/image/life-window.py" "$HERE/image/life-schedule.sh" \
-         "$HERE/../clients/birdnet-pi-push.py"; do
+         "$HERE/image/life-schedule-wpi.py" "$HERE/../clients/birdnet-pi-push.py"; do
   [ -f "$f" ] || { echo "missing $f: copy the repository's node/ and clients/ folders together"; exit 1; }
 done
 
@@ -99,7 +100,7 @@ if [ ${#NEED[@]} -gt 0 ] && [ $INSTALL = 1 ]; then
   fi
 fi
 
-APPLY="/usr/local/bin/life-guard apply;/usr/local/bin/life-visit apply;/usr/local/bin/life-clips apply"
+APPLY="/usr/local/bin/life-guard apply;/usr/local/bin/life-visit apply;/usr/local/bin/life-clips apply;/usr/local/sbin/life-window apply"
 for R in "${ROOTS[@]}"; do
   S=$R/etc/systemd/system
   install -m 0755 "$HERE/life-visit.py" "$R/usr/local/bin/life-visit"
@@ -108,6 +109,7 @@ for R in "${ROOTS[@]}"; do
   install -m 0755 "$HERE/../clients/birdnet-pi-push.py" "$R/usr/local/bin/life-push"
   install -m 0755 "$HERE/image/life-window.py" "$R/usr/local/sbin/life-window"
   install -m 0755 "$HERE/image/life-schedule.sh" "$R/usr/local/sbin/life-schedule"
+  install -m 0755 "$HERE/image/life-schedule-wpi.py" "$R/usr/local/sbin/life-schedule-wpi"
   install -m 0644 "$HERE/life-visit@.service" "$HERE/life-visit-watch.service" "$HERE/life-clips.service" "$S/"
   # the units' environment, as provision.sh writes it
   sed -i 's#^EnvironmentFile=.*#Environment=LIFE_CURSOR=/data/life-node/push-cursor BIRDNET_DB=/data/birdnet-go/birdnet.db "LIFE_HEARTBEAT_CMD=/usr/local/bin/life-heartbeat --json" "LIFE_HEARTBEAT_APPLY_CMD='"$APPLY"'" LIFE_STATE=/data/life-node LIFE_MIN_CONFIDENCE_FLOOR=0.7\nEnvironmentFile=/data/life-node/env#' \

@@ -9,15 +9,34 @@
 # good; otherwise no shutdown is scheduled, the node stays on, and systemd runs this again in five minutes.
 #
 # Then the schedule (content/spec.md, section 2.2), computed by life-schedule-wpi for the node's own place: March to
-# October 4 h from civil dawn and 1 h from sunset, November to February 2 h from sunrise, the same windows every day.
+# October 4 h from civil dawn and 1 h from sunset, November to February 2 h from sunrise, the same windows every day,
+# and the owner's night window for meadow birds on top when it is on and in season (never counted by the readings).
 # life-window, run at the end of this script, sends a node the Witty Pi woke by itself outside its windows (battery
 # back after a low-voltage stop, power back on the load output) back to sleep until the next window.
 # SCHEDULE=bench: 15 minutes in every hour. SCHEDULE=none: no schedule, the node stays on (desk work).
+#
+# `life-schedule again` (life-window apply, when the owner's night window changed while the node is on): the schedule
+# only. The clock was set at this boot and this boot's window decision stays; life-window arm takes the place of the
+# check, setting the night timer as the new schedule wants it and powering off a node whose window the change ended.
 set -u
 W=/data/wittypi; STATE=/data/life-node
 set -a; [ -f $STATE/env ] && . $STATE/env; set +a
 # UUGear's scripts run in UTC, like the daemon (wittypi.service): the RTC and every alarm keep UTC, so no clock change moves them
 wp() { (cd $W && export TZ=UTC && . ./utilities.sh >/dev/null 2>&1 && "$@"); }
+
+if [ "${1:-}" = again ]; then
+  [ "${SCHEDULE:-season}" = season ] || { echo "life-schedule again: SCHEDULE=${SCHEDULE}, no night window to place"; exit 0; }
+  last=$(cat $STATE/clock-ok 2>/dev/null || echo 0)
+  if [ "$last" -le 0 ] || [ "$(date +%s)" -lt "$last" ]; then
+    echo "life-schedule again: the clock is not trusted; the next boot writes the schedule"; exit 0
+  fi
+  /usr/local/sbin/life-schedule-wpi > $W/schedule.wpi.new 2>/dev/null || { rm -f $W/schedule.wpi.new; echo "life-schedule again: the computed schedule failed; the one in place stays"; exit 1; }
+  mv $W/schedule.wpi.new $W/schedule.wpi
+  echo "life-schedule again: $(grep -v '^#' $W/schedule.wpi | tr '\t' ' ' | paste -sd ';')"
+  (cd $W && TZ=UTC ./runScript.sh >> $W/schedule.log 2>&1)
+  /usr/local/sbin/life-window arm || true
+  exit 0
+fi
 
 timedatectl set-ntp true >/dev/null 2>&1
 synced=no

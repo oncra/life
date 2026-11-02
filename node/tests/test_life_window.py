@@ -1,5 +1,5 @@
-"""Tests for node/image/life-window.py: what a boot outside the listening windows is for, and the visit a button
-press (or the visit contact's magnet) starts.
+"""Tests for node/image/life-window.py: what a boot outside the listening windows is for, the visit a button press
+(or the visit contact's magnet) starts, and the owner's night window.
 
     python3 -B -m unittest discover -s node/tests -v
 
@@ -8,6 +8,7 @@ life-guard and GNU date are fakes on PATH that write down what they were asked.
 """
 import importlib.machinery
 import importlib.util
+import io
 import json
 import os
 import random
@@ -22,6 +23,20 @@ NEXT = "2026-11-03T06:12:00+00:00"
 OUTSIDE = {"date": "2026-11-02", "active": None, "next": NEXT}
 INSIDE = {"date": "2026-11-02", "active": {"name": "dawn", "start": "2026-11-02T06:10:00+00:00", "end": "2026-11-02T08:10:00+00:00"}, "next": NEXT}
 
+# 15 May at Amsterdam with the night window on at its defaults: right after the dusk window, so one ON state with it
+DAWN = {"name": "dawn", "start": "2026-05-15T03:01:30+00:00", "end": "2026-05-15T07:01:30+00:00"}
+DUSK = {"name": "dusk", "start": "2026-05-15T19:28:42+00:00", "end": "2026-05-15T20:28:42+00:00"}
+NIGHT_W = {"name": "night", "start": "2026-05-15T20:28:42+00:00", "end": "2026-05-15T21:28:42+00:00"}
+LATE = {"name": "night", "start": "2026-05-15T21:28:42+00:00", "end": "2026-05-15T22:28:42+00:00"}   # startMin 120: apart
+NIGHT_ON = {"rev": 3, "on": True, "startMin": 60, "lenMin": 60, "from": "03-25", "to": "06-30", "battery": True, "minV": 13.1}
+MAY_NEXT = "2026-05-16T02:59:42+00:00"
+
+
+def may(active, now, windows=(DAWN, DUSK, NIGHT_W), **night):
+    return {"date": "2026-05-15", "now": now, "windows": list(windows), "active": active, "next": MAY_NEXT,
+            "night": {**NIGHT_ON, **night}}
+
+
 FAKE = r'''#!{py}
 import os, sys
 name = os.path.basename(sys.argv[0])
@@ -31,6 +46,8 @@ if name == "life-guard":
     print(open(os.path.join(os.environ["FAKE_LOG"], "guard")).read() if os.path.exists(os.path.join(os.environ["FAKE_LOG"], "guard")) else '{{"enabled": true, "alarm": false}}')
 if name == "date":
     print("03 06 12 00")
+if name == "systemctl" and "list-units" in sys.argv and os.path.exists(os.path.join(os.environ["FAKE_LOG"], "visits")):
+    print(open(os.path.join(os.environ["FAKE_LOG"], "visits")).read())
 '''
 
 
@@ -188,6 +205,156 @@ class Window(unittest.TestCase):
         for text in ("", "[]", "{}", '{"until": "tomorrow"}', '{"until": 5}'):
             (self.state / "maintenance.json").write_text(text)
             self.assertFalse(self.window().maintenance(), text)
+
+    # the night window
+
+    def night_last(self) -> dict:
+        return json.loads((self.state / "night-last.json").read_text())
+
+    def test_dusk_running_on_into_the_night_window_sets_the_night_timer(self):
+        self.window(may(DUSK, "2026-05-15T19:30:00+00:00")).check(["--wake", "alarm"])
+        self.assertEqual(self.decision()["window"], "dusk")
+        # 58 min 42 s to the night window, and 30 s into it
+        self.assertEqual(self.log("systemd-run"), ["--unit=life-window-night --collect --on-active=3552s /usr/local/sbin/life-window night"])
+        self.assertFalse((self.state / "night-last.json").exists())   # decided when it begins, not now
+
+    def test_a_night_window_apart_from_dusk_gets_no_timer(self):
+        self.window(may(DUSK, "2026-05-15T19:30:00+00:00", windows=(DAWN, DUSK, LATE))).check(["--wake", "alarm"])
+        self.assertEqual(self.log("systemd-run"), [])   # the Witty Pi wakes the node for it; the check at that boot decides
+
+    def test_no_night_window_no_timer(self):
+        self.window(may(DUSK, "2026-05-15T19:30:00+00:00", windows=(DAWN, DUSK))).check(["--wake", "alarm"])
+        self.window(may(DAWN, "2026-05-15T03:05:00+00:00")).check(["--wake", "alarm"])   # dawn: the night is far off
+        self.assertEqual(self.log("systemd-run"), [])
+
+    def test_a_visit_in_the_dusk_window_still_sets_the_night_timer(self):
+        self.window(may(DUSK, "2026-05-15T20:00:00+00:00")).check(["--wake", "button"])
+        self.assertTrue(self.visit_started())
+        self.assertEqual(self.log("systemd-run"), ["--unit=life-window-night --collect --on-active=1752s /usr/local/sbin/life-window night"])
+
+    def test_the_night_timer_listens_on_a_battery_that_holds(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="13.4").night_cmd([])
+        n = self.night_last()
+        self.assertEqual((n["ran"], n["v"], n["minV"], n["date"], n["start"]), ("listened", 13.4, 13.1, "2026-05-15", NIGHT_W["start"]))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_the_night_timer_powers_off_under_the_minimum(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="12.95").night_cmd([])
+        self.assertEqual(self.night_last()["ran"], "battery")
+        self.assertIn("poweroff", self.log("systemctl"))
+        self.assertIn("life-visit@*", self.log("systemctl")[0])   # it looked for a visit first
+
+    def test_the_minimum_is_the_owners(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00", minV=12.8), LIFE_NIGHT_VIN="12.95").night_cmd([])
+        self.assertEqual((self.night_last()["ran"], self.night_last()["minV"]), ("listened", 12.8))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_without_the_battery_option_it_listens_on_any_battery(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00", battery=False), LIFE_NIGHT_VIN="12.3").night_cmd([])
+        n = self.night_last()
+        self.assertEqual((n["ran"], n["minV"]), ("listened", None))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_a_battery_it_cannot_read_lets_it_listen(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00")).night_cmd([])   # WITTYPI_BUS empty, no LIFE_NIGHT_VIN
+        n = self.night_last()
+        self.assertEqual((n["ran"], n["v"]), ("unknown", None))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_a_maintenance_window_or_a_visit_keeps_it_on_under_the_minimum(self):
+        self.maintenance(timedelta(hours=-1), timedelta(hours=3))
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="12.7").night_cmd([])
+        self.assertEqual(self.night_last()["ran"], "kept")
+        (self.state / "maintenance.json").unlink()
+        (self.dir / "visits").write_text("life-visit@boot.service loaded active running Life node visit\n")
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="12.7").night_cmd([])
+        self.assertEqual(self.night_last()["ran"], "kept")
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_the_night_timer_does_nothing_outside_the_night_window(self):
+        for info in (may(None, "2026-05-15T21:40:00+00:00"), may(DUSK, "2026-05-15T20:00:00+00:00")):
+            self.window(info, LIFE_NIGHT_VIN="12.0").night_cmd([])
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), SCHEDULE="bench", LIFE_NIGHT_VIN="12.0").night_cmd([])
+        self.assertFalse((self.state / "night-last.json").exists())
+        self.assertEqual(self.log("systemctl"), [])
+
+    def test_a_dry_night_only_says(self):
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="12.0").night_cmd(["--dry-run"])
+        self.assertFalse((self.state / "night-last.json").exists())
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_a_boot_for_a_night_window_of_its_own_is_decided_at_the_check(self):
+        self.window(may(LATE, "2026-05-15T21:29:00+00:00", windows=(DAWN, DUSK, LATE)), LIFE_NIGHT_VIN="12.6").check(["--wake", "alarm"])
+        self.assertEqual(self.decision()["window"], "night")
+        self.assertEqual(self.night_last()["ran"], "battery")
+        self.assertIn("poweroff", self.log("systemctl"))
+
+    def test_a_node_switched_on_by_hand_in_the_night_window_listens(self):
+        for wake in (["--wake", "reboot"], []):   # a reboot; no Witty Pi to ask
+            self.window(may(LATE, "2026-05-15T21:40:00+00:00", windows=(DAWN, DUSK, LATE)), LIFE_NIGHT_VIN="12.2").check(wake)
+            self.assertEqual((self.night_last()["ran"], self.night_last()["minV"]), ("listened", None))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def apply_answer(self, answer, **env) -> None:
+        old = sys.stdin
+        sys.stdin = io.StringIO(answer if isinstance(answer, str) else json.dumps(answer))
+        try:
+            self.window(**env).apply()
+        finally:
+            sys.stdin = old
+
+    def test_apply_keeps_the_settings_and_writes_the_schedule_again(self):
+        self.apply_answer({"ok": True, "night": NIGHT_ON}, LIFE_SCHEDULE_CMD="/opt/life-schedule")
+        self.assertEqual(json.loads((self.state / "night.json").read_text()), NIGHT_ON)
+        self.assertEqual(self.log("systemd-run"), ["--unit=life-schedule-again --collect /opt/life-schedule again"])
+        self.apply_answer({"night": NIGHT_ON})   # the same answer: nothing to do
+        self.assertEqual(len(self.log("systemd-run")), 1)
+
+    def test_apply_writes_the_schedule_again_only_for_a_change_that_moves_an_hour(self):
+        self.apply_answer({"night": {**NIGHT_ON, "on": False}})          # off, never on before: no hour changes
+        self.apply_answer({"night": {**NIGHT_ON, "on": False, "startMin": 90}})
+        self.assertEqual(self.log("systemd-run"), [])
+        self.apply_answer({"night": {**NIGHT_ON, "startMin": 90}})       # on
+        self.apply_answer({"night": {**NIGHT_ON, "startMin": 90, "rev": 4}})   # a new rev, the same settings
+        self.assertEqual(json.loads((self.state / "night.json").read_text())["rev"], 4)
+        self.apply_answer({"night": {**NIGHT_ON, "startMin": 90, "rev": 5, "minV": 12.9, "battery": False}})   # read at night
+        self.assertEqual(json.loads((self.state / "night.json").read_text())["minV"], 12.9)
+        self.assertEqual(len(self.log("systemd-run")), 1)
+        self.apply_answer({"night": {**NIGHT_ON, "rev": 6, "on": False}})      # off again
+        self.assertEqual(len(self.log("systemd-run")), 2)
+
+    def test_apply_on_a_node_without_the_season_schedule_only_keeps_the_settings(self):
+        self.apply_answer({"night": NIGHT_ON}, SCHEDULE="bench")
+        self.assertTrue((self.state / "night.json").exists())
+        self.assertEqual(self.log("systemd-run"), [])
+
+    def test_apply_leaves_anything_but_a_night_answer_alone(self):
+        for answer in ("", "not json", "[1]", {"ok": True}, {"night": None}, {"night": {"on": True}}, {"night": {"rev": "3", "on": True}}):
+            self.apply_answer(answer)
+        self.assertFalse((self.state / "night.json").exists())
+        self.assertEqual(self.log("systemd-run"), [])
+
+    def test_arm_resets_the_night_timer(self):
+        self.window(may(DUSK, "2026-05-15T20:00:00+00:00")).arm([])
+        self.assertIn("stop life-window-night.timer", self.log("systemctl"))
+        self.assertEqual(self.log("systemd-run"), ["--unit=life-window-night --collect --on-active=1752s /usr/local/sbin/life-window night"])
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_arm_powers_off_a_node_on_for_a_night_window_that_is_gone(self):
+        (self.state / "window.json").write_text(json.dumps({"date": "2026-05-15", "window": "night"}))
+        self.window(may(None, "2026-05-15T20:40:00+00:00", windows=(DAWN, DUSK))).arm([])
+        self.assertIn("poweroff", self.log("systemctl"))
+
+    def test_arm_leaves_a_node_somebody_is_at(self):
+        boots = ({"window": None, "offWindow": "kept"}, {"window": "dusk", "visit": True}, {"window": "night"})
+        for i, boot in enumerate(boots):
+            (self.state / "window.json").write_text(json.dumps(boot))
+            if i == 2:
+                self.maintenance(timedelta(hours=-1), timedelta(hours=3))
+            self.window(may(None, "2026-05-15T20:40:00+00:00", windows=(DAWN, DUSK))).arm([])
+        self.assertNotIn("poweroff", self.log("systemctl"))
+        self.window(may(None, "2026-05-15T20:40:00+00:00"), SCHEDULE="bench").arm([])
+        self.assertEqual(self.log("systemctl").count("stop life-window-night.timer"), 3)   # bench: arm does nothing at all
 
 
 if __name__ == "__main__":

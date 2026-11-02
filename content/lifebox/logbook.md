@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 2 November 2026
 
+### Meadow birds get an hour of their own, outside the readings
+
+*Learning.* Black-tailed godwit, lapwing and snipe call most in the first hours of darkness, after the dusk window has ended, so researchers who follow meadow birds asked for a node that listens on. Adding hours to the listening windows would have changed the method and made a node with them incomparable with one without. And at the 5.65 W the node draws while its bat model runs, an hour is about 6.3 Wh from the battery, a quarter of a summer day.
+
+*Change.* The night window is an option the place's owner turns on, on the node's dashboard: off by default, then from 60 minutes after sunset for 60 minutes, 25 March to 30 June, every value settable. The readings never count it, so a node with it is read on the same hours as one without. With the battery option, on by default, the node decides as the window begins and powers off until the next dawn when its battery reads under the owner's minimum, 13.1 V. The dashboard shows whether the node has the settings and how its last night went. The oracle and the node work the window out with different sun equations; over a year at Amsterdam they agree within about two minutes. It has run in tests and not yet through a spring on a node.
+
 ### The clips leave at a visit, and the box stays shut
 
 *Learning.* A sample of five clips per species, month and score band is enough to set a threshold, and not enough for whoever wants to study a place by ear. A field node has no cable or WiFi to send more over, the SIM has no room for sound, and the one way out so far, a stick, meant opening the lid and so dealing with the guard.

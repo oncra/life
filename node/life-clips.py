@@ -22,7 +22,8 @@ when somebody is at the box, or when the node itself is on a cable or a WiFi:
 
 What is kept:
 - only detections of bird and bat species (BirdNET-Go label type `species`), only inside the listening windows of
-  their own day (life-schedule-wpi), and only clips BirdNET-Go actually wrote: its privacy filter writes no clip in
+  their own day (life-schedule-wpi; the owner's night window for meadow birds counts here, and one that runs past
+  midnight belongs to the evening before), and only clips BirdNET-Go actually wrote: its privacy filter writes no clip in
   which it hears a human voice, and its speech detector (Privacy Guard, `realtime.privacyfilter.vad`) drops such a
   detection outright;
 - every clip with a score of LIFE_CLIPS_ALL_FROM (0.5) or more, while /data has more than LIFE_CLIPS_MIN_FREE_MB
@@ -95,7 +96,7 @@ import time
 import urllib.parse
 import uuid
 import wave
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -407,7 +408,8 @@ _days: dict = {}
 
 
 def in_window(ts: int) -> bool:
-    """Whether a detection falls inside the listening windows of its own day (content/spec.md, section 2.2)."""
+    """Whether a detection falls inside the listening windows of its own day (content/spec.md, section 2.2), the owner's
+    night window included."""
     global _windows
     if ANYTIME:
         return True
@@ -423,9 +425,11 @@ def in_window(ts: int) -> bool:
             _windows = lambda d: []  # noqa: E731
     t = datetime.fromtimestamp(ts, timezone.utc)
     day = t.astimezone(TZ).date()
-    if day not in _days:   # the sun's times, worked out once per day and run
-        _days[day] = _windows(day)
-    return any(w["start"] <= t < w["end"] for w in _days[day])
+    days = (day, day - timedelta(days=1))   # a night window past midnight is the evening before's
+    for d in days:
+        if d not in _days:   # the sun's times, worked out once per day and run
+            _days[d] = _windows(d)
+    return any(w["start"] <= t < w["end"] for d in days for w in _days[d])
 
 
 def band(confidence: float) -> str:
