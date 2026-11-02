@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#1d2a24">
+  <title>Life node alarm: the panel loop and a tilt switch on one transistor that sounds the siren</title>
+  <rect width="900" height="560" fill="#fbfaf6"/>
+  <text x="250" y="34" font-size="18" font-weight="bold">Life node alarm: panel loop and tilt switch, one transistor</text>
+  <text x="250" y="56" font-size="13">Loop closed: silent, 13 µA. Panel loop cut, or the box tipped: the siren sounds after about</text>
+  <text x="250" y="73" font-size="13">a second, for as long as it stays open. No chip, no firmware.</text>
+
+  <g stroke="#1d2a24" stroke-width="2" fill="none" stroke-linecap="round">
+    <!-- +12 V rail, after the fuse -->
+    <path d="M560 110 H765 M815 110 H860"/>
+    <rect x="765" y="98" width="50" height="24" rx="12"/>
+    <path d="M772 110 H808" stroke-width="1.5"/>
+    <!-- ground rail -->
+    <path d="M112 500 H860"/>
+    <!-- siren -->
+    <path d="M700 110 V150 M700 200 V262"/>
+    <path d="M682 150 H718 L732 200 H668 Z"/>
+    <!-- MOSFET -->
+    <rect x="670" y="262" width="60" height="76" rx="4"/>
+    <path d="M700 338 V500"/>
+    <!-- gate net -->
+    <path d="M128 300 H670"/>
+    <!-- R1 pull-up -->
+    <path d="M560 110 V160 M560 230 V300"/>
+    <rect x="550" y="160" width="20" height="70"/>
+    <!-- C1 -->
+    <path d="M620 300 V385 M620 397 V500"/>
+    <path d="M598 385 H642 M598 397 H642" stroke-width="3"/>
+    <!-- R2 gate to tap -->
+    <path d="M470 300 V322 M470 372 V410"/>
+    <rect x="460" y="322" width="20" height="50"/>
+    <!-- tap net and R3 || R4 -->
+    <path d="M440 410 H500"/>
+    <path d="M440 410 V425 M440 475 V500 M500 410 V425 M500 475 V500"/>
+    <rect x="430" y="425" width="20" height="50"/>
+    <rect x="490" y="425" width="20" height="50"/>
+    <!-- lead to the Pi -->
+    <path d="M440 410 H330" stroke-dasharray="7 5"/>
+    <!-- the loop: up out of the box, through the panel frame, back down to the tilt switch -->
+    <path d="M128 300 V152"/>
+    <path d="M128 152 A8 8 0 0 0 112 152"/>
+    <path d="M112 152 V318 M112 378 V500"/>
+    <rect x="87" y="318" width="50" height="60" rx="6"/>
+    <path d="M97 360 L127 336" stroke-width="1.5"/>
+  </g>
+
+  <!-- the panel and its frame tab -->
+  <g stroke="#1d2a24" stroke-width="2">
+    <rect x="30" y="22" width="190" height="96" fill="#dfe8e2"/>
+    <path d="M60 22 V118 M90 22 V118 M120 22 V118 M150 22 V118 M180 22 V118" stroke-width="1" stroke="#9fb3a7"/>
+    <rect x="102" y="118" width="36" height="48" fill="#c9cfcb"/>
+  </g>
+  <circle cx="120" cy="152" r="10" fill="#fbfaf6" stroke="#1d2a24" stroke-width="1.5"/>
+  <path d="M128 152 A8 8 0 0 0 112 152" stroke="#1d2a24" stroke-width="2.5" fill="none"/>
+  <text x="125" y="75" font-size="13" text-anchor="middle">solar panel</text>
+  <text x="146" y="150" font-size="12">frame hole</text>
+  <text x="140" y="180" font-size="12" fill="#55645b">one 2-core cable: at the frame</text>
+
+  <!-- box wall -->
+  <path d="M30 245 H96 M144 245 H240" stroke="#7a8a80" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <rect x="98" y="237" width="44" height="16" rx="3" fill="#e9ece6" stroke="#7a8a80" stroke-width="1.5"/>
+  <path d="M112 237 V253 M128 237 V253" stroke="#1d2a24" stroke-width="2"/>
+  <text x="150" y="232" font-size="12" fill="#55645b">box wall, the spare M20 gland</text>
+  <text x="140" y="196" font-size="12" fill="#55645b">one core goes through the hole,</text>
+  <text x="140" y="212" font-size="12" fill="#55645b">and the two are soldered shut</text>
+
+  <!-- junctions -->
+  <g fill="#1d2a24">
+    <circle cx="560" cy="110" r="4"/><circle cx="700" cy="110" r="4"/>
+    <circle cx="470" cy="300" r="4"/><circle cx="560" cy="300" r="4"/><circle cx="620" cy="300" r="4"/>
+    <circle cx="440" cy="410" r="4"/><circle cx="470" cy="410" r="4"/>
+    <circle cx="440" cy="500" r="4"/><circle cx="500" cy="500" r="4"/><circle cx="620" cy="500" r="4"/><circle cx="700" cy="500" r="4"/>
+    <circle cx="862" cy="110" r="5"/><circle cx="862" cy="500" r="5"/>
+  </g>
+
+  <!-- labels -->
+  <text x="855" y="96" font-size="13" text-anchor="end">load +</text>
+  <text x="855" y="526" font-size="13" text-anchor="end">load −</text>
+  <text x="790" y="142" font-size="12" text-anchor="middle">fuse 1 A</text>
+  <text x="790" y="158" font-size="12" text-anchor="middle" font-weight="bold">out = alarm off</text>
+  <text x="742" y="190" font-size="13">siren PS-583Q</text>
+  <text x="742" y="206" font-size="12">red to +, black down</text>
+  <text x="700" y="296" font-size="12" text-anchor="middle">IRLZ34N</text>
+  <text x="682" y="320" font-size="11">G</text><text x="704" y="258" font-size="11">D</text><text x="704" y="352" font-size="11">S</text>
+  <text x="740" y="285" font-size="12">legs G D S, text</text>
+  <text x="740" y="301" font-size="12">towards you</text>
+  <text x="577" y="200" font-size="13">1 M</text>
+  <text x="592" y="395" font-size="13" text-anchor="end">2.2 µF film</text>
+  <text x="487" y="352" font-size="13">1 M</text>
+  <text x="412" y="455" font-size="13" text-anchor="end">1 M</text>
+  <text x="518" y="455" font-size="13">1 M</text>
+  <text x="330" y="294" font-size="12" fill="#55645b">loop to the gate</text>
+  <text x="322" y="404" font-size="13" text-anchor="end">to the Pi: header pin 19</text>
+  <text x="322" y="421" font-size="12" text-anchor="end">(GPIO 10), one lead, reads it</text>
+  <text x="322" y="437" font-size="12" text-anchor="end" fill="#55645b">no ground lead to the header</text>
+  <text x="146" y="334" font-size="12">tilt switch,</text>
+  <text x="146" y="350" font-size="12">upright on the plate,</text>
+  <text x="146" y="366" font-size="12">its pins S and −</text>
+  <text x="30" y="548" font-size="13">All four resistors are 1 MΩ: nothing to swap. Two of them side by side from the tap to ground.</text>
+</svg>

@@ -131,6 +131,57 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(self.mod.status(), {"enabled": True, "alarm": True, "loop": "lid"})
 
 
+class SimpleAlarmTest(GuardTest):
+    """GUARD=simple: the panel loop and tilt switch on one transistor. The Pi reads the ALARM line and reports it;
+    there is no disarm line, so nothing here may ever pulse."""
+
+    def setUp(self):
+        super().setUp()
+        self.mod = load({"GUARD": "simple", "FAKE_PINS": str(self.dir), "GUARD_LOCK": str(self.dir / "lock"), "LIFE_STATE": str(self.dir / "state")})
+        self.mod.pulse = lambda *a, **k: self.fail("pulsed the disarm line on the simple alarm")
+
+    def test_two_pulses_never_run_together(self):
+        pass  # the simple alarm has no pulses
+
+    def test_rearm_is_two_pulses_within_a_second(self):
+        pass
+
+    def test_watch_stops_asking_after_recheck_for(self):
+        clock = FakeTime()
+        self.mod.time = clock
+        self.mod.pin_read = lambda n: True
+        checks = []
+        self.mod.check = lambda: checks.append(clock.t)
+        self.mod.watch(every=1, recheck=10, recheck_for=30, rounds=100)
+        self.assertEqual(checks, [])  # standing since the boot check, which reported it; asking again silences nothing
+
+    def test_watch_checks_when_the_alarm_rises_and_again_while_it_stands(self):
+        clock = FakeTime()
+        self.mod.time = clock
+        line = iter([False, False, True, True, True, True, False, False])
+        self.mod.pin_read = lambda n: next(line)
+        checks = []
+        self.mod.check = lambda: checks.append(clock.t)
+        self.mod.watch(every=2, recheck=4, recheck_for=60, rounds=7)
+        self.assertEqual(checks, [1004.0])  # once, when it rises
+
+    def test_status_reads_loop_and_alarm(self):
+        (self.dir / "pin10").write_text("1")
+        self.assertEqual(self.mod.status(), {"enabled": True, "kind": "simple", "alarm": True, "loop": "unknown"})
+        (self.dir / "pin10").write_text("0")
+        self.assertFalse(self.mod.status()["alarm"])
+
+    def test_check_reports_and_never_disarms(self):
+        (self.dir / "pin10").write_text("1")
+        future = "2999-01-01T00:00:00Z"
+        self.mod.cache_window({"from": "2000-01-01T00:00:00Z", "until": future, "active": True})
+        self.mod.TOKEN = None  # offline: the report fails quietly, and a cached window must still not pulse
+        self.mod.check()
+        self.mod.apply({"maintenance": {"from": "2000-01-01T00:00:00Z", "until": future, "active": True}})
+        (self.dir / "pin10").write_text("0")
+        self.mod.check()
+
+
 FAKES = {
     "dtoverlay": 'echo "dtoverlay $*" >> "$FAKE_LOG"',
     "systemctl": 'echo "systemctl $*" >> "$FAKE_LOG"; [ "$1" = is-active ] && echo active; exit 0',

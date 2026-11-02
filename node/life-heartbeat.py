@@ -329,8 +329,8 @@ def mics(event):
 
 
 def guard():
-    """What the tamper guard reports, when the board is fitted (GUARD=1); see life-guard.py."""
-    if os.environ.get("GUARD", "0") != "1":
+    """What the alarm reports, when a board is fitted (GUARD=simple or GUARD=1); see life-guard.py."""
+    if os.environ.get("GUARD", "0") not in ("1", "simple"):
         return None
     try:
         return json.loads(subprocess.run(["life-guard", "status"], capture_output=True, text=True, timeout=10, check=True).stdout)
