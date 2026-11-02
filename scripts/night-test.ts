@@ -56,6 +56,8 @@ assert.equal(nightWindow(noon("2026-05-01"), LAT, LON, { ...on, startMin: 0 }, Z
 const mid = nightWindow(noon("2026-06-21"), LAT, LON, { ...on, startMin: 300, lenMin: 180 }, Z)!;
 assert.equal(mid[1], firstCoreStart("2026-06-22") - NIGHT_GAP_MS);
 assert.ok(mid[0] === sunset("2026-06-21") + 300 * MIN && mid[1] > mid[0]);
+// an hour later what is left is under 15 minutes, the shortest the owner can set: no window, as on the node
+assert.equal(nightWindow(noon("2026-06-21"), LAT, LON, { ...on, startMin: 360, lenMin: 180 }, Z), null);
 // across the change to summer time (29 March 2026): the same rule, an hour later on the clock
 const label = (d: string) => clockLabel(nightWindow(noon(d), LAT, LON, on, Z)![0], Z);
 const mins = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
@@ -87,5 +89,5 @@ assert.deepEqual(nightLastOf({ ...last, v: "13.2", date: "1 May" }), { ...last, 
 assert.equal(nightLastText(nightLastOf(last)!, Z), "Fri 1 May: listened 21:47 to 22:47, battery 13.24 V");
 assert.equal(nightLastText(nightLastOf({ ...last, ran: "battery", v: 12.9 })!, Z), "Fri 1 May: skipped for the battery: 12.9 V under 13.1 V");
 assert.equal(nightLastText(nightLastOf({ ...last, ran: "unknown", v: null })!, Z), "Fri 1 May: listened 21:47 to 22:47; the battery could not be read");
-assert.equal(nightLastText(nightLastOf({ ...last, ran: "kept", v: 12.7 })!, Z), "Fri 1 May: the alarm was silenced, so it stayed on (21:47 to 22:47)");
+assert.equal(nightLastText(nightLastOf({ ...last, ran: "kept", v: 12.7 })!, Z), "Fri 1 May: listened 21:47 to 22:47; the battery was 12.7 V, under 13.1 V, but a visit or a maintenance window kept the node on");
 console.log("night: all checks pass");

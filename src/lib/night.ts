@@ -5,7 +5,8 @@
 // The window starts startMin minutes after sunset and ends startMin + lenMin minutes after it, on the dates from `from`
 // to `to` (MM-DD, both included; a season may run over the new year). It never overlaps the listening windows the
 // readings count: it starts no earlier than the end of the day's last one and ends at least NIGHT_GAP_MS before the
-// next day's first, and what is left under NIGHT_MIN_MS is no window. Arithmetic in UTC epoch ms, like listening.ts.
+// next day's first, and what is left under NIGHT_MIN_MS (the shortest the owner can set; a boot costs more) is no window.
+// Arithmetic in UTC epoch ms, like listening.ts.
 import { dayLabel, dayStart, clockLabel, wall, DISPLAY_ZONE } from "./clock";
 import { coreWindows, type Window } from "./listening";
 import { sunAt } from "./sun";
@@ -21,8 +22,8 @@ const H = 36e5;
 const DAY = 864e5;
 /** The window ends at least this long before the next day's first listening window. */
 export const NIGHT_GAP_MS = 15 * MIN;
-/** Less than this left between the core windows is no window. */
-export const NIGHT_MIN_MS = 5 * MIN;
+/** Less than this left between the core windows is no window: the shortest length the owner can set. */
+export const NIGHT_MIN_MS = 15 * MIN;
 
 const DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -132,7 +133,7 @@ export function nightLastText(l: NonNullable<NightLast>, zone = DISPLAY_ZONE): s
     case "listened": return `${day}: listened${span}${l.v !== null ? `, battery ${volts(l.v)}` : ""}`;
     case "battery": return `${day}: skipped for the battery${l.v !== null ? `: ${volts(l.v)}${l.minV !== null ? ` under ${volts(l.minV)}` : ""}` : ""}`;
     case "unknown": return `${day}: listened${span}; the battery could not be read`;
-    case "kept": return `${day}: the alarm was silenced, so it stayed on${span ? ` (${span.trim()})` : ""}`;
+    case "kept": return `${day}: listened${span}; the battery was ${l.v !== null ? `${volts(l.v)}, ` : ""}under ${l.minV !== null ? volts(l.minV) : "its minimum"}, but a visit or a maintenance window kept the node on`;
     default: return `${day}: ${l.ran}`;
   }
 }

@@ -43,7 +43,7 @@ export default function NightWindow({ place, state: initial, zone }: Props) {
   return (
     <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-2 md:col-span-2">
       <h3 className="font-medium">Meadow-bird window</h3>
-      <p className="text-xs text-muted max-w-3xl">Off by default. For meadow-bird research: black-tailed godwit, lapwing and snipe (grutto, kievit, watersnip) call most in the first hours of darkness, after the node&apos;s dusk window has ended, so the node can listen on for them. The readings never count this window, so the place is read on the same hours as every other. It costs about 4 to 5 Wh a night at the default hour; with the battery option a dull spell skips the night, never the dawn.</p>
+      <p className="text-xs text-muted max-w-3xl">Off by default. For meadow-bird research: black-tailed godwit, lapwing and snipe (grutto, kievit, watersnip) call most in the first hours of darkness, after the node&apos;s dusk window has ended, so the node can listen on for them. The readings never count this window, so the place is read on the same hours as every other. It costs about 6 Wh an hour from the battery: the node draws about 3.1 W awake and 2.5 W more while its bat model runs after sunset (the kit&apos;s bench log). With the battery option a dull spell skips the night, never the dawn.</p>
       {msg && <div className={`rounded border p-2 ${msg.ok ? "border-accent bg-green-50" : "border-red-300 bg-red-50"}`}>{msg.text}</div>}
       <label className="flex items-center gap-2"><input type="checkbox" checked={f.on} onChange={(e) => set("on", e.target.checked)} />Listen for meadow birds after sunset</label>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
