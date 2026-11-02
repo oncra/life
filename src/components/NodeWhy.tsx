@@ -29,7 +29,7 @@ const POINTS: { title: string; body: ReactNode }[] = [
   },
   {
     title: "It watches over itself",
-    body: "A tamper alarm with a 100 dB siren on the lid, the panel and tilting. The oracle raises a flag when a node moves to another cell tower, goes quiet for 36 hours or runs low on battery.",
+    body: "Security bolts on the panel and the box, and no alarm electronics to fail. The oracle raises a flag when a node moves to another cell tower, goes quiet for 36 hours or runs low on battery.",
   },
   {
     title: "Open, and cheap enough to repeat",
