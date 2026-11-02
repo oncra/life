@@ -44,3 +44,6 @@ next-env.d.ts
 src/generated/
 node/image/authorized_keys
 /images/
+
+# Python bytecode (node tests, life-clips loading life-schedule-wpi)
+__pycache__/

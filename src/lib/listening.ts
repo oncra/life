@@ -11,6 +11,7 @@
 // South of the equator the months are six on. Windows are computed per UTC day from the place's centroid; the
 // node computes them with astral, and the two agree to a minute or two.
 import { sunAt } from "./sun";
+import { offsetMs } from "./clock";
 
 const H = 36e5;
 const DAY = 864e5;
@@ -69,4 +70,76 @@ export function coreWindowArrays(from: number, to: number, lat: number, lon: num
     s2.push(w[1] ? new Date(w[1][0]).toISOString() : none); e2.push(w[1] ? new Date(w[1][1]).toISOString() : none);
   }
   return { day0, s1, e1, s2, e2 };
+}
+
+// --- the windows as rules, for the nodes ---
+//
+// A node is told the method's windows as rules (node/image/life-schedule-wpi.py reads them; life-config takes them
+// from the oracle's answer to a heartbeat, src/lib/node-config.ts): a length from a moment of the sun or the clock, in
+// some months. METHOD_RULES are the windows above, the ones the readings count, written as rules; every node gets them,
+// so a new version of the method reaches every node without a visit. coreWindows stays the method itself, and
+// `npm run config:test` checks that METHOD_RULES give exactly its windows: change the two together, with the spec.
+// What a node listens to beyond them is the owner's meadow-bird window (src/lib/night.ts), never counted.
+
+export type Anchor = "dawn" | "sunrise" | "noon" | "sunset" | "dusk" | "clock";
+export type WindowRule = { name: string; months: string | number[]; from: Anchor; at?: string; offset?: number; min: number };
+export type RuleWindow = { name: string; start: number; end: number };
+
+export const METHOD_RULES: WindowRule[] = [
+  { name: "dawn", months: "3-10", from: "dawn", min: 240 },
+  { name: "dusk", months: "3-10", from: "sunset", min: 60 },
+  { name: "winter", months: "11-2", from: "sunrise", min: 120 },
+];
+
+/** "3-10" -> March to October, "11-2" -> November to February, "6" -> June, [4, 5]; null when it is none of those. */
+export function monthsOf(v: unknown): Set<number> | null {
+  if (Array.isArray(v)) return v.length && v.every((m) => Number.isInteger(m) && m >= 1 && m <= 12) ? new Set(v as number[]) : null;
+  if (typeof v !== "string") return null;
+  const m = /^(\d{1,2})(?:-(\d{1,2}))?$/.exec(v.trim());
+  if (!m) return null;
+  const a = Number(m[1]), b = Number(m[2] ?? m[1]);
+  if (a < 1 || a > 12 || b < 1 || b > 12) return null;
+  const n = (((b - a) % 12) + 12) % 12 + 1;
+  return new Set(Array.from({ length: n }, (_, i) => ((a - 1 + i) % 12) + 1));
+}
+
+function localAt(d0: number, hhmm: string, zone: string): number {
+  const [h, mi] = hhmm.split(":").map(Number);
+  const noon = d0 + 12 * H;
+  return d0 + h * H + mi * 6e4 - offsetMs(noon, zone);
+}
+
+/** The windows `rules` give on the UTC day that contains `t` (epoch ms), worked out as coreWindows works out the
+ *  method's: the same sun, the same fallbacks far north. Windows that overlap become one, named after both, as on the
+ *  node (where the sun sets within three hours of civil dawn, far north, that one runs on to the dawn window's end,
+ *  and coreWindows stops at the dusk window's). A clock rule is local time in `zone`. */
+export function ruleWindows(t: number, lat: number, lon: number, rules: WindowRule[], zone = "Europe/Amsterdam"): RuleWindow[] {
+  const d0 = Math.floor(t / DAY) * DAY;
+  const m = seasonMonth(d0 + 12 * H, lat);
+  const sun = sunAt(d0, lat, lon, -0.833), civil = sunAt(d0, lat, lon, -6);
+  const solarNoon = d0 + 12 * H - (lon / 15) * H;
+  const moment: Record<Exclude<Anchor, "clock">, number> = {
+    dawn: civil ? civil.rise : solarNoon - 7 * H,
+    sunrise: sun ? sun.rise : solarNoon - 4 * H,
+    noon: sun ? (sun.rise + sun.set) / 2 : solarNoon,
+    sunset: sun ? sun.set : solarNoon + 9 * H,
+    dusk: civil ? civil.set : solarNoon + 10 * H,
+  };
+  const ws: RuleWindow[] = [];
+  for (const r of rules) {
+    if (!monthsOf(r.months)?.has(m)) continue;
+    const a = r.from === "clock" ? localAt(d0, r.at ?? "00:00", zone) : moment[r.from];
+    const s = a + (r.offset ?? 0) * 6e4;
+    ws.push({ name: r.name, start: s, end: s + r.min * 6e4 });
+  }
+  ws.sort((x, y) => x.start - y.start);
+  const out: RuleWindow[] = [];
+  for (const w of ws) {
+    const last = out[out.length - 1];
+    if (last && w.start <= last.end) {
+      last.end = Math.max(last.end, w.end);
+      last.name += `+${w.name}`;
+    } else out.push({ ...w });
+  }
+  return out;
 }

@@ -137,6 +137,13 @@ model Device {
   nightBattery  Boolean  @default(true)
   nightMinV     Float    @default(13.1)
   nightRev      Int      @default(0)
+  /// settings the node takes over the air (src/lib/node-config.ts): {env: values of its own settings within fixed
+  /// bounds}, set by the place's owner; sent with the method's listening windows in the heartbeat answer whenever the
+  /// rev the node reports is not the current one. configN counts the saves, so the rev changes with each
+  configN     Int        @default(0)
+  config      Json?
+  configAt    DateTime?
+  configBy    String?
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]

@@ -2,13 +2,15 @@
 import { useState } from "react";
 import type { VisitState } from "@/lib/node-visit";
 import type { NightState } from "@/lib/node-night";
+import type { ConfigState } from "@/lib/node-config";
 import NightWindow from "./NightWindow";
+import NodeSettings from "./NodeSettings";
 
 // The owner's corner of the node dashboard: the WiFi the node uses on a visit, the alarm window, the clips, on the node
-// and on the oracle, and the meadow-bird window (NightWindow). Shown only to whoever may run the node
-// (src/lib/privacy.ts canManage); the API checks again.
+// and on the oracle, the meadow-bird window (NightWindow) and the settings over 4G (NodeSettings). Shown only to
+// whoever may run the node (src/lib/privacy.ts canManage); the API checks again.
 
-type Props = { place: string; state: VisitState; night?: NightState; months: { month: string; n: number }[]; zone: string };
+type Props = { place: string; state: VisitState; night?: NightState; config?: ConfigState; months: { month: string; n: number }[]; zone: string };
 
 const APP = "https://github.com/oncra/life/tree/main/clients/clips-app";
 const VISIT_HOW: Record<string, string> = {
@@ -19,7 +21,7 @@ const VISIT_HOW: Record<string, string> = {
   none: "nothing taken",
 };
 
-export default function OwnerPanel({ place, state: initial, night, months, zone }: Props) {
+export default function OwnerPanel({ place, state: initial, night, config, months, zone }: Props) {
   const [s, setS] = useState(initial);
   const [ssid, setSsid] = useState(initial.ssid);
   const [psk, setPsk] = useState(initial.psk);
@@ -120,6 +122,7 @@ export default function OwnerPanel({ place, state: initial, night, months, zone 
 
         {night && <NightWindow place={place} state={night} zone={zone} />}
       </div>
+      {config && <NodeSettings place={place} state={config} zone={zone} />}
     </section>
   );
 }

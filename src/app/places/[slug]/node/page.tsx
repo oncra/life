@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { canManage, canSeeExact, publicPlace } from "@/lib/privacy";
 import { clipMonths, visitState } from "@/lib/node-visit";
 import { nightState } from "@/lib/node-night";
+import { configState } from "@/lib/node-config";
 import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
 import { asRange, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
@@ -51,10 +52,11 @@ export default async function NodePage({ params, searchParams }: Props) {
   // the owner's panel: visit WiFi, alarm window, clips and the meadow-bird window, for each Life Node (the sound device
   // that sends heartbeats); the meadow-bird window, when it is on, shows to everyone
   const nodes = await prisma.device.findMany({ where: { placeId: stored.id, kind: "SOUND" }, select: { id: true }, orderBy: { createdAt: "asc" } });
-  const [panels, months, nightStates] = await Promise.all([
+  const [panels, months, nightStates, configs] = await Promise.all([
     owner ? Promise.all(nodes.map((n) => visitState(n.id))) : [],
     owner ? clipMonths(stored.id) : [],
     Promise.all(nodes.map((n) => nightState(n.id, data.now))),
+    owner ? Promise.all(nodes.map((n) => configState(n.id))) : [],
   ]);
   const [index, heard, clips, states] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
@@ -122,7 +124,7 @@ export default async function NodePage({ params, searchParams }: Props) {
         </p>
       ))}
 
-      {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} months={months} zone={data.zone} />)}
+      {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} config={configs.find((c) => c.device === p.device)} months={months} zone={data.zone} />)}
 
       <LastHeard items={heard} now={data.now} zone={data.zone} />
 

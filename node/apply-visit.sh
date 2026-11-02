@@ -101,6 +101,8 @@ if [ ${#NEED[@]} -gt 0 ] && [ $INSTALL = 1 ]; then
 fi
 
 APPLY="/usr/local/bin/life-guard apply;/usr/local/bin/life-visit apply;/usr/local/bin/life-clips apply;/usr/local/sbin/life-window apply"
+# a node that takes its settings over the air (apply-config.sh) keeps handing the answer to life-config too
+[ -e /usr/local/bin/life-config ] && APPLY="$APPLY;/usr/local/bin/life-config apply"
 for R in "${ROOTS[@]}"; do
   S=$R/etc/systemd/system
   install -m 0755 "$HERE/life-visit.py" "$R/usr/local/bin/life-visit"
