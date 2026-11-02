@@ -15,6 +15,8 @@ export type TriageClip = {
   /** how many times slower the sound plays than it was heard (a bat clip: 10); null for real time */
   expansion: number | null;
   hasSound: boolean;
+  /** whether the person looking may judge it: signed in and allowed to see its place exactly */
+  canJudge: boolean;
   mine: { verdict: string; actual: string | null; note: string | null } | null;
   others: { right: number; wrong: number; unsure: number };
 };
@@ -40,7 +42,7 @@ const mic = (s: string | null) => (s === "Sound Card 1" ? "I2S microphone" : s ?
 const MODEL: Record<string, string> = { "birdnet-go:birdnet": "BirdNET", "birdnet-go:battybirdnet": "bat model", "birdnet-go:perch_v2": "Perch" };
 const model = (d: string | null) => (d ? MODEL[d] ?? d.replace(/^birdnet-go:/, "") : "detector");
 
-export function Triage({ species }: { species: TriageSpecies[] }) {
+export function Triage({ species, judging }: { species: TriageSpecies[]; judging: boolean }) {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [q, setQ] = useState("");
   const [done, setDone] = useState<Record<string, string | null>>(() => Object.fromEntries(species.flatMap((s) => s.clips.map((c) => [c.id, c.mine?.verdict ?? null]))));
@@ -53,8 +55,12 @@ export function Triage({ species }: { species: TriageSpecies[] }) {
   return (
     <div className="mt-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <span className="font-medium">{judged} of {total} clips judged by you</span>
-        <label className="flex items-center gap-1"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> only clips not yet judged</label>
+        {judging ? (
+          <>
+            <span className="font-medium">{judged} of {total} clips judged by you</span>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> only clips not yet judged</label>
+          </>
+        ) : <span className="font-medium">{total} clips</span>}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="find a species" className="rounded border border-line px-2 py-1 text-sm" />
       </div>
       <div className="mt-4 grid gap-4">
@@ -77,7 +83,7 @@ export function Triage({ species }: { species: TriageSpecies[] }) {
                     {s.nl && s.name && s.name !== s.nl ? <span className="text-muted"> · {s.name}</span> : null}
                     {s.nl || s.name ? <span className="italic text-muted"> · {s.scientific}</span> : null}
                     <span className="block text-sm text-muted mt-1">
-                      reported {s.reported} times · {s.clips.length} clips · right {tally.right ?? 0}, wrong {tally.wrong ?? 0}, not sure {tally.unsure ?? 0}
+                      reported {s.reported} times · {s.clips.length} clips{judging ? <> · right {tally.right ?? 0}, wrong {tally.wrong ?? 0}, not sure {tally.unsure ?? 0}</> : null}
                     </span>
                   </span>
                 </span>
@@ -137,6 +143,7 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
       ) : (
         <div className="mt-2 text-sm text-muted">The sound of this clip has been deleted.</div>
       )}
+      {clip.canJudge ? (
       <div className="mt-3 flex flex-wrap gap-2">
         {VERDICTS.map((b) => (
           <button key={b.v} type="button" aria-pressed={verdict === b.v} onClick={() => save(verdict === b.v ? null : b.v)}
@@ -144,12 +151,13 @@ function ClipRow({ clip, onSaved }: { clip: TriageClip; onSaved: (v: string | nu
         ))}
         <span className="self-center text-xs text-muted">{state === "saving" ? "saving" : state === "saved" ? "saved" : state === "error" ? "not saved, try again" : ""}</span>
       </div>
-      {verdict === "wrong" || verdict === "unsure" ? (
+      ) : null}
+      {clip.canJudge && (verdict === "wrong" || verdict === "unsure" ? (
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <input value={actual} onChange={(e) => setActual(e.target.value)} onBlur={() => save(verdict)} placeholder="What is it then? (a species, a ship horn, a car...)" className="rounded border border-line px-2 py-1 text-sm" />
           <input value={note} onChange={(e) => setNote(e.target.value)} onBlur={() => save(verdict)} placeholder="Note" className="rounded border border-line px-2 py-1 text-sm" />
         </div>
-      ) : null}
+      ) : null)}
     </li>
   );
 }

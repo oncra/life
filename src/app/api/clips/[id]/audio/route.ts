@@ -2,14 +2,15 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { prisma } from "@/lib/db";
-import { clipPath, mayHear } from "@/lib/clips";
+import { clipPath } from "@/lib/clips";
 export const dynamic = "force-dynamic";
 
-// A clip's sound for the triage page, with byte ranges: Safari on a phone will not play audio without them.
+// A clip's sound for the triage page, with byte ranges: Safari on a phone will not play audio without them. Open to
+// every visitor, as the page is (2026-11-02); judging a clip still needs mayHear.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const clip = await prisma.clip.findUnique({ where: { id }, select: { deviceId: true, file: true, mime: true } });
-  if (!clip || !(await mayHear(clip.deviceId, req))) return new Response("not found", { status: 404 });
+  if (!clip) return new Response("not found", { status: 404 });
   if (!clip.file) return new Response("this clip's sound has been deleted", { status: 410 });
   const file = clipPath(clip.file);
   let size: number;
