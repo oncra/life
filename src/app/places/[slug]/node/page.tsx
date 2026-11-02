@@ -46,8 +46,8 @@ export default async function NodePage({ params, searchParams }: Props) {
   if (!data) notFound();
   const [index, heard, clips, states] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
-    // the clips on /triage are for whoever may see the place exactly, as the page itself
-    exact ? prisma.clip.count({ where: { device: { placeId: stored.id } } }) : 0,
+    // the clips on /triage are open to every visitor; judging them takes a sign-in
+    prisma.clip.count({ where: { device: { placeId: stored.id } } }),
     // asleep after a planned shutdown, between its listening windows: not the same as a late post
     nodeStates(data.now, stored.id),
   ]);
@@ -98,7 +98,7 @@ export default async function NodePage({ params, searchParams }: Props) {
       {clips > 0 && (
         <div className="mt-3 text-sm">
           <Link href="/triage" className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 font-medium hover:border-accent">Triage: was the detector right? →</Link>
-          <span className="ml-2 text-muted">{clips} clips to listen to and judge</span>
+          <span className="ml-2 text-muted">{clips} clips to listen to</span>
         </div>
       )}
 

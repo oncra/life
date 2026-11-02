@@ -56,7 +56,8 @@ export async function saveClipFile(name: string, data: Buffer) {
   await writeFile(p, data);
 }
 
-/** Whoever may see a device's place exactly may hear its clips: admins, the place's steward key, its owner, people given access. */
+/** Whoever may see a device's place exactly may judge its clips: admins, the place's steward key, its owner, people given
+ * access. Listening is open to every visitor (2026-11-02); the name stayed from when it was not. */
 export async function mayHear(deviceId: string, req?: Request): Promise<boolean> {
   const d = await prisma.device.findUnique({ where: { id: deviceId }, select: { placeId: true } });
   return d ? canSeeExact({ id: d.placeId }, req) : false;

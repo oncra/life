@@ -10,23 +10,18 @@ import { Triage, type TriageSpecies } from "@/components/Triage";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Triage: was the detector right?",
-  description: "Listen to the clips a Life Node on the bench kept, species by species, and say whether the detector was right.",
+  description: "Listen to the clips a Life Node on the bench kept, species by species, and hear whether the detector was right.",
   robots: { index: false, follow: false },
 };
 
-// Clips from a node on the bench, grouped by species, for the people who may see its place exactly.
+// Clips from a node on the bench, grouped by species. Everyone may listen (Sven, 2026-11-02: read-only for every
+// visitor); judging a clip takes a sign-in and the right to see its place exactly, as before (mayHear in lib/clips).
+// The page shows no location: a clip says which node, never where it stands.
 export default async function TriagePage() {
   const user = await currentUser();
-  if (!user) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
-        <SignIn title="Triage" intro="Sign in with your email to hear the clips a Life Node kept and say whether the detector was right. We send you a six-digit code; there is no password." />
-      </div>
-    );
-  }
-  const devices = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
-  const allowed = (await Promise.all(devices.map(async (d) => ((await canSeeExact(d.place)) ? d : null)))).filter((d) => d !== null);
+  const allowed = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
   const ids = allowed.map((d) => d.id);
+  const judge = new Set(user ? (await Promise.all(allowed.map(async (d) => ((await canSeeExact(d.place)) ? d.id : null)))).filter((d) => d !== null) : []);
   const [clips, reported, names] = await Promise.all([
     prisma.clip.findMany({ where: { deviceId: { in: ids } }, include: { reviews: true }, orderBy: [{ confidence: "desc" }] }),
     prisma.soundDetection.groupBy({ by: ["scientific"], where: { deviceId: { in: ids }, test: false }, _count: { _all: true } }),
@@ -56,8 +51,8 @@ export default async function TriagePage() {
       scientific: c.scientific, name: c.species ?? common.get(c.scientific) ?? null, nl: look.get(c.scientific)?.nl ?? null,
       image: look.get(c.scientific)?.image ?? null, reported: count.get(c.scientific) ?? 0, clips: [],
     };
-    const mine = c.reviews.find((r) => r.userId === user.id);
-    const others = c.reviews.filter((r) => r.userId !== user.id);
+    const mine = user ? c.reviews.find((r) => r.userId === user.id) : undefined;
+    const others = c.reviews.filter((r) => r.userId !== user?.id);
     g.clips.push({
       id: c.id,
       ts: c.ts.toISOString(),
@@ -68,6 +63,7 @@ export default async function TriagePage() {
       toS: c.toS,
       expansion: c.expansion,
       hasSound: c.file !== null,
+      canJudge: judge.has(c.deviceId),
       mine: mine ? { verdict: mine.verdict, actual: mine.actual, note: mine.note } : null,
       others: { right: others.filter((r) => r.verdict === "right").length, wrong: others.filter((r) => r.verdict === "wrong").length, unsure: others.filter((r) => r.verdict === "unsure").length },
     });
@@ -80,16 +76,24 @@ export default async function TriagePage() {
       <p className="mt-2 text-muted text-sm">
         Clips a Life Node kept while it stood on the bench{allowed.length ? <> ({allowed.map((d, i) => <span key={d.id}>{i ? ", " : ""}<Link href={`/places/${d.place.slug}/node`} className="underline">{d.place.name}</Link></span>)})</> : null}: per species up to five
         in each score band of 0.1, so the low scores are heard as well as the high ones. Listen, look at the spectrogram if it helps, and say whether
-        it is the species named. Each clip starts a second before the detected part and stops a second after it, and every clip is
+        it is the species named. Anyone may listen; judging takes a sign-in. Each clip starts a second before the detected part and stops a second after it, and every clip is
         brought to the same loudness, so the quieter microphone is heard as well as the louder one. Your verdicts set each species&apos; own
         threshold. The sound is deleted after {CLIP_KEEP_DAYS} days; the verdicts stay.
       </p>
+      {!user && species.length > 0 ? (
+        <details className="mt-4 rounded-lg border border-line bg-white p-4">
+          <summary className="cursor-pointer font-medium">Sign in to judge the clips</summary>
+          <div className="mt-3">
+            <SignIn compact title="Sign in" intro="We send a six-digit code to your email; there is no password. You can judge the clips of the nodes whose place you may see exactly." />
+          </div>
+        </details>
+      ) : null}
       {species.length === 0 ? (
         <p className="mt-6">No clips yet. They arrive a few hours after a node on the bench has heard something.</p>
       ) : (
-        <Triage species={species} />
+        <Triage species={species} judging={judge.size > 0} />
       )}
-      <div className="mt-8 text-sm"><Link href="/me" className="underline">Your places</Link></div>
+      {user ? <div className="mt-8 text-sm"><Link href="/me" className="underline">Your places</Link></div> : null}
     </div>
   );
 }
