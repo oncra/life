@@ -1,6 +1,7 @@
--- Clips from field nodes. A node keeps its clips and lets them go only when someone visits it: it joins the visitor's
--- phone hotspot and sends them itself, or a laptop on the node's own WiFi takes them and sends them later with the
--- node's grant. Either way the node deletes a clip only once the oracle has it with the same SHA-256.
+-- Clips from field nodes. A node keeps its clips and sends them over a cable or a WiFi it is on, or lets them go when
+-- someone visits it: it joins the visitor's phone hotspot and sends them itself, or a laptop on the node's own WiFi
+-- takes them and sends them later with the node's grant. Either way the node deletes a clip only once the oracle has
+-- it with the same SHA-256.
 
 -- the WiFi a node uses on a visit, set by the place's owner on the node dashboard and sent to the node with its next
 -- heartbeat answer whenever visitRev differs from the rev the node reports
