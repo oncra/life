@@ -16,9 +16,10 @@ The rules of a spacecraft, because nobody stands at the node:
   SSH keys, the software, the clock or the schedule's mode. The battery guard can be moved within its bounds and never
   switched off; on a node whose builder switched it off (a mains adapter) it cannot be switched on from here, and a
   stop level the node's input does not clear right now is refused, since it would switch the node off at once.
-- The last good settings are kept. New ones are on trial until the oracle has answered a post made under them. A node
-  that wakes TRIAL_WAKES times after they came without hearing from the oracle goes back to the last good ones by
-  itself, and refuses those again until the oracle sends something else.
+- The last good settings are kept. New ones are on trial until the oracle has answered a post made under them. When
+  TRIAL_WAKES whole wakes after they came have gone by without an answer from the oracle, the node starts the next one
+  on its last good settings, by itself, and refuses the new ones until the oracle sends something else. (At a wake's
+  boot the node cannot know yet whether that wake will be answered, so the count is of wakes that are over.)
 - The ground knows what the node runs: every heartbeat carries `cfgRev`, and after a change the first one also carries
   the settings the node now runs (`settings`, its own and the oracle's together).
 
@@ -35,7 +36,7 @@ night window for meadow birds, which has a channel of its own (life-window apply
 
     life-config apply < answer     the oracle's answer to a heartbeat, from life-push (LIFE_HEARTBEAT_APPLY_CMD)
     life-config boot               every boot, first thing in life-schedule: the env block in step, a wake on trial
-                                   counted, and back to the last good settings after TRIAL_WAKES
+                                   counted, and back to the last good settings once TRIAL_WAKES wakes went unanswered
     life-config report             the heartbeat's part, as JSON (life-heartbeat)
     life-config status [--json]
 
