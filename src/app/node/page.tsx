@@ -53,7 +53,7 @@ export default function LifeboxGuide() {
                         <tbody>
                           {g.parts.map((p) => (
                             <tr key={p.item + p.product} className="border-t border-line align-top">
-                              <td className="p-2 w-36 font-medium">{p.item}{p.basket === "R2" && <span className="block text-xs font-normal text-muted">the visit contact</span>}</td>
+                              <td className="p-2 w-36 font-medium">{p.item}{p.basket === "R2" && <span className="block text-xs font-normal text-muted">{/^alarm/i.test(p.item) ? "the alarm" : "the visit contact"}</span>}</td>
                               <td className="p-2">{p.url ? <a className="underline" href={p.url}>{p.product}</a> : p.product}</td>
                               <td className="p-2 text-right whitespace-nowrap">{p.qty} ×</td>
                               <td className="p-2 text-right whitespace-nowrap">{p.total ? `EUR ${p.total.toFixed(2)}` : ""}</td>

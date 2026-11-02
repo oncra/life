@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
-"""The Pi's side of the tamper guard (node/firmware/life-guard). Reads the guard's lines, sends the disarm pulse,
-and decides, from the oracle's answer or a cached maintenance window, whether it may.
+"""The Pi's side of the node's alarm. Two boards can be fitted:
+
+    GUARD=simple   the standard node's alarm since 2026-11-02 (content/build.md, step 3.7): the panel loop and a tilt
+                   switch on one transistor that sounds the siren while either is open. No chip, no disarm line: the
+                   fuse in the box is its only off switch. The Pi only reads it, on the ALARM line, and reports it.
+    GUARD=1        the tamper guard (node/firmware/life-guard), out of the standard node since 2026-11-02: an ATtiny84
+                   with lid, panel and tilt contacts, silenced only by a pulse from the Pi with a maintenance window.
+
+For the tamper guard this reads the guard's lines, sends the disarm pulse, and decides, from the oracle's answer or a
+cached maintenance window, whether it may.
 
     life-guard status [--json]     what the guard reports: alarm, which loop, Pi power line
     life-guard check               alarm boot: if the guard is in alarm, heartbeat now (event "alarm", the loop, the
@@ -18,7 +26,7 @@ The disarm pulse is the only thing that silences the guard, and this program onl
 A window is the steward's, set on the oracle (PUT /places/{id}/devices/{deviceId}/maintenance); it is never made
 here. GPIO through `pinctrl` (raspi-utils) so no library is needed on the read-only root.
 
-Environment: GUARD=1 enables it (the guard board is optional). GUARD_PIN_ALARM/LOOP_A/LOOP_B/DISARM override the
+Environment: GUARD=simple or GUARD=1 enables it (no alarm board: GUARD=0, the default). GUARD_PIN_ALARM/LOOP_A/LOOP_B/DISARM override the
 BCM numbers 10, 11, 9, 26. LIFE_STATE (default /var/lib/life-node) holds maintenance.json. GUARD_LOCK (default
 /run/life-guard.lock) keeps the pulses of the boot check, the push and the watcher apart.
 """
@@ -26,7 +34,9 @@ import fcntl, json, os, subprocess, sys, time, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-ENABLED = os.environ.get("GUARD", "0") == "1"
+MODE = os.environ.get("GUARD", "0")
+ENABLED = MODE in ("1", "simple")
+SIMPLE = MODE == "simple"  # the simple alarm: read and reported, never silenced from here
 PIN = {k: int(os.environ.get(f"GUARD_PIN_{k}", d)) for k, d in (("ALARM", 10), ("LOOP_A", 11), ("LOOP_B", 9), ("DISARM", 26))}
 STATE = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
 CACHE = STATE / "maintenance.json"
@@ -75,6 +85,8 @@ def pulse(seconds, times=1):
 def status():
     if not ENABLED:
         return {"enabled": False}
+    if SIMPLE:  # panel loop and tilt switch are one loop: it says that the siren sounds, not which of the two opened
+        return {"enabled": True, "kind": "simple", "alarm": pin_read(PIN["ALARM"]), "loop": "unknown"}
     a, la, lb = pin_read(PIN["ALARM"]), pin_read(PIN["LOOP_A"]), pin_read(PIN["LOOP_B"])
     return {"enabled": True, "alarm": a, "loop": LOOPS[(1 if la else 0) | (2 if lb else 0)]}
 
@@ -120,7 +132,7 @@ def apply(resp):
     """The oracle's answer to a heartbeat: {..., maintenance: {from, until, active} | null}."""
     m = resp.get("maintenance") if isinstance(resp, dict) else None
     cache_window(m)
-    if not ENABLED:
+    if not ENABLED or SIMPLE:
         return
     w = active_window()
     if w:
@@ -132,7 +144,7 @@ def check():
         return
     s = status()
     if not s["alarm"]:
-        w = active_window()
+        w = None if SIMPLE else active_window()
         if w:
             disarm_for(w)  # arrived inside a window set earlier: green before the lid opens
         return
@@ -152,6 +164,8 @@ def check():
             print(f"alarm reported: loop {s['loop']}, oracle {resp}")
         except Exception as e:  # noqa: BLE001 - offline: the cached window decides
             print(f"alarm report failed: {e}", file=sys.stderr)
+    if SIMPLE:
+        return  # nothing to silence from here: the fuse in the box is the off switch
     if resp is not None:
         apply(resp)
     else:
@@ -184,7 +198,7 @@ def watch(every=None, recheck=None, recheck_for=None, rounds=None):
         if alarm and not was:
             rose = last = t
             check()
-        elif alarm and t - last >= recheck and t - rose <= recheck_for:
+        elif alarm and not SIMPLE and t - last >= recheck and t - rose <= recheck_for:
             last = t
             check()
         was = alarm
