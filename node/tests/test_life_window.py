@@ -127,6 +127,27 @@ class Window(unittest.TestCase):
         self.assertEqual(self.decision()["offWindow"], "kept")      # as before visits: somebody, or something, is at the node
         self.assertFalse(self.visit_started())
 
+    def test_the_simple_alarm_is_no_visit_and_sleeps_after_its_reports(self):
+        (self.dir / "guard").write_text('{"enabled": true, "kind": "simple", "alarm": true, "loop": "unknown"}')
+        self.window(GUARD="simple").check(["--wake", "button"])
+        d = self.decision()
+        self.assertEqual((d["offWindow"], d["stopInS"]), ("alarm", 2400))
+        self.assertFalse(self.visit_started())
+        self.assertTrue(self.log("systemd-run")[0].endswith("/usr/local/sbin/life-window stop --unless-maintenance"))
+
+    def test_the_simple_alarm_in_a_maintenance_window_keeps_the_node_on(self):
+        self.maintenance(timedelta(hours=-1), timedelta(hours=3))
+        (self.dir / "guard").write_text('{"enabled": true, "kind": "simple", "alarm": true, "loop": "unknown"}')
+        self.window(GUARD="simple").check(["--wake", "button"])
+        self.assertEqual(self.decision()["offWindow"], "kept")
+        self.assertEqual(self.log("systemd-run"), [])
+        self.assertFalse(self.visit_started())
+
+    def test_a_quiet_simple_alarm_leaves_the_button_a_visit(self):
+        self.window(GUARD="simple").check(["--wake", "button"])
+        self.assertEqual(self.decision()["offWindow"], "visit")
+        self.assertTrue(self.visit_started())
+
     def test_a_quiet_guard_is_a_visit(self):
         self.window(GUARD="1").check(["--wake", "button"])
         self.assertEqual(self.decision()["offWindow"], "visit")

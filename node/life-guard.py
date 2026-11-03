@@ -3,7 +3,11 @@
 
     GUARD=simple   the standard node's alarm since 2026-11-02 (content/build.md, step 3.7): the panel loop and a tilt
                    switch on one transistor that sounds the siren while either is open. No chip, no disarm line: the
-                   fuse in the box is its only off switch. The Pi only reads it, on the ALARM line, and reports it.
+                   fuse in the box is its only off switch. The siren's rising edge also presses the Witty Pi's button
+                   through the visit contact's transistor, so a sleeping node wakes for it (life-window then knows the
+                   boot for an alarm, not a visit). The Pi reads the alarm on the ALARM line and reports it, with the
+                   cell, until the oracle has it, and again every RECHECK_S for RECHECK_FOR_S while it stands, so a box
+                   that is being carried off reports each new cell.
     GUARD=1        the tamper guard (node/firmware/life-guard), out of the standard node since 2026-11-02: an ATtiny84
                    with lid, panel and tilt contacts, silenced only by a pulse from the Pi with a maintenance window.
 
@@ -48,6 +52,9 @@ GAP_S = 1.5          # the guard reads two pulses less than a second apart as "a
 WATCH_EVERY_S = 2.0  # how often the watcher reads the ALARM line
 RECHECK_S = 300      # while an alarm stands with the Pi up, ask the oracle again this often...
 RECHECK_FOR_S = 1800  # ...for this long; after that the push carries it (each check is a post over 4G)
+REPORT_TRIES = 6      # the simple alarm's report: at an alarm boot the 4G stick may still be finding its network...
+REPORT_GAP_S = 15     # ...so it tries again this often, about a minute and a half in all
+REPORTED = Path(os.environ.get("GUARD_REPORTED", "/run/life-guard.reported"))  # the oracle has this boot's alarm
 
 
 def pin_read(n):
@@ -148,24 +155,19 @@ def check():
         if w:
             disarm_for(w)  # arrived inside a window set earlier: green before the lid opens
         return
-    hb = {"ts": now().isoformat(), "event": "alarm", "tamper": {"loop": s["loop"]}, "metrics": {"uptimeS": int(float(Path("/proc/uptime").read_text().split()[0]))}}
-    try:
-        cell = json.loads(subprocess.run(["life-heartbeat", "--json", "--cell-only"], capture_output=True, text=True, timeout=20, check=True).stdout)
-        if cell:
-            hb["cell"] = cell
-    except Exception as e:  # noqa: BLE001 - the report goes out with or without the cell
-        print(f"cell: {e}", file=sys.stderr)
-    resp = None
-    if TOKEN:
-        try:
-            req = urllib.request.Request(f"{API}/ingest/heartbeat", data=json.dumps({"heartbeat": hb}).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
-            with urllib.request.urlopen(req, timeout=40) as r:
-                resp = json.load(r)
-            print(f"alarm reported: loop {s['loop']}, oracle {resp}")
-        except Exception as e:  # noqa: BLE001 - offline: the cached window decides
-            print(f"alarm report failed: {e}", file=sys.stderr)
     if SIMPLE:
-        return  # nothing to silence from here: the fuse in the box is the off switch
+        # Nothing to silence from here (the fuse in the box is the off switch): report it until the oracle has it.
+        for i in range(REPORT_TRIES if TOKEN else 1):
+            if i:
+                time.sleep(REPORT_GAP_S)
+            resp = report(s, timeout=20)
+            if resp is not None:
+                REPORTED.parent.mkdir(parents=True, exist_ok=True)
+                REPORTED.write_text(now().isoformat())
+                apply(resp)  # keep the owner's maintenance window: life-window's stop after an alarm wake reads it
+                return
+        return
+    resp = report(s)
     if resp is not None:
         apply(resp)
     else:
@@ -174,6 +176,28 @@ def check():
             disarm_for(w)
         else:
             print("no window: the guard stays in alarm")
+
+
+def report(s, timeout=40):
+    """The alarm, with the cell, as a heartbeat of its own; the oracle's answer, or None when it did not get there."""
+    hb = {"ts": now().isoformat(), "event": "alarm", "tamper": {"loop": s["loop"]}, "metrics": {"uptimeS": int(float(Path("/proc/uptime").read_text().split()[0]))}}
+    try:
+        cell = json.loads(subprocess.run(["life-heartbeat", "--json", "--cell-only"], capture_output=True, text=True, timeout=20, check=True).stdout)
+        if cell:
+            hb["cell"] = cell
+    except Exception as e:  # noqa: BLE001 - the report goes out with or without the cell
+        print(f"cell: {e}", file=sys.stderr)
+    if not TOKEN:
+        return None
+    try:
+        req = urllib.request.Request(f"{API}/ingest/heartbeat", data=json.dumps({"heartbeat": hb}).encode(), headers={"content-type": "application/json", "authorization": f"Bearer {TOKEN}"}, method="POST")
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            resp = json.load(r)
+        print(f"alarm reported: loop {s['loop']}, oracle {resp}")
+        return resp
+    except Exception as e:  # noqa: BLE001 - offline: the guard's cached window decides; the simple alarm tries again
+        print(f"alarm report failed: {e}", file=sys.stderr)
+        return None
 
 
 def watch(every=None, recheck=None, recheck_for=None, rounds=None):
@@ -187,7 +211,9 @@ def watch(every=None, recheck=None, recheck_for=None, rounds=None):
     every = WATCH_EVERY_S if every is None else every
     recheck = RECHECK_S if recheck is None else recheck
     recheck_for = RECHECK_FOR_S if recheck_for is None else recheck_for
-    was = pin_read(PIN["ALARM"])  # an alarm standing at start is the boot check's, already handled
+    was = pin_read(PIN["ALARM"])  # an alarm standing at start is the boot check's, already handled...
+    if SIMPLE and was and not REPORTED.exists():
+        check()  # ...unless the oracle does not have it yet: the boot report failed, or the alarm rose after it
     rose = last = time.monotonic()
     n = 0
     while rounds is None or n < rounds:
@@ -198,7 +224,7 @@ def watch(every=None, recheck=None, recheck_for=None, rounds=None):
         if alarm and not was:
             rose = last = t
             check()
-        elif alarm and not SIMPLE and t - last >= recheck and t - rose <= recheck_for:
+        elif alarm and t - last >= recheck and t - rose <= recheck_for:
             last = t
             check()
         was = alarm
