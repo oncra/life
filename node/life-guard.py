@@ -160,9 +160,11 @@ def check():
         for i in range(REPORT_TRIES if TOKEN else 1):
             if i:
                 time.sleep(REPORT_GAP_S)
-            if report(s, timeout=20) is not None:
+            resp = report(s, timeout=20)
+            if resp is not None:
                 REPORTED.parent.mkdir(parents=True, exist_ok=True)
                 REPORTED.write_text(now().isoformat())
+                apply(resp)  # keep the owner's maintenance window: life-window's stop after an alarm wake reads it
                 return
         return
     resp = report(s)

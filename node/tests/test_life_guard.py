@@ -191,12 +191,15 @@ class SimpleAlarmTest(GuardTest):
     def test_check_tries_again_until_the_oracle_has_it(self):
         (self.dir / "pin10").write_text("1")
         self.mod.TOKEN = "t"
-        answers = iter([None, None, {"ok": True}])
+        window = {"from": "2000-01-01T00:00:00Z", "until": "2999-01-01T00:00:00Z", "active": True}
+        answers = iter([None, None, {"ok": True, "maintenance": window}])
         tries = []
         self.mod.report = lambda s, timeout=40: tries.append(s["loop"]) or next(answers)
         self.mod.check()
         self.assertEqual(tries, ["unknown"] * 3)
         self.assertTrue((self.dir / "reported").exists())
+        # the answer's maintenance window is kept, as a push would keep it: life-window's stop reads it
+        self.assertEqual(self.mod.active_window()["until"], window["until"])
 
     def test_check_gives_up_after_its_tries(self):
         (self.dir / "pin10").write_text("1")
