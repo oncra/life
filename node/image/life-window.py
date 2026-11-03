@@ -16,7 +16,7 @@ check, so a node a visitor woke in winter is not left on for hours. With a maint
 one on the oracle; life-guard keeps it in maintenance.json) the node stays on after the visit, as before. A node that
 was off inside one of its windows ends such a visit with the window; one without a schedule stays on after it. A boot
 by the tamper guard presses the same button, so a guard in alarm makes it no visit. The simple alarm (GUARD=simple)
-presses it too, through the visit contact's transistor, on the siren's rising edge: such a boot is no visit either.
+presses it too when it goes off: such a boot is no visit either.
 The node reports the alarm (life-guard), keeps reporting its cell for half an hour, and powers off ALARM_S after
 this check until its next window, unless a maintenance window is open (the owner, or the person at the box, set one).
 
