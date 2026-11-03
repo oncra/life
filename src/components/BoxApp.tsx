@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { throttleText } from "@/lib/throttle";
 
 type Box = {
   id: string; name: string; hostname: string; nodePassword: string; wifiSsid: string | null;
@@ -309,10 +310,12 @@ function healthRows(h: Health | null | undefined): { ok: boolean; label: string;
     const parts = [h.pvW !== null ? `${h.pvW} W now` : "", h.yieldTodayWh !== null ? `${h.yieldTodayWh} Wh today` : "", h.yieldYdayWh !== null ? `${h.yieldYdayWh} Wh yesterday` : ""].filter(Boolean);
     rows.push({ ok: !h.mpptErr, label: "Solar panel", text: parts.join(", ") + (h.mpptErr ? `, controller error ${h.mpptErr}` : "") });
   }
-  const temp = h.boxTempC ?? h.cpuTempC;
+  const temp = h.cpuTempC ?? h.boxTempC;
   if (temp !== null) {
-    const parts = [h.boxTempC !== null ? `${h.boxTempC} °C in the box` : "", h.cpuTempC !== null ? `processor ${h.cpuTempC} °C` : "", h.piW !== null ? `drawing ${h.piW} W` : ""].filter(Boolean);
-    rows.push({ ok: (h.cpuTempC ?? 0) < 75 && !h.throttled, label: "Inside the box", text: parts.join(", ") + (h.throttled ? `, throttled (${h.throttled})` : "") });
+    // boxTempC is the Witty Pi's own sensor, which sits right above the processor: the board, not the air in the box
+    const flags = throttleText(h.throttled);
+    const parts = [h.cpuTempC !== null ? `processor ${h.cpuTempC} °C` : "", h.boxTempC !== null ? `Witty Pi board ${h.boxTempC} °C` : "", h.piW !== null ? `drawing ${h.piW} W` : ""].filter(Boolean);
+    rows.push({ ok: (h.cpuTempC ?? 0) < 75 && !flags.includes("slowed"), label: "Processor", text: parts.join(", ") + (flags ? `, ${flags}` : "") });
   }
   return rows;
 }

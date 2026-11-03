@@ -100,6 +100,9 @@ SETTINGS = {
     "LIFE_MIC_CHECK_DAY": one_of("mon", "tue", "wed", "thu", "fri", "sat", "sun"),
     "LIFE_BATS": one_of("0", "1"),               # the bat model at night (next wake)
     "BAT_LEAD_MIN": whole(0, 120),               # the bat model from this long before sunset
+    "LIFE_BATS_BATTERY": one_of("0", "1"),       # the battery decides the evening's bats (next evening)
+    "LIFE_BATS_MIN_V": num(12.6, 13.6),          # under this as the bat hours begin, no bats that evening
+    "LIFE_BATS_MAX_C": num(70.0, 84.0),          # the heat guard takes the bat model out here (life-heat, next wake)
     "VISIT_MAX_MIN": whole(5, 60),               # how long a visit may last
     "VISIT_HOTSPOT_WAIT_S": whole(30, 600),      # how long a visit looks for the phone's hotspot
     "OFFWINDOW_GRACE_MIN": whole(3, 60),         # a wake outside the windows posts and sleeps after this

@@ -28,7 +28,7 @@ after the dusk window, where the two are one ON state, by a timer this check set
 boot the Witty Pi makes for it. With the battery option on and the Witty Pi reading less than the owner's minimum,
 the node powers off with its next start set to the next day's first window; otherwise it listens. A maintenance window
 or a visit keeps it on all the same, and a battery that cannot be read lets it listen (the board's own low-voltage stop
-still guards the cells). Each night's outcome is written to night-last.json and rides on the heartbeat (`nightLast`),
+still guards the cells), as does a node on a 5 V supply, whose input reads under 6 V and has no battery to spare. Each night's outcome is written to night-last.json and rides on the heartbeat (`nightLast`),
 with the rev of the settings the node has (`nightRev`), so the owner's page shows how the night went.
 
     life-window check [--dry-run] [--now 2026-08-15T13:00] [--wake voltage-restored]
@@ -142,6 +142,9 @@ def wake_of(args: list[str]) -> str | None:
     return args[args.index("--wake") + 1] if "--wake" in args else wake_reason()
 
 
+MAINS_V = 6.0   # a Witty Pi input under this is a 5 V supply, not a 12 V battery
+
+
 def battery_v() -> float | None:
     """The Witty Pi's input, which on a node is the charge controller's load output: the battery less a few tenths."""
     if os.environ.get("LIFE_NIGHT_VIN"):
@@ -209,6 +212,8 @@ def gate(info: dict, dry: bool) -> None:
         ran = "listened"
     elif v is None:
         ran = "unknown"
+    elif v < MAINS_V:   # a 5 V supply on the bench: there is no battery to spare, so the night listens
+        ran = "mains"
     elif v >= float(c.get("minV", 13.1)):
         ran = "listened"
     elif maintenance() or visit_running():

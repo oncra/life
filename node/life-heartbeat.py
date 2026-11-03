@@ -14,11 +14,18 @@ hardware, and nothing for a thief to notice. On a bench without the stick the ce
 Power and box health ride along, from what is already in the box:
 - the Witty Pi 4 over I2C (no extra hardware): its input voltage, which on a node is the charge controller's load
   output and so the battery less a few tenths; what the Pi draws (output volts x amps); the board's own temperature
-  sensor, i.e. the air inside the box; why it last acted (`wake`: the schedule, the button, power back; on the way
+  sensor (`boxTempC`), which sits on the Witty Pi right above the Pi's processor: under load it reads 25 to 45 degrees
+  under the processor and well above the air in the box, so it is the board's temperature, not the box's; why it last acted (`wake`: the schedule, the button, power back; on the way
   down `low-voltage` when the board stopped the Pi for its battery); the battery guard's two levels (`lowV`,
   `recoveryV`, life-wittypi sets them) and whether the last stop was the guard's (`lvOff`).
 - the Victron charge controller over VE.Direct, when a VE.Direct-to-USB cable is plugged in (v1.1): battery volts and
   amps, panel volts and watts, charge state, error code, and today's and yesterday's yield.
+- the processor's heat (life-heat): the firmware's throttle flags now (`throttled`, on every post), and on the post at
+  the end of a window, or whenever the Pi is slowed or the guard holds the bat model out, `heat`: the highest
+  temperature, the minutes at 80 °C or more, whether the cores were slowed or the supply sagged since boot, the lowest
+  clock, the guard's trips. With it `bats`: the evening's bat minutes (life-mic), ran, kept out by the heat, kept out
+  by the battery, and what the battery read when the evening began. And BirdNET-Go's own count of analyses that did not
+  keep up (`overruns`, while its metrics page is on) and its version (`bng`, at a window's start and end).
 All of it is a dozen numbers, about 250 bytes on a post that is sent anyway: no extra TLS handshake, under 2% of the
 SIM's ten-year budget. The boot heartbeat matters most, because it carries the battery after the night.
 
@@ -216,6 +223,125 @@ def power():
     return {**wittypi(), **vedirect()}
 
 
+RUN = Path(os.environ.get("LIFE_RUN") or "/run/life-node")
+THROTTLED_FILES = ("/sys/devices/platform/soc/soc:firmware/get_throttled",
+                   "/sys/devices/platform/soc/soc:firmware/raspberrypi-hwmon/get_throttled")
+
+
+def boot_id():
+    try:
+        return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    except Exception:  # noqa: BLE001
+        return "unknown"
+
+
+def heat_state():
+    """life-heat's readings of this boot, or None."""
+    try:
+        st = json.loads((RUN / "heat.json").read_text())
+        return st if st.get("boot") == boot_id() else None
+    except Exception:  # noqa: BLE001 - no life-heat on this node, or no reading yet
+        return None
+
+
+def throttle():
+    """The firmware's throttle flags now, as hex: from life-heat, a sysfs file, or vcgencmd. Node 1's kernel has no sysfs
+    file, which is why the flags never reached the oracle before November 2026."""
+    st = heat_state()
+    if st and st.get("thr"):
+        return st["thr"]
+    for f in THROTTLED_FILES:
+        try:
+            return hex(int(Path(f).read_text().strip(), 16))
+        except Exception:  # noqa: BLE001
+            continue
+    try:
+        out = subprocess.run(["vcgencmd", "get_throttled"], capture_output=True, text=True, timeout=5).stdout.strip()
+        return hex(int(out.split("=", 1)[1], 16)) if "=" in out else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def evening(state):
+    """The evening's bat minutes from life-mic, the open stretch since its last run counted in."""
+    try:
+        d = json.loads((state / "bats.json").read_text())
+    except Exception:  # noqa: BLE001 - no bats on this node
+        return None
+    secs = {k: int(d.get(k) or 0) for k in ("onS", "heatS", "batteryS")}
+    last = d.get("last") or {}
+    key = {"on": "onS", "heat": "heatS", "battery": "batteryS"}.get(last.get("state"))
+    if key and last.get("boot") == boot_id():
+        try:
+            secs[key] += int(min(max((datetime.now(timezone.utc) - datetime.fromisoformat(last["at"])).total_seconds(), 0), 900))
+        except Exception:  # noqa: BLE001
+            pass
+    out = {"ev": d.get("evening"), "battery": d.get("battery"), "v": d.get("v"), "minV": d.get("minV"),
+           "onMin": round(secs["onS"] / 60), "heatMin": round(secs["heatS"] / 60), "batteryMin": round(secs["batteryS"] / 60),
+           "trips": int(d.get("trips") or 0)}
+    return {k: v for k, v in out.items() if v is not None}
+
+
+def overruns():
+    """BirdNET-Go's count of analyses that did not keep up with the sound since it started, from its own metrics page
+    (on while the microphones' check is), or None."""
+    url = os.environ.get("LIFE_MIC_METRICS") or "http://127.0.0.1:9090/metrics"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as r:
+            text = r.read().decode(errors="replace")
+    except Exception:  # noqa: BLE001 - the page is off
+        return None
+    n = 0.0
+    for line in text.splitlines():
+        name = line.split("{", 1)[0].split(" ", 1)[0]
+        if not line.startswith("#") and "overrun" in name and name.endswith("_total"):
+            try:
+                n += float(line.rsplit(" ", 1)[1])
+            except Exception:  # noqa: BLE001
+                pass
+    return int(n)
+
+
+def bng_version():
+    """BirdNET-Go's version from its health page, or None. Sent on the posts at a window's start and end, not marked as
+    sent: a post that does not arrive is followed by another that carries it."""
+    url = (os.environ.get("LIFE_BNG_URL") or "http://127.0.0.1:8080").rstrip("/") + "/api/v2/health"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as r:
+            v = str(json.load(r).get("version") or "")[:40]
+    except Exception:  # noqa: BLE001 - BirdNET-Go not up (yet)
+        return None
+    return v or None
+
+
+def heat(event):
+    """The window's heat and bat minutes: on the post at its end, or whenever the Pi is slowed, the guard holds the bat
+    model out or the battery kept the bats out (a few dozen bytes; most posts carry only `throttled`)."""
+    state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
+    out = {}
+    st = heat_state()
+    b = evening(state)
+    try:
+        now_flags = int(st["thr"], 16) & 0b1110 if st and st.get("thr") else 0
+    except Exception:  # noqa: BLE001
+        now_flags = 0
+    worth = event == "shutdown" or now_flags or (st and (st.get("guard") or {}).get("on")) or (b and b.get("battery") == "low")
+    if st and worth:
+        out["heat"] = {k: v for k, v in {"maxC": st.get("maxC"), "hotMin": round((st.get("hotS") or 0) / 60),
+                                        "slowed": bool(st.get("thrEver")), "sagged": bool(st.get("uvEver")),
+                                        "minMhz": st.get("minMhz"), "trips": int((st.get("guard") or {}).get("trips") or 0)}.items()
+                       if v is not None}
+    if b and worth:
+        out["bats"] = b
+    o = overruns() if worth else None
+    if o is not None:
+        out["overruns"] = o
+    v = bng_version() if event in ("boot", "shutdown") else None
+    if v:
+        out["bng"] = v
+    return out
+
+
 def metrics():
     m = {}
     try:
@@ -236,12 +362,9 @@ def metrics():
     except Exception:  # noqa: BLE001
         pass
     m["unsent"] = sum(1 for l in QUEUE.read_text().splitlines() if l.strip()) if QUEUE.exists() else 0
-    throttled = Path("/sys/devices/platform/soc/soc:firmware/get_throttled")
-    if throttled.exists():
-        try:
-            m["throttled"] = throttled.read_text().strip()
-        except Exception:  # noqa: BLE001
-            pass
+    thr = throttle()
+    if thr is not None:
+        m["throttled"] = thr
     m.update(power())
     m.update(listening())
     m.update(clips())
@@ -363,6 +486,7 @@ def build(event):
     if m:
         hb["metrics"]["mics"] = m
     hb["metrics"].update(config())
+    hb["metrics"].update(heat(event))
     g = guard()
     if g and g.get("enabled"):
         hb["metrics"]["guardAlarm"] = bool(g.get("alarm"))

@@ -26,7 +26,7 @@ import { configFor } from "./node-config";
  * bearer, when those are set. Any endpoint that takes that shape will do; there is no mail from here.
  *
  * A second, quieter hook is for a status line somewhere a steward already looks: CHECKIN_WEBHOOK_URL gets one
- * short line per heartbeat ("checked in, battery 12.9 V, 14 °C in the box", linked to the node dashboard) and one per
+ * short line per heartbeat ("checked in, battery 12.9 V, processor 54 °C", linked to the node dashboard) and one per
  * opened alert (linked to the place page), as
  * {who, text, url, tag, tone} with tone "close" for a check-in and "urgent" for an alert, CHECKIN_WEBHOOK_TOKEN
  * as bearer. It never holds a heartbeat up for more than a few seconds and never fails one.
@@ -89,14 +89,16 @@ export async function line(who: string, text: string, url: string, tag: string, 
   }
 }
 
-/** What a heartbeat says in one line: what the node did, its battery, the air in the box, and what it still holds. */
+/** What a heartbeat says in one line: what the node did, its battery, its processor's temperature, and what it still holds. */
 export function checkinText(hb: { event?: string | null; metrics?: Record<string, unknown> | null }): string {
   const m = hb.metrics ?? {};
   const did = hb.event === "boot" ? "started" : hb.event === "shutdown" ? "switching off" : hb.event === "alarm" ? "alarm" : "checked in";
   const parts = [did];
   const batt = batteryOf(m);
   if (batt) parts.push(`battery ${batt.v.toFixed(2)} V`);
-  if (typeof m.boxTempC === "number") parts.push(`${Math.round(m.boxTempC)} °C in the box`);
+  // boxTempC is the Witty Pi's own sensor, right above the processor: the board, not the air in the box
+  if (typeof m.cpuTempC === "number") parts.push(`processor ${Math.round(m.cpuTempC)} °C`);
+  else if (typeof m.boxTempC === "number") parts.push(`board ${Math.round(m.boxTempC)} °C`);
   if (typeof m.unsent === "number" && m.unsent > 0) parts.push(`${m.unsent} readings still to send`);
   return parts.join(", ");
 }

@@ -1,0 +1,13 @@
+[Unit]
+Description=Life node: the processor's heat while the node is awake, and the heat guard for the bat model
+After=life-schedule.service
+RequiresMountsFor=/data
+[Service]
+Type=simple
+EnvironmentFile=/etc/life-node.env
+ExecStart=/usr/local/bin/life-heat watch
+Restart=always
+RestartSec=30
+Nice=10
+[Install]
+WantedBy=multi-user.target

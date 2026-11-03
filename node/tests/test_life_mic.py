@@ -153,7 +153,7 @@ exit 0
                 f.rmdir() if f.is_dir() else f.unlink()
             d.rmdir()
 
-    def run(self, *args, on="1", mode="i2s", at=DAY, check="1", check_day="sun"):
+    def run(self, *args, on="1", mode="i2s", at=DAY, check="1", check_day="sun", extra=None):
         # every path set here, also the ones with a default: other test files leave theirs in the environment
         env = {"LIFE_BATS": on, "BIRDNET_DIR": str(self.bng), "BIRDNET_CONFIG": str(self.bng / "config.yaml"),
                "BAT_MODEL_DIR": str(self.models), "LIFE_BATS_PROC": str(self.proc),
@@ -161,7 +161,9 @@ exit 0
                "LIFE_BIRD_MIC": mode, "LIFE_MIC_NOW": at, "NODE_LAT": "52.37", "NODE_LON": "4.90",
                "NODE_TZ": "Europe/Amsterdam", "LIFE_MIC_RESTART_CMD": f"sh -c 'echo restart >> {self.restarts}'",
                "LIFE_MIC_CHECK": check, "LIFE_STATE": str(self.state), "LIFE_MIC_METRICS": self.metrics.as_uri(),
-               "LIFE_MIC_SAMPLES": "1", "LIFE_MIC_SAMPLE_GAP_S": "0", "LIFE_MIC_CHECK_DAY": check_day}
+               "LIFE_MIC_SAMPLES": "1", "LIFE_MIC_SAMPLE_GAP_S": "0", "LIFE_MIC_CHECK_DAY": check_day,
+               "LIFE_RUN": str(self.root / "run"), "LIFE_BATS_VIN": "", "LIFE_BATS_BATTERY": "1", "LIFE_BATS_MIN_V": "13.1",
+               "WITTYPI_BUS": "", **(extra or {})}
         old = {k: os.environ.get(k) for k in env}
         os.environ.update(env)
         try:
@@ -706,3 +708,113 @@ class Sun(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Gates(unittest.TestCase):
+    """The bat model's two gates besides the sun: the battery as the evening begins, and the processor's heat."""
+
+    def setUp(self):
+        self.n = Node()
+        (self.n.proc / "sys" / "kernel" / "random").mkdir(parents=True, exist_ok=True)
+        (self.n.proc / "sys" / "kernel" / "random" / "boot_id").write_text("boot-1\n")
+
+    def tearDown(self):
+        self.n.close()
+
+    def heat(self, on: bool, boot="boot-1"):
+        run = self.n.root / "run"
+        run.mkdir(exist_ok=True)
+        (run / "heat.json").write_text(json.dumps({"boot": boot, "guard": {"on": on, "trips": 1 if on else 0}}))
+
+    def bats(self):
+        return json.loads((self.n.state / "bats.json").read_text())
+
+    def has_bat_model(self):
+        return "                - bat\n              quietHours:" in self.n.config
+
+    def at(self, minutes: int) -> str:
+        from datetime import datetime, timedelta
+        return (datetime.fromisoformat(EVENING) + timedelta(minutes=minutes)).isoformat()
+
+    def test_a_low_battery_keeps_the_bats_out_that_evening(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "12.80"})
+        self.assertFalse(self.has_bat_model())
+        self.assertIn("                - birdnet\n", self.n.config)       # the birds keep listening
+        b = self.bats()
+        self.assertEqual((b["evening"], b["battery"], b["v"], b["minV"]), ("2026-10-21", "low", 12.8, 13.1))
+        # decided once: a battery that recovers later that evening does not bring them back
+        self.n.run("sync", mode="audiomoth", at=self.at(15), extra={"LIFE_BATS_VIN": "13.40"})
+        self.assertFalse(self.has_bat_model())
+        self.assertEqual(self.bats()["batteryS"], 900)
+        # a gap longer than the timer can leave (the node was off) counts for at most a quarter of an hour
+        self.n.run("sync", mode="audiomoth", at=self.at(75), extra={"LIFE_BATS_VIN": "13.40"})
+        self.assertEqual(self.bats()["batteryS"], 1800)
+
+    def test_a_battery_above_the_minimum_keeps_them(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "13.20"})
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual(self.bats()["battery"], "ok")
+
+    def test_a_node_on_a_5_v_supply_keeps_its_bats(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "4.61"})
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual(self.bats()["battery"], "mains")
+
+    def test_an_unreadable_battery_keeps_them(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING)            # no Witty Pi bus: no reading
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual(self.bats()["battery"], "unknown")
+
+    def test_the_battery_option_off(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "12.40", "LIFE_BATS_BATTERY": "0"})
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual((self.bats()["battery"], self.bats()["minV"]), ("off", None))
+
+    def test_the_next_evening_is_decided_again(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "12.80"})
+        self.assertFalse(self.has_bat_model())
+        self.n.run("setup", mode="audiomoth", at=self.at(24 * 60), extra={"LIFE_BATS_VIN": "13.30"})
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual((self.bats()["evening"], self.bats()["battery"]), ("2026-10-22", "ok"))
+
+    def test_after_midnight_it_is_still_that_evening(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "12.80"})
+        self.n.run("sync", mode="audiomoth", at="2026-10-22T01:30:00+02:00", extra={"LIFE_BATS_VIN": "13.40"})
+        self.assertFalse(self.has_bat_model())
+        self.assertEqual(self.bats()["evening"], "2026-10-21")
+
+    def test_the_heat_guard_takes_the_bat_model_out_and_puts_it_back(self):
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "13.30"})
+        self.assertTrue(self.has_bat_model())
+        self.heat(True)
+        self.n.run("sync", mode="audiomoth", at=self.at(10))
+        self.assertFalse(self.has_bat_model())
+        self.assertEqual(self.n.restart_count(), 1)                    # BirdNET-Go takes the new list
+        self.n.run("sync", mode="audiomoth", at=self.at(25))
+        self.heat(False)
+        self.n.run("sync", mode="audiomoth", at=self.at(40))
+        self.assertTrue(self.has_bat_model())
+        self.assertEqual(self.n.restart_count(), 2)
+        b = self.bats()
+        self.assertEqual((b["onS"], b["heatS"], b["trips"]), (600, 1800, 1))
+
+    def test_a_guard_from_an_earlier_boot_is_not_heard(self):
+        self.heat(True, boot="boot-0")
+        self.n.run("setup", mode="audiomoth", at=EVENING, extra={"LIFE_BATS_VIN": "13.30"})
+        self.assertTrue(self.has_bat_model())
+
+    def test_a_gated_night_is_still_night(self):
+        # on the check day the witness listens by day only; a battery that keeps the bats out does not make it day
+        self.n.run("setup", mode="audiomoth", at=EVENING, check_day="wed", extra={"LIFE_BATS_VIN": "12.80"})
+        self.assertNotIn("I2S witness", self.n.config)
+        self.assertFalse(self.has_bat_model())
+
+    def test_by_day_nothing_is_decided(self):
+        self.n.run("setup", mode="audiomoth", at=DAY, extra={"LIFE_BATS_VIN": "12.00"})
+        self.assertFalse((self.n.state / "bats.json").exists())
+
+    def test_in_mode_i2s_the_bat_microphone_goes(self):
+        self.n.run("setup", mode="i2s", at=EVENING, extra={"LIFE_BATS_VIN": "12.80"})
+        self.assertNotIn("Bat microphone", self.n.config)
+        self.n.run("setup", mode="i2s", at=self.at(24 * 60), extra={"LIFE_BATS_VIN": "13.30"})
+        self.assertIn("Bat microphone", self.n.config)

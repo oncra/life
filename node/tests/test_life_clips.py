@@ -11,6 +11,8 @@ server in the test that answers the two routes the node posts to, and can be tol
 A power cut is a second process that stops dead (os._exit) at the step under test.
 """
 import base64
+import io
+from contextlib import redirect_stdout
 import fcntl
 import hashlib
 import hmac
@@ -104,6 +106,7 @@ V1 = """
 
 MAY = datetime(2026, 5, 4, 5, 0, tzinfo=timezone.utc)   # inside the stub's window
 NOW = (MAY + timedelta(days=2)).timestamp()             # long after every detection: all settled
+NOW_DT = datetime.fromtimestamp(NOW, timezone.utc)
 LATER = (MAY + timedelta(days=40)).timestamp()          # after detections spread over May
 
 
@@ -166,7 +169,7 @@ class Node:
                     "NODE_TZ": "Europe/Amsterdam", "LIFE_CLIPS_ALL_FROM": all_from, "FFMPEG": ffmpeg, "LIFE_API": api,
                     "LIFE_DEVICE_TOKEN": TOKEN, "LIFE_STATE": str(self.state), "LIFE_CLIPS_UPLOAD": "1",
                     "LIFE_CLIPS_PER_BAND": "5", "LIFE_CLIPS_SECONDS": "7", "LIFE_CLIPS_KEEP_DAYS": "365",
-                    "LIFE_CLIPS_MIN_FREE_MB": "0", **env}
+                    "LIFE_CLIPS_MIN_FREE_MB": "0", "LIFE_CLIPS_TEMP": str(tmp / "temp"), "LIFE_CLIPS_HOT_C": "70", **env}
         self.way = ["wlan0"]   # the interface the node's traffic leaves by, as `ip route get` would say
         self.mod = self.module()
 
@@ -709,6 +712,69 @@ class Cut(unittest.TestCase):
         self.assertEqual(nd.files(), [r["file"]])
         self.assertTrue(r["file"].endswith(".m4a"))
         nd.agrees(self)
+
+
+class Busy(unittest.TestCase):
+    """Cutting and sending wait while the bat model runs or the processor is hot, and a visit takes everything."""
+
+    def setUp(self):
+        self._dir = tempfile.TemporaryDirectory()
+        self.node = Node(Path(self._dir.name), all_from="0.5")    # no ffmpeg: a clip is "left as BirdNET-Go wrote it"
+
+    def tearDown(self):
+        self._dir.cleanup()
+
+    def bats(self, state: str, at: datetime = NOW_DT):
+        (self.node.state / "bats.json").write_text(json.dumps({"last": {"at": at.isoformat(), "state": state, "boot": "b"}}))
+
+    def test_cutting_waits_while_the_bat_model_runs(self):
+        nd = self.node
+        nd.detect(4, 0.8, MAY)
+        self.bats("on")
+        nd.mod.sample(random.Random(1), now=NOW)
+        r = nd.rows()[0]
+        self.assertIsNone(r["sha256"])                                 # kept, not cut: it waits on the card
+        self.assertTrue(r["file"].startswith("incoming/"))
+        self.bats("day")
+        nd.mod.sample(random.Random(1), now=NOW + 600)
+        self.assertIsNotNone(nd.rows()[0]["sha256"])                   # the next free run takes it
+        nd.agrees(self)
+
+    def test_an_old_bat_decision_does_not_hold_it(self):
+        nd = self.node
+        nd.detect(4, 0.8, MAY)
+        self.bats("on", at=NOW_DT - timedelta(hours=2))               # the node stopped mid-evening and came back
+        nd.mod.sample(random.Random(1), now=NOW)
+        self.assertIsNotNone(nd.rows()[0]["sha256"])
+
+    def test_cutting_waits_while_the_processor_is_hot(self):
+        nd = self.node
+        nd.detect(1, 0.8, MAY)
+        (nd.tmp / "temp").write_text("74000\n")
+        nd.mod.sample(random.Random(1), now=NOW)
+        self.assertIsNone(nd.rows()[0]["sha256"])
+        (nd.tmp / "temp").write_text("61000\n")
+        nd.mod.sample(random.Random(1), now=NOW + 600)
+        self.assertIsNotNone(nd.rows()[0]["sha256"])
+
+    def test_a_visit_cuts_what_waits(self):
+        nd = self.node
+        nd.detect(1, 0.8, MAY)
+        nd.detect(4, 0.9, MAY)
+        self.bats("on")
+        nd.mod.sample(random.Random(1), now=NOW)
+        self.assertEqual([r["sha256"] for r in nd.rows()], [None, None])
+        nd.mod.cut_all()
+        self.assertTrue(all(r["sha256"] for r in nd.rows()))
+        nd.agrees(self)
+
+    def test_sending_waits_while_busy(self):
+        nd = self.node
+        (nd.tmp / "temp").write_text("79000\n")
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(nd.mod.upload(5), 0)
+        self.assertIn("sending waits: the processor is at 79 °C", out.getvalue())
 
 
 class Upload(unittest.TestCase):
