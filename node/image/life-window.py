@@ -15,10 +15,13 @@ a boot starts a visit and powers off when the visit is over, at the latest VISIT
 check, so a node a visitor woke in winter is not left on for hours. With a maintenance window open (the owner set
 one on the oracle; life-guard keeps it in maintenance.json) the node stays on after the visit, as before. A node that
 was off inside one of its windows ends such a visit with the window; one without a schedule stays on after it. A boot
-by the tamper guard presses the same button, so a guard in alarm makes it no visit.
+by the tamper guard presses the same button, so a guard in alarm makes it no visit. The simple alarm (GUARD=simple)
+presses it too, through the visit contact's transistor, on the siren's rising edge: such a boot is no visit either.
+The node reports the alarm (life-guard), keeps reporting its cell for half an hour, and powers off ALARM_S after
+this check until its next window, unless a maintenance window is open (the owner, or the person at the box, set one).
 
 Every boot is written to /data/life-node/window.json, and the heartbeat carries the window the node woke for
-(`window`, empty outside one) and, outside one, what it did about it (`offWindow`: "stop", "visit" or "kept").
+(`window`, empty outside one) and, outside one, what it did about it (`offWindow`: "stop", "visit", "alarm" or "kept").
 
 The night window for meadow birds (life-schedule-wpi), when the owner turned it on, is decided as it begins: right
 after the dusk window, where the two are one ON state, by a timer this check sets; on its own, by this check at the
@@ -64,6 +67,7 @@ GRACE_S = int(float(os.environ.get("OFFWINDOW_GRACE_MIN") or 10) * 60)
 VISIT = os.environ.get("LIFE_VISIT", "0").strip() == "1"
 _max = float(os.environ.get("VISIT_MAX_MIN") or 30)
 VISIT_S = min(_max if _max > 0 else 30, 60) * 60   # as life-visit reads it
+ALARM_S = 40 * 60   # an alarm wake: life-guard's half hour of reports, ten minutes to spare, then off
 # the Witty Pi's reason for its latest action (register 11), as life-heartbeat names them
 WAKE = {1: "alarm", 2: "alarm", 3: "button", 4: "low-voltage", 5: "voltage-restored", 6: "over-temp", 7: "under-temp",
         8: "alarm", 9: "usb-5v", 10: "power-connected", 11: "reboot", 12: "guaranteed-wake"}
@@ -124,8 +128,8 @@ def maintenance() -> bool:
 
 
 def guard_alarm() -> bool:
-    """The tamper guard wakes the Pi through the same button input as the visit contact."""
-    if os.environ.get("GUARD", "0").strip() != "1":
+    """The tamper guard, and the simple alarm, wake the Pi through the same button input as the visit contact."""
+    if os.environ.get("GUARD", "0").strip() not in ("1", "simple"):
         return False
     try:
         out = subprocess.run(["life-guard", "status"], capture_output=True, text=True, timeout=15)
@@ -252,6 +256,23 @@ def visit(rec: dict, dry: bool) -> None:
     start_visit("life-visit@boot.service", dry)
 
 
+def alarm(rec: dict, dry: bool) -> None:
+    """A boot the simple alarm made: no visit and nobody at the node. Report, then sleep until the next window."""
+    if maintenance():
+        log("woke by the alarm, with a maintenance window open: the node stays on")
+        write({**rec, "offWindow": "kept", "alarm": True}, dry)
+        return
+    log(f"woke by the alarm: reporting for half an hour, then off until the next window at {rec['next']} (in {ALARM_S} s)")
+    write({**rec, "offWindow": "alarm", "stopInS": ALARM_S}, dry)
+    stop_cmd = ["systemd-run", "--unit=life-window-stop", f"--on-active={ALARM_S}s", "/usr/local/sbin/life-window", "stop", "--unless-maintenance"]
+    if dry:
+        print(f"would run: {' '.join(stop_cmd)}")
+        return
+    subprocess.run(["systemctl", "stop", "life-window-stop.timer"], capture_output=True)
+    if subprocess.run(stop_cmd).returncode != 0:
+        log("could not set the stop; the node stays on until the end of its next window")
+
+
 def check(args: list[str]) -> None:
     dry = "--dry-run" in args
     now_arg = args[args.index("--now") + 1] if "--now" in args else None
@@ -283,6 +304,9 @@ def check(args: list[str]) -> None:
         return
     wake = wake_of(args)
     rec = {"date": info["date"], "window": None, "wake": wake, "next": info["next"]}
+    if wake == "button" and os.environ.get("GUARD", "0").strip() == "simple" and guard_alarm():
+        alarm(rec, dry)
+        return
     if by_magnet(wake):
         visit(rec, dry)
         return

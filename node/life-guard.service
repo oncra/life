@@ -7,6 +7,6 @@ Before=life-sound.timer
 Type=oneshot
 EnvironmentFile=/etc/life-node.env
 ExecStart=/usr/local/bin/life-guard check
-TimeoutStartSec=120
+TimeoutStartSec=360
 [Install]
 WantedBy=multi-user.target
