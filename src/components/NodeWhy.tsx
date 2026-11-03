@@ -29,7 +29,7 @@ const POINTS: { title: string; body: ReactNode }[] = [
   },
   {
     title: "It watches over itself",
-    body: "A 100 dB siren when the panel is taken or the box tips over, and a message to the owner within minutes, from one transistor and no chip, behind security bolts. The oracle also raises a flag when a node moves to another cell tower, goes quiet for 36 hours or runs low on battery.",
+    body: "A 100 dB siren when the panel is taken or the box tips over, and a message to the owner within minutes. The oracle also raises a flag when a node moves to another cell tower, goes quiet for 36 hours or runs low on battery.",
   },
   {
     title: "Open, and cheap enough to repeat",

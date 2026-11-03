@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """The Pi's side of the node's alarm. Two boards can be fitted:
 
-    GUARD=simple   the standard node's alarm since 2026-11-02 (content/build.md, step 3.7): the panel loop and a tilt
-                   switch on one transistor that sounds the siren while either is open. No chip, no disarm line: the
-                   fuse in the box is its only off switch. The siren's rising edge also presses the Witty Pi's button
-                   through the visit contact's transistor, so a sleeping node wakes for it (life-window then knows the
-                   boot for an alarm, not a visit). The Pi reads the alarm on the ALARM line and reports it, with the
-                   cell, until the oracle has it, and again every RECHECK_S for RECHECK_FOR_S while it stands, so a box
-                   that is being carried off reports each new cell.
+    GUARD=simple   the standard node's alarm since 2026-11-02 (content/build.md, step 3.7; its hardware is not
+                   published). It sounds its siren on its own, has no disarm line, and wakes a sleeping node through
+                   the Witty Pi's button input (life-window then knows the boot for an alarm, not a visit). The Pi
+                   reads it on the ALARM line and reports it, with the cell, until the oracle has it, and again every
+                   RECHECK_S for RECHECK_FOR_S while it stands, so a box that is being carried off reports each cell.
     GUARD=1        the tamper guard (node/firmware/life-guard), out of the standard node since 2026-11-02: an ATtiny84
                    with lid, panel and tilt contacts, silenced only by a pulse from the Pi with a maintenance window.
 
@@ -92,7 +90,7 @@ def pulse(seconds, times=1):
 def status():
     if not ENABLED:
         return {"enabled": False}
-    if SIMPLE:  # panel loop and tilt switch are one loop: it says that the siren sounds, not which of the two opened
+    if SIMPLE:  # one line: it says that the alarm sounds, not what set it off
         return {"enabled": True, "kind": "simple", "alarm": pin_read(PIN["ALARM"]), "loop": "unknown"}
     a, la, lb = pin_read(PIN["ALARM"]), pin_read(PIN["LOOP_A"]), pin_read(PIN["LOOP_B"])
     return {"enabled": True, "alarm": a, "loop": LOOPS[(1 if la else 0) | (2 if lb else 0)]}
@@ -156,7 +154,7 @@ def check():
             disarm_for(w)  # arrived inside a window set earlier: green before the lid opens
         return
     if SIMPLE:
-        # Nothing to silence from here (the fuse in the box is the off switch): report it until the oracle has it.
+        # Nothing to silence from here: report it until the oracle has it.
         for i in range(REPORT_TRIES if TOKEN else 1):
             if i:
                 time.sleep(REPORT_GAP_S)

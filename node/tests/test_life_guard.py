@@ -132,7 +132,7 @@ class GuardTest(unittest.TestCase):
 
 
 class SimpleAlarmTest(GuardTest):
-    """GUARD=simple: the panel loop and tilt switch on one transistor. The Pi reads the ALARM line and reports it, with
+    """GUARD=simple: the standard node's alarm board. The Pi reads the ALARM line and reports it, with
     the cell, until the oracle has it, and again while it stands; there is no disarm line, so nothing here may pulse."""
 
     def setUp(self):
