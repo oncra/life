@@ -166,3 +166,48 @@ class Heat(unittest.TestCase):
         self.heat(boot="another-boot")
         m = self.beat("shutdown")
         self.assertNotIn("heat", m)
+
+
+class Version(unittest.TestCase):
+    """BirdNET-Go's version rides on the posts at a window's start and end, every time, so a lost post loses nothing."""
+
+    def setUp(self):
+        import threading
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        class H(BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({"status": "healthy", "version": "20261031"}).encode()
+                self.send_response(200 if self.path == "/api/v2/health" else 404)
+                self.send_header("content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+
+        self.srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.state = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.srv.shutdown()
+        self.tmp.cleanup()
+
+    def beat(self, event):
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("LIFE_", "MODEM_", "WITTYPI_", "VEDIRECT_"))}
+        env.update({"LIFE_STATE": str(self.state), "MODEM_HOST": "", "WITTYPI_BUS": "", "VEDIRECT_PORT": "none",
+                    "LIFE_QUEUE": str(self.state / "queue.jsonl"), "LIFE_CLIPS_DIR": str(self.state / "clips"),
+                    "LIFE_RUN": str(self.state / "run"), "LIFE_MIC_METRICS": "http://127.0.0.1:9/metrics",
+                    "LIFE_BNG_URL": f"http://127.0.0.1:{self.srv.server_address[1]}"})
+        r = subprocess.run([sys.executable, "-B", str(HB), "--json", "--event", event], env=env, capture_output=True,
+                           text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout)["metrics"]
+
+    def test_at_the_start_and_end_of_a_window_every_time(self):
+        self.assertEqual(self.beat("boot").get("bng"), "20261031")
+        self.assertEqual(self.beat("boot").get("bng"), "20261031")      # again: the first may never have arrived
+        self.assertEqual(self.beat("shutdown").get("bng"), "20261031")
+        self.assertNotIn("bng", self.beat("hourly"))

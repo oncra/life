@@ -25,7 +25,7 @@ Power and box health ride along, from what is already in the box:
   temperature, the minutes at 80 °C or more, whether the cores were slowed or the supply sagged since boot, the lowest
   clock, the guard's trips. With it `bats`: the evening's bat minutes (life-mic), ran, kept out by the heat, kept out
   by the battery, and what the battery read when the evening began. And BirdNET-Go's own count of analyses that did not
-  keep up (`overruns`, while its metrics page is on) and its version (`bng`, when it changed).
+  keep up (`overruns`, while its metrics page is on) and its version (`bng`, at a window's start and end).
 All of it is a dozen numbers, about 250 bytes on a post that is sent anyway: no extra TLS handshake, under 2% of the
 SIM's ten-year budget. The boot heartbeat matters most, because it carries the battery after the night.
 
@@ -302,25 +302,16 @@ def overruns():
     return int(n)
 
 
-def bng_version(state):
-    """BirdNET-Go's version from its health page, only when it differs from the one last sent."""
+def bng_version():
+    """BirdNET-Go's version from its health page, or None. Sent on the posts at a window's start and end, not marked as
+    sent: a post that does not arrive is followed by another that carries it."""
     url = (os.environ.get("LIFE_BNG_URL") or "http://127.0.0.1:8080").rstrip("/") + "/api/v2/health"
     try:
         with urllib.request.urlopen(url, timeout=3) as r:
             v = str(json.load(r).get("version") or "")[:40]
     except Exception:  # noqa: BLE001 - BirdNET-Go not up (yet)
         return None
-    sent = state / "bng-sent"
-    try:
-        if not v or sent.read_text().strip() == v:
-            return None
-    except Exception:  # noqa: BLE001
-        pass
-    try:
-        sent.write_text(v)
-    except Exception:  # noqa: BLE001
-        pass
-    return v
+    return v or None
 
 
 def heat(event):
@@ -345,7 +336,7 @@ def heat(event):
     o = overruns() if worth else None
     if o is not None:
         out["overruns"] = o
-    v = bng_version(state)
+    v = bng_version() if event in ("boot", "shutdown") else None
     if v:
         out["bng"] = v
     return out
