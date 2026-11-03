@@ -54,6 +54,10 @@ export type NodeOut = {
     pvW: number | null;
     diskFreeMb: number | null;
     unsent: number | null;
+    /** the latest window's heat (life-heat, on the post at its end): the processor's highest temperature, the minutes at
+     * 80 °C or more, whether the Pi slowed itself, and the evening's bat minutes (ran, kept out by heat or battery) */
+    heat: { at: number; maxC: number | null; hotMin: number | null; slowed: boolean; trips: number | null;
+      bats: { onMin: number | null; heatMin: number | null; batteryMin: number | null; battery: string | null; v: number | null } | null } | null;
     /** the mobile network the node was on; never the cell id, which is where it stands */
     network: { plmn: string; name: string; rssi: number | null; rsrp: number | null } | null;
   };
@@ -81,6 +85,22 @@ const ms = (d: Date | null | undefined) => (d ? d.getTime() : null);
 const iso = (t: number) => new Date(t).toISOString();
 
 /** The whole dashboard for one place, or null when it has no devices. */
+/** The latest window's heat in one line, for the node page: highest temperature, minutes at 80 °C or more, slowed,
+ * and the evening's bat minutes with what kept them out. Empty when the node has not reported it. */
+export function heatLine(h: NodeOut["last"]["heat"]): string {
+  if (!h) return "";
+  const parts: string[] = [];
+  if (h.maxC !== null) parts.push(`highest ${Math.round(h.maxC)} °C`);
+  if (h.hotMin) parts.push(`${h.hotMin} min at 80 °C or more`);
+  if (h.slowed) parts.push("slowed down");
+  const b = h.bats;
+  if (b) {
+    if (b.battery === "low") parts.push(`no bats: battery ${b.v !== null ? `${b.v.toFixed(2)} V` : "low"}`);
+    else if (b.onMin !== null) parts.push(`bats ${b.onMin} min` + (b.heatMin ? `, ${b.heatMin} min out for the heat` : ""));
+  }
+  return parts.join(" · ");
+}
+
 export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centroidLon">, range: Range, now = Date.now()): Promise<NodeOut | null> {
   const zone = DISPLAY_ZONE;
   const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, depthCm: true, lastSeenAt: true, lastHeartbeatAt: true } });
@@ -118,9 +138,16 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
   const box: NodeOut["box"] = { battV: [], boxTempC: [], cpuTempC: [], piW: [], pvW: [] };
   const gaps: Gap[] = [];
   let prev: { t: number; event: string | null } | null = null;
+  let heat: NodeOut["last"]["heat"] = null;
   for (const h of hbs) {
     const t = h.ts.getTime();
     const m = (h.metrics ?? null) as Record<string, unknown> | null;
+    const hm = m?.heat && typeof m.heat === "object" ? (m.heat as Record<string, unknown>) : null;
+    if (hm) {
+      const bm = m?.bats && typeof m.bats === "object" ? (m.bats as Record<string, unknown>) : null;
+      heat = { at: t, maxC: num(hm.maxC), hotMin: num(hm.hotMin), slowed: hm.slowed === true, trips: num(hm.trips),
+        bats: bm ? { onMin: num(bm.onMin), heatMin: num(bm.heatMin), batteryMin: num(bm.batteryMin), battery: typeof bm.battery === "string" ? bm.battery : null, v: num(bm.v) } : null };
+    }
     const batt = batteryOf(m);
     if (prev && t - prev.t > MISSED_MS) gaps.push({ from: prev.t, to: t, kind: prev.event === "shutdown" ? "asleep" : "missed", open: false });
     prev = { t, event: h.event };
@@ -164,6 +191,7 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
       heartbeatAt: lastHb ? lastHb.ts.getTime() : null,
       battV: lastBatt?.v ?? null, battSrc: lastBatt?.src ?? null,
       boxTempC: num(lm?.boxTempC), cpuTempC: num(lm?.cpuTempC), piW: num(lm?.piW), pvW: num(lm?.pvW), diskFreeMb: num(lm?.diskFreeMb), unsent: num(lm?.unsent),
+      heat,
       network: plmn ? { plmn, name: OPERATORS[plmn] ?? `network ${plmn}`, rssi: num(cell?.rssi), rsrp: num(cell?.rsrp) } : null,
     },
     beats, gaps: gapsIn, soil: soilOut, box, species,

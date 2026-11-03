@@ -98,3 +98,71 @@ class Night(unittest.TestCase):
         self.assertEqual((m["window"], m["offWindow"]), (None, "stop"))
         (self.state / "window.json").write_text(json.dumps({"window": "night"}))
         self.assertEqual(self.metrics()["window"], "night")
+
+
+class Heat(unittest.TestCase):
+    """The processor's heat and the evening's bat minutes ride on the post at the end of a window, and whenever something
+    is wrong; the throttle flags on every post."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.state = Path(self.tmp.name)
+        self.run_dir = self.state / "run"
+        self.run_dir.mkdir()
+        self.boot = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+        self.metrics = self.state / "metrics.txt"
+        self.metrics.write_text('# HELP x\nmyaudio_birdnet_processing_overruns_total{source="audio_card_1"} 3\n'
+                                'myaudio_buffer_overruns_total{source="audio_card_1"} 2\nother_total 7\n')
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def beat(self, event):
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("LIFE_", "MODEM_", "WITTYPI_", "VEDIRECT_"))}
+        env.update({"LIFE_STATE": str(self.state), "MODEM_HOST": "", "WITTYPI_BUS": "", "VEDIRECT_PORT": "none",
+                    "LIFE_QUEUE": str(self.state / "queue.jsonl"), "LIFE_CLIPS_DIR": str(self.state / "clips"),
+                    "LIFE_RUN": str(self.run_dir), "LIFE_MIC_METRICS": self.metrics.as_uri(),
+                    "LIFE_BNG_URL": "http://127.0.0.1:9"})
+        r = subprocess.run([sys.executable, "-B", str(HB), "--json", "--event", event], env=env, capture_output=True,
+                           text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout)["metrics"]
+
+    def heat(self, guard=False, thr="0x80000", boot=None):
+        (self.run_dir / "heat.json").write_text(json.dumps({
+            "boot": boot or self.boot, "c": 79.1, "maxC": 82.4, "hotS": 750, "thr": thr, "thrEver": True, "uvEver": False,
+            "mhz": 1500, "minMhz": 1000, "guard": {"on": guard, "trips": 2}}))
+
+    def test_the_end_of_a_window_carries_the_heat_and_the_bats(self):
+        self.heat()
+        from datetime import datetime, timedelta, timezone
+        at = (datetime.now(timezone.utc) - timedelta(minutes=2)).isoformat(timespec="seconds")
+        (self.state / "bats.json").write_text(json.dumps({"evening": "2026-07-01", "battery": "ok", "v": 13.28, "minV": 13.1,
+                                                          "onS": 2400, "heatS": 900, "batteryS": 0, "trips": 1,
+                                                          "last": {"at": at, "state": "on", "boot": self.boot}}))
+        m = self.beat("shutdown")
+        self.assertEqual(m["throttled"], "0x80000")
+        self.assertEqual(m["heat"], {"maxC": 82.4, "hotMin": 12, "slowed": True, "sagged": False, "minMhz": 1000, "trips": 2})
+        self.assertEqual(m["bats"], {"ev": "2026-07-01", "battery": "ok", "v": 13.28, "minV": 13.1, "onMin": 42,
+                                     "heatMin": 15, "batteryMin": 0, "trips": 1})   # the open stretch since life-mic counted in
+        self.assertEqual(m["overruns"], 5)
+
+    def test_an_ordinary_post_carries_only_the_flags(self):
+        self.heat(thr="0x0")
+        m = self.beat("hourly")
+        self.assertEqual(m["throttled"], "0x0")
+        self.assertNotIn("heat", m)
+        self.assertNotIn("overruns", m)
+
+    def test_a_slowed_processor_is_reported_at_once(self):
+        self.heat(thr="0x80008")      # the soft limit active now
+        self.assertIn("heat", self.beat("hourly"))
+
+    def test_the_guard_holding_the_bats_out_is_reported_at_once(self):
+        self.heat(guard=True, thr="0x0")
+        self.assertEqual(self.beat("hourly")["heat"]["trips"], 2)
+
+    def test_readings_of_an_earlier_boot_are_not_this_ones(self):
+        self.heat(boot="another-boot")
+        m = self.beat("shutdown")
+        self.assertNotIn("heat", m)

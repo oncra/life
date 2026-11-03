@@ -26,6 +26,15 @@ Three ways to listen, chosen with LIFE_BIRD_MIC:
   the first was a faint test detection and the second a sure one that would have counted. So `both` sets the pause to 0
   while the AudioMoth hears birds, and the pause goes back to BirdNET-Go's 15 s when that ends.
 
+The bat model has two gates besides the sun. The battery (LIFE_BATS_BATTERY, on): as the evening's bat hours begin,
+a battery under LIFE_BATS_MIN_V (13.1 V at the Witty Pi, the battery less a few tenths) keeps the bat model out for
+that evening, so the next dawn chorus keeps its energy; a node on a 5 V supply, or one whose battery cannot be read,
+keeps its bats. And the heat (life-heat): when the processor reaches LIFE_BATS_MAX_C (78 °C), two degrees before the
+firmware starts slowing the cores, the bat model goes out until it has cooled eight degrees, and at least a quarter of an
+hour. The birds keep the processor. Every evening's bat minutes go into LIFE_STATE/bats.json: how long the bat model
+ran, how long the heat kept it out, how long the battery did, and what the battery read, so a hot or a dark evening is
+known as an evening with less listening, not as one with fewer bats. The heartbeat carries it.
+
 No source gets quiet hours. In BirdNET-Go 20261014 one sound card source inside its quiet hours stops the capture of
 every sound card ("suppress if ANY source is in quiet hours", internal/audiocore/schedule/quiet_hours.go), so a bat
 microphone kept quiet by day would have silenced the bird microphone through the whole dawn window. Sources and models
@@ -77,7 +86,10 @@ env: LIFE_BIRD_MIC (audiomoth | i2s | both), LIFE_BATS (1; 0 takes the bats out)
      LIFE_MIC_NOW (an ISO time, for tests), LIFE_BATS_PROC (/proc), LIFE_BATS_SYS (/sys), LIFE_BATS_WAIT_S (20),
      LIFE_MIC_CHECK (1; 0 leaves out the witness and the levels), LIFE_MIC_CHECK_DAY (sun; mon to sun),
      LIFE_STATE (/data/life-node),
-     LIFE_MIC_METRICS (http://127.0.0.1:9090/metrics), LIFE_MIC_SAMPLES (4), LIFE_MIC_SAMPLE_GAP_S (10)
+     LIFE_MIC_METRICS (http://127.0.0.1:9090/metrics), LIFE_MIC_SAMPLES (4), LIFE_MIC_SAMPLE_GAP_S (10),
+     LIFE_BATS_BATTERY (1; 0 leaves the battery out of it), LIFE_BATS_MIN_V (13.1), LIFE_BATS_MAX_C (78; life-heat),
+     LIFE_RUN (/run/life-node, where life-heat keeps heat.json), WITTYPI_BUS (1), LIFE_BATS_VIN (tests: the battery
+     reads this)
 """
 import hashlib
 import json
@@ -136,6 +148,16 @@ CHECK_DAY = WEEKDAYS.index(_day) if _day in WEEKDAYS else 6
 MIN_RATE = 96000  # BirdNET-Go's floor for its bat model
 BIRD_RATE = 48000  # what the bird model listens at; below it the AudioMoth is no bird microphone either
 PAUSE = 15  # BirdNET-Go's own realtime.interval: seconds between two saved detections of one species, all sources
+BATTERY_GATE = os.environ.get("LIFE_BATS_BATTERY", "1").strip() != "0"
+try:
+    MIN_V = float(os.environ.get("LIFE_BATS_MIN_V") or 13.1)
+except ValueError:
+    MIN_V = 13.1
+MAINS_V = 6.0      # a Witty Pi input under this is a 5 V supply, not a 12 V battery: no battery to spare
+RUN = Path(os.environ.get("LIFE_RUN") or "/run/life-node")
+HEAT = RUN / "heat.json"  # life-heat's readings this boot, with its guard
+BATS = STATE / "bats.json"  # the evening's bat minutes: ran, kept out by the heat, kept out by the battery
+ACCOUNT_MAX_S = 15 * 60  # between two runs at most this counts (the timer runs every five minutes while awake)
 
 
 def say(msg: str) -> None:
@@ -179,6 +201,117 @@ def bat_time(t: datetime) -> bool:
     sunset = sun_crossing(d, -0.833, False) or datetime.combine(d, clock(21), TZ)
     dawn = sun_crossing(d, -6.0, True) or datetime.combine(d, clock(5), TZ)
     return t >= sunset - timedelta(minutes=LEAD) or t < dawn - timedelta(minutes=10)
+
+
+def evening_of(t: datetime) -> date:
+    """The evening a moment of bat time belongs to: before noon it is the evening before."""
+    local = t.astimezone(TZ)
+    return local.date() - timedelta(days=1) if local.hour < 12 else local.date()
+
+
+def battery_v() -> float | None:
+    """The Witty Pi's input, which on a node is the charge controller's load output: the battery less a few tenths."""
+    if os.environ.get("LIFE_BATS_VIN"):
+        return float(os.environ["LIFE_BATS_VIN"])
+    bus = os.environ.get("WITTYPI_BUS", "1").strip()
+    if not bus:
+        return None
+    try:
+        reg = lambda r: int(subprocess.run(["i2cget", "-y", bus, "0x08", str(r)], capture_output=True, text=True,  # noqa: E731
+                                           check=True, timeout=5).stdout.strip(), 16)
+        return round(reg(1) + reg(2) / 100, 2)
+    except Exception as e:  # noqa: BLE001 - no reading: the bats run, the board's own low-voltage stop still guards
+        say(f"no battery reading ({e})")
+        return None
+
+
+def battery_decision() -> tuple[str, float | None]:
+    """How the battery stands for this evening's bat model: 'ok', 'low' (keep it out), 'mains', 'unknown' or 'off'."""
+    if not BATTERY_GATE:
+        return "off", None
+    v = battery_v()
+    if v is None:
+        return "unknown", None
+    if v < MAINS_V:
+        return "mains", v
+    return ("ok" if v >= MIN_V else "low"), v
+
+
+def heat_on() -> bool:
+    """Whether life-heat's guard holds the bat model out now (its readings of this boot only)."""
+    try:
+        st = json.loads(HEAT.read_text())
+    except (OSError, ValueError):
+        return False
+    return bool((st.get("guard") or {}).get("on")) and st.get("boot") == boot_id()
+
+
+def boot_id() -> str:
+    try:
+        return (PROC / "sys" / "kernel" / "random" / "boot_id").read_text().strip()
+    except OSError:
+        return "unknown"
+
+
+def load_bats() -> dict:
+    try:
+        d = json.loads(BATS.read_text())
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_bats(d: dict) -> None:
+    STATE.mkdir(parents=True, exist_ok=True)
+    tmp = BATS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(d) + "\n")
+    os.replace(tmp, BATS)
+
+
+BUCKET = {"on": "onS", "heat": "heatS", "battery": "batteryS"}
+
+
+def account(d: dict, state: str, t: datetime) -> None:
+    """Count the time since the last run to the state the bat model was in then, within one boot."""
+    last, boot = d.get("last") or {}, boot_id()
+    if last.get("boot") == boot and last.get("state") in BUCKET:
+        dt = (t - datetime.fromisoformat(last["at"])).total_seconds()
+        if 0 < dt:
+            key = BUCKET[last["state"]]
+            d[key] = int(d.get(key) or 0) + int(min(dt, ACCOUNT_MAX_S))
+    d["last"] = {"at": t.isoformat(timespec="seconds"), "state": state, "boot": boot}
+
+
+def bats_now(t: datetime, write: bool = True) -> tuple[bool, str]:
+    """Whether the bat model runs now, and why: 'on', or out for 'day', 'battery' or 'heat'. The battery is read once
+    per evening, at the first run of its bat time; the heat at every run."""
+    if not bat_time(t):
+        why = "day"
+        d = load_bats()
+        if write and d:
+            account(d, why, t)
+            save_bats(d)
+        return False, why
+    ev = evening_of(t).isoformat()
+    d = load_bats()
+    if d.get("evening") != ev:
+        how, v = battery_decision()
+        d = {"evening": ev, "battery": how, "v": v, "minV": MIN_V if BATTERY_GATE else None,
+             "onS": 0, "heatS": 0, "batteryS": 0, "trips": 0, "last": None}
+        if how == "low":
+            say(f"battery {v:.2f} V under {MIN_V:.2f} V: no bats this evening, the next dawn keeps its energy")
+    if d.get("battery") == "low":
+        why = "battery"
+    elif heat_on():
+        why = "heat"
+    else:
+        why = "on"
+    if why == "heat" and (d.get("last") or {}).get("state") != "heat":
+        d["trips"] = int(d.get("trips") or 0) + 1
+    if write:
+        account(d, why, t)
+        save_bats(d)
+    return why == "on", why
 
 
 # --- the hardware ---
@@ -438,10 +571,11 @@ def model_files() -> dict | None:
 
 def configure(text: str, card: int | None, rate: int | None, files: dict | None, bird: int | None = None,
               moth: int | None = None, recording: set[int] | None = None, mode: str = "i2s",
-              night: bool = False, check: bool = True) -> tuple[str, list[str]]:
+              night: bool = False, check: bool = True, gated: bool = False) -> tuple[str, list[str]]:
     """BirdNET-Go's config for the mode. `card` and `rate` are the AudioMoth's when it can be used (else None),
     `files` the bat model's (None leaves the bats out), `bird` the I2S card, `night` whether it is bat time, `check`
-    whether today is a check day.
+    whether today is a check day, `gated` whether the battery or the heat keeps the bat model out though it is bat time
+    (the night stays night for everything else: no witness, no sound levels).
     Returns (text, changes)."""
     lines, did = text.split("\n"), []
     usable = card is not None and rate is not None
@@ -511,13 +645,14 @@ def configure(text: str, card: int | None, rate: int | None, files: dict | None,
         did.append("no realtime.audio.sources list; sources not written")
         return "\n".join(lines), did
     k, i, items, end = span
-    want_bat = mode == "i2s" and bats and night   # the AudioMoth as the bat microphone only, at bat time only
+    run_bats = bats and night and not gated
+    want_bat = mode == "i2s" and run_bats         # the AudioMoth as the bat microphone only, at bat time only
     want_moth = moth_birds                        # the AudioMoth as a bird (and bat) microphone
     want_i2s = mode != "audiomoth" or not moth_birds  # in audiomoth mode the I2S bird source is only the fallback
     if mode == "both":  # one model at a time beside the I2S microphone's: the processor has no room for more
-        moth_models = ["bat"] if bats and night else [first]
+        moth_models = ["bat"] if run_bats else [first]
     else:
-        moth_models = birds + (["bat"] if bats and night else [])
+        moth_models = birds + (["bat"] if run_bats else [])
     keep_ours = {SOURCE: want_bat, MOTH: want_moth, WITNESS: witness}
     have = {SOURCE: False, MOTH: False, WITNESS: False, "i2s": False}
     for s in reversed(items):  # from the end, so a change never moves an item still to be looked at
@@ -755,9 +890,11 @@ def apply(wait: bool) -> bool:
         say(f"no BirdNET-Go config at {CONFIG}; nothing to set")
         return False
     card, rate, files, bird, moth, recording = look(wait)
-    night = bat_time(now())
+    t = now()
+    night = bat_time(t)
+    run, why = bats_now(t)
     text = CONFIG.read_text()
-    new, did = configure(text, card, rate, files, bird, moth, recording, MODE, night, check_day(now()))
+    new, did = configure(text, card, rate, files, bird, moth, recording, MODE, night, check_day(t), gated=night and not run)
     if new != text:
         tmp = CONFIG.with_suffix(".yaml.life-mic")
         tmp.write_text(new)
@@ -770,7 +907,7 @@ def apply(wait: bool) -> bool:
             + ("" if did else " (config unchanged)"))
     else:
         say(f"mode {MODE}: " + (f"the AudioMoth on card {card} at {rate} Hz, bat model "
-                                f"{'on' if bats and night else 'off' if bats else 'not available'}"
+                                f"{'on' if bats and run else ('out: ' + why) if bats and night else 'off' if bats else 'not available'}"
                                 if card is not None else "no AudioMoth")
             + ("" if new != text else " (config unchanged)"))
     return new != text
@@ -800,6 +937,7 @@ def status(as_json: bool) -> int:
     sources = {item_name(lines, s): item_models(lines, s) for s in span[2]} if span else {}
     st = {"mode": MODE, "plugged": on_usb(), "switchOff": usb_state() == "switch", "card": card, "rate": rate,
           "birdCard": bird, "modelFiles": model_files() is not None, "batTime": bat_time(now()),
+          "bats": bats_now(now(), write=False)[1], "evening": load_bats() or None,
           "configured": SOURCE in sources or MOTH in sources, "sources": sources, "enabled": ON,
           "check": json.loads(SUMMARY.read_text()) if SUMMARY.exists() else None}
     print(json.dumps(st) if as_json else "\n".join(f"{k}: {v}" for k, v in st.items()))

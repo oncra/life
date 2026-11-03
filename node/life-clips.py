@@ -8,7 +8,9 @@ when somebody is at the box, or when the node itself is on a cable or a WiFi:
 
     life-clips setup                     before BirdNET-Go starts: clip export on or off in its config
     life-clips sample                    every 15 minutes: keep what qualifies, cut it to its clip, delete the rest
-    life-clips upload [--for SECONDS]    send the waiting clips to the oracle, only while the node's way out to the
+    life-clips cut                       cut every kept clip that waits now, whatever the processor is doing (a visit)
+    life-clips upload [--for SECONDS] [--now]
+                                         send the waiting clips to the oracle, only while the node's way out to the
                                          internet is the cable or the WiFi (a visitor's phone hotspot is WiFi), never
                                          the SIM; each clip is deleted once the oracle has it, checked by its SHA-256.
                                          The timer runs it after every sample; life-visit runs it on a hotspot
@@ -61,6 +63,12 @@ To have detections in the low score bands at all, `setup` puts BirdNET-Go's own 
 What the node sends to the oracle as detections does not follow: life-push keeps its floor of 0.7
 (LIFE_MIN_CONFIDENCE_FLOOR, set in the units), the score the Diversity reading counts from.
 
+Cutting and sending wait while the processor is needed or hot: while the bat model runs (life-mic's bats.json says so)
+or the processor is at LIFE_CLIPS_HOT_C (70 °C) or more. The kept clips then stay as BirdNET-Go wrote them and are cut
+at the next run that finds the processor free, which in summer is the next dawn window: the node is awake then
+anyway, so the waiting costs no energy, and the bat hour keeps its processor (content/kit.md, the bats and the heat).
+A visit or a stick cuts everything at once all the same.
+
 LIFE_KEEP_CLIPS=0 turns all of it off: export goes off in BirdNET-Go's config at the next boot, its threshold returns
 to 0.7, and the next run deletes every clip on the node.
 
@@ -70,6 +78,7 @@ env: LIFE_KEEP_CLIPS (1), LIFE_CLIPS_ALL_FROM (0.5; above 1 keeps only the band 
      LIFE_CLIPS_ANYTIME (0; 1 keeps clips outside the windows too, for a bench), LIFE_API, LIFE_DEVICE_TOKEN,
      BIRDNET_DIR (/data/birdnet-go), BIRDNET_DB, BIRDNET_CONFIG, BIRDNET_CLIPS, LIFE_CLIPS_DIR (/data/life-clips),
      LIFE_STATE (/data/life-node), LIFE_SCHEDULE_WPI (/usr/local/sbin/life-schedule-wpi), FFMPEG, NODE_TZ,
+     LIFE_CLIPS_HOT_C (70), LIFE_CLIPS_TEMP (the processor's temperature file, for tests),
      NODE_HOSTNAME
 """
 import base64
@@ -133,6 +142,9 @@ WAYS = {"eth0", "wlan0"}   # the Pi's own cable port and its WiFi; the 4G stick 
 PROBES = (("-4", "1.1.1.1"), ("-6", "2606:4700:4700::1111"))
 TRIES = 10           # a clip the oracle refuses this often stays for a visit with a stick, or until it expires
 GRANT_DAYS = 90      # how long a laptop may take to bring its batch to the oracle
+HOT_C = float(os.environ.get("LIFE_CLIPS_HOT_C") or 70)   # cutting and sending wait from here, and while bats run
+TEMP = Path(os.environ.get("LIFE_CLIPS_TEMP") or "/sys/class/thermal/thermal_zone0/temp")
+BATS_FRESH_S = 15 * 60   # life-mic writes its bat decision at least every five minutes while the node is awake
 # SO_BINDTODEVICE exists on Linux only; LIFE_CLIPS_BIND=0 is for tests that run the upload against a local oracle
 BIND = sys.platform.startswith("linux") and os.environ.get("LIFE_CLIPS_BIND", "1").strip() != "0"
 
@@ -436,6 +448,22 @@ def band(confidence: float) -> str:
     return f"{min(int(round(confidence * 1000)) // 100, 9) / 10:.1f}"
 
 
+def busy(now: float | None = None) -> str | None:
+    """Why cutting and sending should wait now, or None: the bat model is running, or the processor is hot."""
+    now = time.time() if now is None else now
+    try:
+        last = (json.loads((STATE_DIR / "bats.json").read_text()).get("last") or {})
+        if last.get("state") == "on" and now - datetime.fromisoformat(last["at"]).timestamp() < BATS_FRESH_S:
+            return "the bat model is running"
+    except Exception:  # noqa: BLE001 - no bats on this node, or no decision yet
+        pass
+    try:
+        c = int(TEMP.read_text().strip()) / 1000
+    except (OSError, ValueError):
+        return None
+    return f"the processor is at {c:.0f} °C" if c >= HOT_C else None
+
+
 def remove(p: Path) -> None:
     """Delete a clip in BirdNET-Go's export directory and the spectrogram it may have drawn beside it. Named, not
     searched for: a search per clip reads the whole month's directory each time, which a backlog of thousands turns
@@ -561,7 +589,8 @@ def _sample(con, rng: random.Random | None = None, now: float | None = None) -> 
                     (det_id, ts, ref, cell, slot, str(rel), scientific, conf, b, month, detector, source))
         con.commit()  # one detection at a time: an upload running beside this never waits long for the database
         kept += 1
-    cut, failed = finish_all(con)
+    wait = busy(now)
+    cut, failed = (0, 0) if wait else finish_all(con)
     # nothing else stays: whatever is left in BirdNET-Go's export directory once it is old enough to be finished
     orphans = 0
     if EXPORT.exists():
@@ -583,7 +612,7 @@ def _sample(con, rng: random.Random | None = None, now: float | None = None) -> 
         con.execute("delete from batches where batch = ?", (b,))
     con.commit()
     write_status(con)
-    say(f"{kept} kept, {cut} cut" + (f" ({failed} left as BirdNET-Go wrote them)" if failed else "")
+    say(f"{kept} kept, " + (f"cutting waits ({wait})" if wait else f"{cut} cut") + (f" ({failed} left as BirdNET-Go wrote them)" if failed else "")
         + f", {dropped} deleted, {orphans} left over deleted, {expired} past {KEEP_DAYS} days deleted")
     return 0
 
@@ -866,8 +895,23 @@ def fields_of(r: sqlite3.Row) -> dict:
             "expansion": r["expansion"], "gain_db": r["gain_db"]}
 
 
-def upload(seconds: float = 600, now=time.time) -> int:
-    """Send what waits, oldest first, for at most `seconds`, while the way out stays the cable or the WiFi."""
+def cut_all() -> int:
+    """Cut every kept clip that waits, now, whatever the processor is doing: a visit wants them all."""
+    con = state()
+    try:
+        cut, failed = finish_all(con)
+        write_status(con)
+    finally:
+        con.close()
+        release()
+    if cut or failed:
+        say(f"{cut} cut" + (f" ({failed} left as BirdNET-Go wrote them)" if failed else ""))
+    return cut
+
+
+def upload(seconds: float = 600, now=time.time, force: bool = False) -> int:
+    """Send what waits, oldest first, for at most `seconds`, while the way out stays the cable or the WiFi. Unless
+    `force` (a visit), sending waits while the bat model runs or the processor is hot."""
     if not KEEP or not UPLOAD:
         say("clip upload is off (LIFE_KEEP_CLIPS / LIFE_CLIPS_UPLOAD); nothing sent")
         return 0
@@ -877,6 +921,10 @@ def upload(seconds: float = 600, now=time.time) -> int:
     dev = way_out()
     if dev is None:
         say("the way out is not the cable or the WiFi; nothing sent (sound never goes over the SIM)")
+        return 0
+    wait = None if force else busy()
+    if wait:
+        say(f"sending waits: {wait}")
         return 0
     HOME.mkdir(parents=True, exist_ok=True)
     lock = open(HOME / ".upload-lock", "w")
@@ -1253,7 +1301,10 @@ def main() -> int:
     if cmd == "sample":
         return sample()
     if cmd == "upload":
-        return upload(float(args[args.index("--for") + 1]) if "--for" in args else 600)
+        return upload(float(args[args.index("--for") + 1]) if "--for" in args else 600, force="--now" in args)
+    if cmd == "cut":
+        cut_all()
+        return 0
     if cmd == "collect":
         if "--to" not in args:
             print("usage: life-clips collect --to DIR", file=sys.stderr)

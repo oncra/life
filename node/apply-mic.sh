@@ -8,7 +8,8 @@
 # From a laptop with the repository: scp -r node clients life@<hostname>.local: and then, on the node,
 # cd ~ && sudo bash node/apply-mic.sh both. Root is a read-only overlay, so this writes to the live root and to the
 # one under it (/media/root-ro): the change takes effect now and holds after a reboot. It replaces life-bats and its
-# unit where a node has them, and puts the heartbeat beside it, which carries the microphones' check. Mode both also sets LIFE_TEST_SOURCES=AudioMoth, so life-push sends the AudioMoth's
+# unit where a node has them, and puts the heartbeat beside it, which carries the microphones' check, and life-heat,
+# which watches the processor's heat and keeps the bat model out when it runs too hot. Mode both also sets LIFE_TEST_SOURCES=AudioMoth, so life-push sends the AudioMoth's
 # bird detections as test while the two microphones are compared; the other modes take that out again.
 set -euo pipefail
 MODE=${1:?mode: i2s, audiomoth or both}
@@ -18,7 +19,7 @@ ENVF=/data/life-node/env
 [ "$(id -u)" = 0 ] || { echo "run it with sudo"; exit 1; }
 [ -f "$ENVF" ] || { echo "no $ENVF: this is not a Life node"; exit 1; }
 for f in "$HERE/life-mic.py" "$HERE/life-mic-setup.service" "$HERE/life-mic-sync.service" "$HERE/life-mic.timer" \
-         "$HERE/life-heartbeat.py" "$HERE/../clients/birdnet-pi-push.py"; do
+         "$HERE/life-heat.py" "$HERE/life-heat.service" "$HERE/life-heartbeat.py" "$HERE/../clients/birdnet-pi-push.py"; do
   [ -f "$f" ] || { echo "missing $f: copy the repository's node/ and clients/ folders together"; exit 1; }
 done
 
@@ -34,15 +35,16 @@ for R in "${ROOTS[@]}"; do
   install -m 0755 "$HERE/life-mic.py" "$R/usr/local/bin/life-mic"
   install -m 0755 "$HERE/../clients/birdnet-pi-push.py" "$R/usr/local/bin/life-push"
   install -m 0755 "$HERE/life-heartbeat.py" "$R/usr/local/bin/life-heartbeat"
-  for u in life-mic-setup.service life-mic-sync.service life-mic.timer; do
+  install -m 0755 "$HERE/life-heat.py" "$R/usr/local/bin/life-heat"
+  for u in life-mic-setup.service life-mic-sync.service life-mic.timer life-heat.service; do
     install -m 0644 "$HERE/$u" "$R/etc/systemd/system/$u"
   done
   sed -i 's#^EnvironmentFile=.*#EnvironmentFile=/data/life-node/env#' \
-    "$R/etc/systemd/system/life-mic-setup.service" "$R/etc/systemd/system/life-mic-sync.service"
+    "$R/etc/systemd/system/life-mic-setup.service" "$R/etc/systemd/system/life-mic-sync.service" "$R/etc/systemd/system/life-heat.service"
   # life-bats goes: its unit would write the old bat source back at every boot
   systemctl --root="$R" disable life-bats-setup.service >/dev/null 2>&1 || true
   rm -f "$R/etc/systemd/system/life-bats-setup.service" "$R/usr/local/bin/life-bats"
-  systemctl --root="$R" enable life-mic-setup.service life-mic.timer >/dev/null
+  systemctl --root="$R" enable life-mic-setup.service life-mic.timer life-heat.service >/dev/null
 done
 
 set_env() {
@@ -54,7 +56,7 @@ if [ "$MODE" = both ]; then set_env LIFE_TEST_SOURCES AudioMoth; else sed -i '/^
 systemctl daemon-reload
 systemctl stop birdnet-go.service
 systemctl start life-mic-setup.service
-systemctl start birdnet-go.service life-mic.timer
+systemctl start birdnet-go.service life-mic.timer life-heat.service
 set -a; . "$ENVF"; set +a
 life-mic status
 echo "life-mic is on in mode $MODE; BirdNET-Go restarted"

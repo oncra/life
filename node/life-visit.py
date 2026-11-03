@@ -338,7 +338,7 @@ def send(dev: str, until: float) -> int:
         before = c.counts()
         if not before["ready"]:
             break
-        child([CLIPS_BIN, "upload", "--for", str(max(1, int(until - time.monotonic() - SEND_MIN_S / 2)))], until)
+        child([CLIPS_BIN, "upload", "--now", "--for", str(max(1, int(until - time.monotonic() - SEND_MIN_S / 2)))], until)
         if c.counts()["waiting"] < before["waiting"]:
             idle = 0
             continue
@@ -601,6 +601,10 @@ def run(reason: str) -> int:
     try:
         v = settings()
         c = clips()
+        try:   # clips whose cutting waited for a cool processor (the bat hour) go too
+            c.cut_all()
+        except Exception as e:  # noqa: BLE001 - a clip that cannot be cut never stops the visit
+            say(f"cutting the waiting clips: {e}")
         dev = c.way_out()
         if dev:
             say(f"the node is online over {dev} already: sending its clips now")

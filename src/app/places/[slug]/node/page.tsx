@@ -8,7 +8,7 @@ import { nightState } from "@/lib/node-night";
 import { configState } from "@/lib/node-config";
 import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
-import { asRange, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
+import { asRange, heatLine, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
@@ -82,7 +82,8 @@ export default async function NodePage({ params, searchParams }: Props) {
   const tiles: { label: string; value: string; sub: string; dot?: keyof typeof STATUS_BG }[] = [
     { label: "Last heard", value: last.heardAt ? ago(last.heardAt, data.now) : "never", sub: last.heardAt ? `${STATUS_TEXT[status]} · ${fmtTime(last.heardAt, data.zone)}` : "nothing received yet", dot: status },
     { label: "Battery", value: last.battV !== null ? `${last.battV.toFixed(2)} V` : "no reading", sub: last.battSrc === "mppt" ? "at the charge controller" : last.battSrc === "wittypi" ? "at the Witty Pi, a few tenths under the battery" : "on the desk the box runs on USB" },
-    { label: "Inside the box", value: last.boxTempC !== null ? `${last.boxTempC.toFixed(1)} °C` : last.cpuTempC !== null ? `${last.cpuTempC.toFixed(0)} °C` : "no reading", sub: last.cpuTempC !== null && last.boxTempC !== null ? `processor ${last.cpuTempC.toFixed(0)} °C` : last.boxTempC === null && last.cpuTempC !== null ? "processor" : "" },
+    // the Witty Pi's own sensor (boxTempC) sits right above the processor: it is the board's temperature, not the air in the box
+    { label: "Processor", value: last.cpuTempC !== null ? `${last.cpuTempC.toFixed(0)} °C` : "no reading", sub: heatLine(last.heat) || (last.boxTempC !== null ? `Witty Pi board ${last.boxTempC.toFixed(0)} °C` : "") },
     { label: "Drawing", value: last.piW !== null ? `${last.piW.toFixed(1)} W` : "no reading", sub: last.pvW !== null ? `panel giving ${last.pvW.toFixed(0)} W` : last.diskFreeMb !== null ? `${(last.diskFreeMb / 1000).toFixed(0)} GB free on the card` : "" },
     { label: "Mobile network", value: last.network ? last.network.name : "no 4G seen", sub: last.network ? [last.network.rsrp !== null ? `${last.network.rsrp} dBm` : last.network.rssi !== null ? `${last.network.rssi} dBm` : "", last.unsent ? `${last.unsent} posts still queued` : ""].filter(Boolean).join(" · ") : "the stick had no network at the last post" },
     { label: "Heard today", value: `${data.heardToday} species`, sub: `${data.detectionsToday} detection${data.detectionsToday === 1 ? "" : "s"} · ${data.heardWeek} species this week` },
@@ -217,7 +218,7 @@ export default async function NodePage({ params, searchParams }: Props) {
           </div>
           <div className="rounded-lg border border-line bg-white p-3">
             <div className="text-sm font-medium mb-1">Temperature, °C</div>
-            <SeriesChart {...chartProps} decimals={1} series={[{ name: "in the box", color: "#d9822b", points: data.box.boxTempC, unit: " °C" }, { name: "processor", color: "#8a3b12", points: data.box.cpuTempC, unit: " °C", dash: "4 3" }]} guides={[{ y: 80, label: "the processor slows itself down from 80 °C" }]} empty="No temperature in the heartbeats yet." />
+            <SeriesChart {...chartProps} decimals={1} series={[{ name: "Witty Pi board", color: "#d9822b", points: data.box.boxTempC, unit: " °C" }, { name: "processor", color: "#8a3b12", points: data.box.cpuTempC, unit: " °C", dash: "4 3" }]} guides={[{ y: 80, label: "the processor slows itself down from 80 °C" }]} empty="No temperature in the heartbeats yet." />
           </div>
           <div className="rounded-lg border border-line bg-white p-3">
             <div className="text-sm font-medium mb-1">Power, W</div>

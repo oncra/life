@@ -265,6 +265,13 @@ class Window(unittest.TestCase):
         self.assertIn("poweroff", self.log("systemctl"))
         self.assertIn("life-visit@*", self.log("systemctl")[0])   # it looked for a visit first
 
+    def test_a_node_on_a_5_v_supply_listens(self):
+        # on the bench the Witty Pi reads its 5 V input: no battery to spare, so the night listens
+        self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00"), LIFE_NIGHT_VIN="4.61").night_cmd([])
+        n = self.night_last()
+        self.assertEqual((n["ran"], n["v"]), ("mains", 4.61))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
     def test_the_minimum_is_the_owners(self):
         self.window(may(NIGHT_W, "2026-05-15T20:29:12+00:00", minV=12.8), LIFE_NIGHT_VIN="12.95").night_cmd([])
         self.assertEqual((self.night_last()["ran"], self.night_last()["minV"]), ("listened", 12.8))
