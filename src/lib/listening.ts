@@ -2,12 +2,15 @@
 // place, on every day of a season and in every year. The node's own scheduler listens to exactly these windows
 // (node/image/life-schedule-wpi.py); other recorders may listen all day, but diversity, renewal and the detection half
 // of autonomy only see detections inside these windows, so a node and a station that never sleeps are counted on the
-// same hours. (Until 13 October 2026 the dawn window was 6 h in May to July and a node could add extra hours.) A node
-// whose owner turned on the meadow-bird window listens after its dusk window too (src/lib/night.ts); never counted.
+// same hours. (Until 13 October 2026 the dawn window was 6 h in May to July and a node could add extra hours; until
+// 4 November 2026 the winter window started at sunrise, after the winter morning's busiest half hour.) A node whose
+// owner turned on the meadow-bird window listens after its dusk window too (src/lib/night.ts); never counted.
 //
 //   March to October      4 h from civil dawn and 1 h from sunset
-//   November to February  2 h from sunrise
+//   November to February  2 h from civil dawn
 //
+// Every morning window starts at civil dawn: birds start by light, not by the clock or the sunrise, and a window of
+// fixed length catches the most species when it opens then, in every season (spec 2.2).
 // South of the equator the months are six on. Windows are computed per UTC day from the place's centroid; the
 // node computes them with astral, and the two agree to a minute or two.
 import { sunAt } from "./sun";
@@ -28,12 +31,9 @@ export function coreWindows(t: number, lat: number, lon: number): Window[] {
   const m = seasonMonth(d0 + 12 * H, lat);
   const sun = sunAt(d0, lat, lon, -0.833);
   const solarNoon = d0 + 12 * H - (lon / 15) * H; // the fallbacks below are relative to it: far north, no sunrise or dawn
-  if (m === 11 || m === 12 || m === 1 || m === 2) {
-    const s = sun ? sun.rise : solarNoon - 4 * H;
-    return [[s, s + 2 * H]];
-  }
   const civil = sunAt(d0, lat, lon, -6);
-  const a = civil ? civil.rise : solarNoon - 7 * H;
+  const a = civil ? civil.rise : solarNoon - 7 * H; // no civil dawn: the midnight sun, or north of 72.5 degrees the polar night
+  if (m === 11 || m === 12 || m === 1 || m === 2) return [[a, a + 2 * H]];
   const e = sun ? sun.set : solarNoon + 9 * H;
   if (e <= a + 4 * H) return [[a, e + H]]; // days too short for two windows: one, from dawn to the end of the dusk window
   return [[a, a + 4 * H], [e, e + H]];
@@ -88,7 +88,7 @@ export type RuleWindow = { name: string; start: number; end: number };
 export const METHOD_RULES: WindowRule[] = [
   { name: "dawn", months: "3-10", from: "dawn", min: 240 },
   { name: "dusk", months: "3-10", from: "sunset", min: 60 },
-  { name: "winter", months: "11-2", from: "sunrise", min: 120 },
+  { name: "winter", months: "11-2", from: "dawn", min: 120 },
 ];
 
 /** "3-10" -> March to October, "11-2" -> November to February, "6" -> June, [4, 5]; null when it is none of those. */
