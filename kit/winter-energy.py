@@ -9,7 +9,7 @@ Radiation and temperature per hour come from KNMI (station 240, no key needed) a
 once KNMI has published the whole period.
 Each hour's radiation is split into direct and diffuse (Erbs), laid on a panel facing south (Hay-Davies), and taken at
 15 % system losses, as PVGIS is here, and -0.37 % per degree above 25 C. The node draws a floor of 4.6 Wh/day all the time and the rest
-of its day in the two hours from sunrise; under 15 % of the battery it stops, and starts again at 35 %. The BMS takes no
+of its day in the two hours from civil dawn (from sunrise until 4 November 2026); under 15 % of the battery it stops, and starts again at 35 %. The BMS takes no
 charge below 0 C. This is a calculation: what was measured is in kit/bench-log.csv.
 
 A skyline is 360 elevations in degrees, one per degree of azimuth clockwise from north, of whatever stands around the
@@ -107,10 +107,11 @@ def panel_w(ghi, t, temp, tilt, sky=None):
     return WP * poa / 1000 * (1 + GAMMA * (temp + poa * 0.03 - 25)) * LOSSES
 
 
-def sunrise(day):
+def civil_dawn(day):
+    """The first moment of the day the sun's centre stands 6 degrees below the horizon or higher: the winter window opens."""
     for m in range(0, 24 * 60, 6):
         t = dt.datetime(day.year, day.month, day.day) + dt.timedelta(minutes=m)
-        if 90 - math.degrees(sun(t)[0]) >= -0.83:
+        if 90 - math.degrees(sun(t)[0]) >= -6:
             return t
     return None
 
@@ -125,7 +126,7 @@ def winter(hours, share, tilt, ah, sky=None):
         if temp > 0:
             e = min(cap, e + panel_w(ghi, t, temp, tilt, sky) * share)
         on = False if e < cap * 0.15 else True if e >= cap * 0.35 else on
-        rise = rises.setdefault(t.date(), sunrise(t.date()))
+        rise = rises.setdefault(t.date(), civil_dawn(t.date()))
         if rise <= t < rise + dt.timedelta(hours=2):
             total += 1
             if on:

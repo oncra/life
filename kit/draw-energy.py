@@ -5,7 +5,7 @@ s100=[h100[i]*canopy(i) for i in range(12)]
 s50=[v*0.5 for v in s100]
 winter=lambda i: i in (0,1,10,11)
 # node load per month from the listening hours (spec 2.2: 4 h from civil dawn and 1 h from sunset in March-October,
-# 2 h from sunrise in November-February) at the draw measured on node 1's bench (step 1.5), on a 4.6 Wh/day floor
+# 2 h from civil dawn in November-February) at the draw measured on node 1's bench (step 1.5), on a 4.6 Wh/day floor
 load=[11.3 if winter(i) else 25.2 for i in range(12)]
 W,H=880,520; L,R,T,B=64,138,62,116
 pw,ph=W-L-R,H-T-B; ymax=420

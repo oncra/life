@@ -4,11 +4,12 @@
 One rule for every node and every year, and the only hours the oracle's readings count:
 
     March to October      4 h from civil dawn and 1 h from sunset
-    November to February  2 h from sunrise
+    November to February  2 h from civil dawn
 
 The node listens to exactly these windows, so its effort is the same on every day of a season (until 13 October 2026
 the dawn window was 6 h in May to July and a node added extra hours when its battery allowed; one length all season is
-easier to read and leaves the battery more slack). Why these hours: a year of four Dutch 24-hour BirdNET stations
+easier to read and leaves the battery more slack). Every morning window starts at civil dawn (until 4 November 2026 the
+winter one started at sunrise, after the busiest half hour of a winter morning). Why these hours: a year of four Dutch 24-hour BirdNET stations
 replayed against every schedule, and the battery simulated hour by hour on PVGIS weather for 2005 to 2023
 (content/spec.md).
 
@@ -92,7 +93,7 @@ CONFIG = Path(os.environ.get("LIFE_CONFIG") or Path(os.environ.get("LIFE_STATE")
 METHOD = [
     {"name": "dawn", "months": "3-10", "from": "dawn", "min": 240},
     {"name": "dusk", "months": "3-10", "from": "sunset", "min": 60},
-    {"name": "winter", "months": "11-2", "from": "sunrise", "min": 120},
+    {"name": "winter", "months": "11-2", "from": "dawn", "min": 120},
 ]
 ANCHORS = {"dawn": (dawn, 5), "sunrise": (sunrise, 8), "noon": (noon, 12), "sunset": (sunset, 21), "dusk": (dusk, 22)}
 NAME = re.compile(r"[a-z][a-z0-9-]{0,15}")

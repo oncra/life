@@ -9,7 +9,7 @@
 # good; otherwise no shutdown is scheduled, the node stays on, and systemd runs this again in five minutes.
 #
 # Then the schedule (content/spec.md, section 2.2), computed by life-schedule-wpi for the node's own place: March to
-# October 4 h from civil dawn and 1 h from sunset, November to February 2 h from sunrise, the same windows every day,
+# October 4 h from civil dawn and 1 h from sunset, November to February 2 h from civil dawn, the same windows every day,
 # as the oracle last sent them (life-config), and the owner's night window for meadow birds on top when it is on and in
 # season (never counted by the readings).
 # life-window, run at the end of this script, sends a node the Witty Pi woke by itself outside its windows (battery

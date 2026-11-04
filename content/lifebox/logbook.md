@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 4 November 2026
+
+### The winter window opens at civil dawn
+
+*Learning.* In November node 1 woke at sunrise, as the winter rule said, and the birds had started without it. The winter window had started at sunrise since 12 October, when it replaced a fixed hour from 07:00 that sat in the dark in December and January. Four Dutch BirdWeather stations that record around the clock, read minute by minute through the winter of 2025/26 (240 station-days, confidence 0.7 or more), show what it missed: detections climb from about 20 minutes before civil dawn to a peak just after it, 30 to 40 minutes before sunrise, and more species of the morning are first heard in the half hour before sunrise than in any other. On the median winter morning a robin was first heard 42 minutes before sunrise, a blackbird 37, a wren 30, a great tit 24. On the three late-October mornings node 1 stayed on all night it heard 8 to 22 species before sunrise.
+
+*Change.* From November to February the node now listens 2 hours from civil dawn instead of from sunrise: the same length, so the same energy, and every morning window now opens at civil dawn. On the stations a 2-hour window from civil dawn hears 67% of the morning's species-days against 65% from sunrise, 0.7 species more a morning and 16% more detections, better at all four. Opening it earlier still was checked as well: the same 2 hours from 15 minutes before civil dawn hear 0.4 species fewer, because the birds that start in the dark go on calling after civil dawn and the window would lose its last minutes, when birds that never called in the dark turn up. The oracle counts the new window at once; node 1 takes it with its next image, and until then it still wakes at sunrise. [#150](https://github.com/oncra/life/pull/150)
+
 ## 3 November 2026
 
 ### The bat hour runs hot, and nothing said so
