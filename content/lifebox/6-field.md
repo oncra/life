@@ -1,9 +1,18 @@
 ---
 title: "Into the ground"
-short: "New software for the field, a post, the box at knee height, two probes a step and a half to the south."
+short: "The panel glued to its board, new software for the field, a post, the box at knee height, two probes a step and a half to the south."
 order: 6
-parts: [Post and mount, Solar panel]
+parts: [Post and mount, Security fasteners, Solar panel]
 ---
+
+## The day before: the panel on its board
+
+A small solar panel is the one thing a passer-by takes from a box in a field. Glued and bolted to a board, it stays.
+
+1. Cut a board of 18 mm exterior plywood a little smaller than the panel, and two wedges that hold it at 40°. Screw the board to the wedges from the top: the panel will cover the screws.
+2. Paint board and wedges with the box, but leave bare the four spots where the panel's frame will rest.
+3. Put a thick dot of mounting adhesive on each of those spots, not a bead all round: air has to pass behind the panel.
+4. Lay the panel on, and bolt it through the holes in its frame and the board. Tighten each **shear nut** until its hex snaps off: what is left is a smooth cone no spanner can hold. Let the adhesive cure overnight.
 
 ## Make the field software
 
@@ -21,7 +30,7 @@ The box keeps its name and its history. The old card stops sending.
 1. Choose the spot with the farmer. The probes read the plants and the soil right above them, so the box goes in the part of the place it should speak for (the meadow, a tree row, the field), at a spot that looks like the rest of that part: not a corner, a gateway, a wet patch or a bare patch. Machines may drive past the post, and the farmer mows, grazes or sows over the probes as everywhere else. On ploughed land the box goes at the edge, and then it speaks for the edge. The four steps are in [the soil probe protocol](../install-soil.md). Mark the spot on the farmer's map.
 2. Drive the **2 m post** 80 cm into the ground.
 3. Fix the box on the post at knee height (about 50 cm), on the side that gets the least sun.
-4. Bolt the panel brackets **through** the post with the M8 bolts, panel facing south, above the box so it shades it. A panel is a sail in a storm: straps loosen, bolts do not.
+4. Put the wedges either side of the post, the panel facing south and above the box so it shades it, and push the two **carriage bolts** through wedge, post and wedge. Tighten the shear nuts until their hex snaps off. A panel is a sail in a storm: straps loosen, bolts do not.
 
 ## Put the probes in the soil
 
