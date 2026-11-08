@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/session";
-import { canSeeExact } from "@/lib/privacy";
+import { triageDevices } from "@/lib/triage";
 import { CLIP_KEEP_DAYS } from "@/lib/clips";
 import { SignIn } from "@/components/BoxApp";
 import { Triage, type TriageSpecies } from "@/components/Triage";
@@ -19,18 +19,30 @@ export const metadata: Metadata = {
 // The page shows no location: a clip says which node, never where it stands.
 export default async function TriagePage() {
   const user = await currentUser();
-  const allowed = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
+  const { devices: allowed, judge } = await triageDevices(user?.id ?? null);
   const ids = allowed.map((d) => d.id);
-  const judge = new Set(user ? (await Promise.all(allowed.map(async (d) => ((await canSeeExact(d.place)) ? d.id : null)))).filter((d) => d !== null) : []);
-  const [clips, reported, names] = await Promise.all([
-    prisma.clip.findMany({ where: { deviceId: { in: ids } }, include: { reviews: true }, orderBy: [{ confidence: "desc" }] }),
+  // Species only: a row's clips come from /api/triage/clips when it is opened (thousands of clips made this page
+  // megabytes of HTML and a long wait for the button that leads here).
+  const [perSpecies, clipNames, mine, reported, names] = await Promise.all([
+    prisma.clip.groupBy({ by: ["scientific"], where: { deviceId: { in: ids } }, _count: { _all: true } }),
+    prisma.clip.findMany({ where: { deviceId: { in: ids }, species: { not: null } }, distinct: ["scientific"], select: { scientific: true, species: true }, orderBy: { confidence: "desc" } }),
+    user
+      ? prisma.clipReview.findMany({ where: { userId: user.id, clip: { deviceId: { in: ids } } }, select: { verdict: true, clip: { select: { scientific: true } } } })
+      : Promise.resolve([]),
     prisma.soundDetection.groupBy({ by: ["scientific"], where: { deviceId: { in: ids }, test: false }, _count: { _all: true } }),
     prisma.soundDetection.findMany({ where: { deviceId: { in: ids } }, distinct: ["scientific"], select: { scientific: true, species: true }, orderBy: { ts: "desc" } }),
   ]);
   const count = new Map(reported.map((r) => [r.scientific ?? "", r._count._all]));
   const common = new Map(names.filter((n) => n.scientific && n.species !== n.scientific).map((n) => [n.scientific as string, n.species]));
+  const clipName = new Map(clipNames.map((c) => [c.scientific, c.species as string]));
+  const tallies = new Map<string, Record<string, number>>();
+  for (const r of mine) {
+    const t = tallies.get(r.clip.scientific) ?? {};
+    t[r.verdict] = (t[r.verdict] ?? 0) + 1;
+    tallies.set(r.clip.scientific, t);
+  }
   // the cut-out and the Dutch name the worker keeps per species (src/lib/species-image.ts), found by scientific name
-  const sci = [...new Set(clips.map((c) => c.scientific))];
+  const sci = perSpecies.map((g) => g.scientific);
   const pictures = await prisma.speciesImage.findMany({
     where: { OR: [{ scientific: { in: sci } }, { species: { in: sci } }] },
     select: { id: true, species: true, scientific: true, status: true, width: true, height: true, author: true, license: true, sourceUrl: true, names: true },
@@ -45,31 +57,17 @@ export default async function TriagePage() {
       nl: had.nl ?? nl,
     });
   }
-  const groups = new Map<string, TriageSpecies>();
-  for (const c of clips) {
-    const g = groups.get(c.scientific) ?? {
-      scientific: c.scientific, name: c.species ?? common.get(c.scientific) ?? null, nl: look.get(c.scientific)?.nl ?? null,
-      image: look.get(c.scientific)?.image ?? null, reported: count.get(c.scientific) ?? 0, clips: [],
-    };
-    const mine = user ? c.reviews.find((r) => r.userId === user.id) : undefined;
-    const others = c.reviews.filter((r) => r.userId !== user?.id);
-    g.clips.push({
-      id: c.id,
-      ts: c.ts.toISOString(),
-      confidence: c.confidence,
-      detector: c.detector,
-      source: c.source,
-      fromS: c.fromS,
-      toS: c.toS,
-      expansion: c.expansion,
-      hasSound: c.file !== null,
-      canJudge: judge.has(c.deviceId),
-      mine: mine ? { verdict: mine.verdict, actual: mine.actual, note: mine.note } : null,
-      others: { right: others.filter((r) => r.verdict === "right").length, wrong: others.filter((r) => r.verdict === "wrong").length, unsure: others.filter((r) => r.verdict === "unsure").length },
-    });
-    groups.set(c.scientific, g);
-  }
-  const species = [...groups.values()].sort((a, b) => b.reported - a.reported || b.clips.length - a.clips.length || a.scientific.localeCompare(b.scientific));
+  const species: TriageSpecies[] = perSpecies
+    .map((g) => ({
+      scientific: g.scientific,
+      name: clipName.get(g.scientific) ?? common.get(g.scientific) ?? null,
+      nl: look.get(g.scientific)?.nl ?? null,
+      image: look.get(g.scientific)?.image ?? null,
+      reported: count.get(g.scientific) ?? 0,
+      clipCount: g._count._all,
+      mine: { right: tallies.get(g.scientific)?.right ?? 0, wrong: tallies.get(g.scientific)?.wrong ?? 0, unsure: tallies.get(g.scientific)?.unsure ?? 0 },
+    }))
+    .sort((a, b) => b.reported - a.reported || b.clipCount - a.clipCount || a.scientific.localeCompare(b.scientific));
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Triage: was the detector right?</h1>
