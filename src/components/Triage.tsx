@@ -28,8 +28,14 @@ export type TriageSpecies = {
   /** the cut-out the worker made from the species' Wikipedia photo, with its Commons credits */
   image: { id: string; width: number | null; height: number | null; author: string | null; license: string | null; sourceUrl: string | null } | null;
   reported: number;
-  clips: TriageClip[];
+  /** how many clips the species has; they are fetched from /api/triage/clips when its row is opened */
+  clipCount: number;
+  /** the verdicts of the person looking on this species' clips, counted */
+  mine: Tally;
 };
+type Tally = { right: number; wrong: number; unsure: number };
+/** clips shown at once in an opened row; more on request */
+const STEP = 20;
 
 const VERDICTS = [
   { v: "right", label: "Right", on: "bg-green-600 text-white border-green-600" },
@@ -45,13 +51,21 @@ const model = (d: string | null) => (d ? MODEL[d] ?? d.replace(/^birdnet-go:/, "
 export function Triage({ species, judging }: { species: TriageSpecies[]; judging: boolean }) {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [done, setDone] = useState<Record<string, string | null>>(() => Object.fromEntries(species.flatMap((s) => s.clips.map((c) => [c.id, c.mine?.verdict ?? null]))));
-  const total = species.reduce((n, s) => n + s.clips.length, 0);
-  const judged = Object.values(done).filter(Boolean).length;
+  const [tallies, setTallies] = useState<Record<string, Tally>>(() => Object.fromEntries(species.map((s) => [s.scientific, s.mine])));
+  const total = species.reduce((n, s) => n + s.clipCount, 0);
+  const sum = (t: Tally) => t.right + t.wrong + t.unsure;
+  const judged = Object.values(tallies).reduce((n, t) => n + sum(t), 0);
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
     return species.filter((s) => !t || [s.scientific, s.name, s.nl].some((n) => (n ?? "").toLowerCase().includes(t)));
   }, [species, q]);
+  const moved = (sci: string, from: string | null, to: string | null) =>
+    setTallies((all) => {
+      const t = { ...all[sci] };
+      if (from && from in t) t[from as keyof Tally]--;
+      if (to && to in t) t[to as keyof Tally]++;
+      return { ...all, [sci]: t };
+    });
   return (
     <div className="mt-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -60,48 +74,99 @@ export function Triage({ species, judging }: { species: TriageSpecies[]; judging
             <span className="font-medium">{judged} of {total} clips judged by you</span>
             <label className="flex items-center gap-1"><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> only clips not yet judged</label>
           </>
-        ) : <span className="font-medium">{total} clips</span>}
+        ) : <span className="font-medium">{total} clips of {species.length} species</span>}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="find a species" className="rounded border border-line px-2 py-1 text-sm" />
       </div>
       <div className="mt-4 grid gap-4">
-        {shown.map((s) => {
-          const clips = onlyOpen ? s.clips.filter((c) => !done[c.id]) : s.clips;
-          if (clips.length === 0) return null;
-          const tally = s.clips.reduce((t, c) => { const v = done[c.id]; if (v) t[v] = (t[v] ?? 0) + 1; return t; }, {} as Record<string, number>);
-          return (
-            <details key={s.scientific} className="rounded-lg border border-line bg-white" open={species.length <= 3}>
-              <summary className="cursor-pointer p-4">
-                <span className="inline-flex items-center gap-3 align-middle">
-                  <span className="flex h-16 w-20 shrink-0 items-center justify-center">
-                    {s.image ? (
-                      <Image src={`/api/species-image/${s.image.id}.webp`} alt="" width={s.image.width || 160} height={s.image.height || 120} unoptimized
-                        className="max-h-16 w-auto max-w-full object-contain" />
-                    ) : null}
-                  </span>
-                  <span>
-                    <span className="font-semibold">{s.nl ?? s.name ?? s.scientific}</span>
-                    {s.nl && s.name && s.name !== s.nl ? <span className="text-muted"> · {s.name}</span> : null}
-                    {s.nl || s.name ? <span className="italic text-muted"> · {s.scientific}</span> : null}
-                    <span className="block text-sm text-muted mt-1">
-                      reported {s.reported} times · {s.clips.length} clips{judging ? <> · right {tally.right ?? 0}, wrong {tally.wrong ?? 0}, not sure {tally.unsure ?? 0}</> : null}
-                    </span>
-                  </span>
-                </span>
-              </summary>
-              {s.image && (s.image.author || s.image.license) ? (
-                <div className="-mt-2 px-4 pb-2 text-xs text-muted">
-                  Photo: {s.image.sourceUrl ? <a href={s.image.sourceUrl} className="underline" target="_blank" rel="noreferrer">{s.image.author ?? "Wikimedia Commons"}</a> : s.image.author}
-                  {s.image.license ? `, ${s.image.license}` : ""}, background removed
-                </div>
-              ) : null}
-              <ul className="grid gap-3 px-4 pb-4">
-                {clips.map((c) => <ClipRow key={c.id} clip={c} onSaved={(v) => setDone((d) => ({ ...d, [c.id]: v }))} />)}
-              </ul>
-            </details>
-          );
-        })}
+        {shown.map((s) =>
+          onlyOpen && s.clipCount - sum(tallies[s.scientific]) <= 0 ? null : (
+            <SpeciesRow key={s.scientific} s={s} tally={tallies[s.scientific]} judging={judging} onlyOpen={onlyOpen} startOpen={species.length <= 3}
+              onMoved={(from, to) => moved(s.scientific, from, to)} />
+          ),
+        )}
       </div>
     </div>
+  );
+}
+
+// A species and, once opened, its clips: fetched on the first opening and shown STEP at a time, so a page with
+// thousands of clips stays light and only the rows someone opens cost anything.
+function SpeciesRow({ s, tally, judging, onlyOpen, startOpen, onMoved }: {
+  s: TriageSpecies; tally: Tally; judging: boolean; onlyOpen: boolean; startOpen: boolean; onMoved: (from: string | null, to: string | null) => void;
+}) {
+  const [open, setOpen] = useState(startOpen);
+  const [clips, setClips] = useState<TriageClip[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [limit, setLimit] = useState(STEP);
+  const [done, setDone] = useState<Record<string, string | null>>({});
+  const asked = useRef(false);
+  useEffect(() => {
+    if (!open || asked.current || failed) return;
+    asked.current = true;
+    fetch(`/api/triage/clips?species=${encodeURIComponent(s.scientific)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d: { clips: TriageClip[] }) => {
+        setClips(d.clips);
+        setDone(Object.fromEntries(d.clips.map((c) => [c.id, c.mine?.verdict ?? null])));
+      })
+      .catch(() => {
+        asked.current = false;
+        setFailed(true);
+      });
+  }, [open, s.scientific, failed]);
+  const list = clips ? (onlyOpen ? clips.filter((c) => !done[c.id]) : clips) : [];
+  return (
+    <details className="rounded-lg border border-line bg-white" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary className="cursor-pointer p-4">
+        <span className="inline-flex items-center gap-3 align-middle">
+          <span className="flex h-16 w-20 shrink-0 items-center justify-center">
+            {s.image ? (
+              <Image src={`/api/species-image/${s.image.id}.webp`} alt="" width={s.image.width || 160} height={s.image.height || 120} unoptimized loading="lazy"
+                className="max-h-16 w-auto max-w-full object-contain" />
+            ) : null}
+          </span>
+          <span>
+            <span className="font-semibold">{s.nl ?? s.name ?? s.scientific}</span>
+            {s.nl && s.name && s.name !== s.nl ? <span className="text-muted"> · {s.name}</span> : null}
+            {s.nl || s.name ? <span className="italic text-muted"> · {s.scientific}</span> : null}
+            <span className="block text-sm text-muted mt-1">
+              reported {s.reported} times · {s.clipCount} clips{judging ? <> · right {tally.right}, wrong {tally.wrong}, not sure {tally.unsure}</> : null}
+            </span>
+          </span>
+        </span>
+      </summary>
+      {s.image && (s.image.author || s.image.license) ? (
+        <div className="-mt-2 px-4 pb-2 text-xs text-muted">
+          Photo: {s.image.sourceUrl ? <a href={s.image.sourceUrl} className="underline" target="_blank" rel="noreferrer">{s.image.author ?? "Wikimedia Commons"}</a> : s.image.author}
+          {s.image.license ? `, ${s.image.license}` : ""}, background removed
+        </div>
+      ) : null}
+      {open ? (
+        clips === null ? (
+          <div className="px-4 pb-4 text-sm text-muted">
+            {failed ? <>The clips did not load. <button type="button" className="underline" onClick={() => setFailed(false)}>Try again</button></> : "Loading the clips…"}
+          </div>
+        ) : (
+          <>
+            <ul className="grid gap-3 px-4 pb-4">
+              {list.slice(0, limit).map((c) => (
+                <ClipRow key={c.id} clip={c} onSaved={(v) => {
+                  onMoved(done[c.id] ?? null, v);
+                  setDone((d) => ({ ...d, [c.id]: v }));
+                }} />
+              ))}
+            </ul>
+            {list.length > limit ? (
+              <div className="px-4 pb-4">
+                <button type="button" className="rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium hover:border-accent" onClick={() => setLimit((n) => n + STEP)}>
+                  Show {Math.min(STEP, list.length - limit)} more ({list.length - limit} left)
+                </button>
+              </div>
+            ) : null}
+          </>
+        )
+      ) : null}
+    </details>
   );
 }
 
