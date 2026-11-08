@@ -5,6 +5,19 @@ import type { TriageClip } from "@/components/Triage";
 // The devices whose clips /triage shows, and which of them the person looking may judge (signed in and allowed to see
 // the place exactly). Shared by the page, which lists species only, and /api/triage/clips, which brings one species'
 // clips when its row is opened: with thousands of clips, sending them all with the page made it megabytes of HTML.
+
+/** The lowest detector score /triage shows by default, in percent. BirdNET's score is not a probability and its
+ * meaning differs per species (Wood & Kahl 2024, J. Ornithol. 165:777); 0.5 is the usual starting point for
+ * characterising bird communities (Pérez-Granados 2023, Ibis; Pérez-Granados et al. 2025, Ibis), and even at 0.5 only
+ * about a quarter of species reach 90% precision (Singer et al. 2024, Remote Sens. Ecol. Conserv., 61 species in a
+ * German forest). Below it most clips are noise, so judging them sets no useful threshold. The visitor can change it. */
+export const TRIAGE_MIN_DEFAULT = 50;
+
+/** The ?min= of the page or the API as a fraction, clamped to 0..1; the default when absent or not a number. */
+export function triageMin(raw: string | null | undefined): number {
+  const n = raw == null || raw === "" ? NaN : Number(raw);
+  return Math.max(0, Math.min(100, Number.isFinite(n) ? n : TRIAGE_MIN_DEFAULT)) / 100;
+}
 export async function triageDevices(userId: string | null) {
   const devices = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
   const judge = new Set(
@@ -13,11 +26,11 @@ export async function triageDevices(userId: string | null) {
   return { devices, judge };
 }
 
-/** One species' clips, highest score first, as the triage page shows them. */
-export async function triageClips(scientific: string, userId: string | null): Promise<TriageClip[]> {
+/** One species' clips from score `min` up, highest score first, as the triage page shows them. */
+export async function triageClips(scientific: string, userId: string | null, min = TRIAGE_MIN_DEFAULT / 100): Promise<TriageClip[]> {
   const { devices, judge } = await triageDevices(userId);
   const clips = await prisma.clip.findMany({
-    where: { deviceId: { in: devices.map((d) => d.id) }, scientific },
+    where: { deviceId: { in: devices.map((d) => d.id) }, scientific, confidence: { gte: min } },
     include: { reviews: true },
     orderBy: [{ confidence: "desc" }, { ts: "desc" }],
   });

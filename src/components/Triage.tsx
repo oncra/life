@@ -48,7 +48,7 @@ const mic = (s: string | null) => (s === "Sound Card 1" ? "I2S microphone" : s ?
 const MODEL: Record<string, string> = { "birdnet-go:birdnet": "BirdNET", "birdnet-go:battybirdnet": "bat model", "birdnet-go:perch_v2": "Perch" };
 const model = (d: string | null) => (d ? MODEL[d] ?? d.replace(/^birdnet-go:/, "") : "detector");
 
-export function Triage({ species, judging }: { species: TriageSpecies[]; judging: boolean }) {
+export function Triage({ species, judging, min }: { species: TriageSpecies[]; judging: boolean; /** lowest score shown, percent */ min: number }) {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [q, setQ] = useState("");
   const [tallies, setTallies] = useState<Record<string, Tally>>(() => Object.fromEntries(species.map((s) => [s.scientific, s.mine])));
@@ -80,7 +80,7 @@ export function Triage({ species, judging }: { species: TriageSpecies[]; judging
       <div className="mt-4 grid gap-4">
         {shown.map((s) =>
           onlyOpen && s.clipCount - sum(tallies[s.scientific]) <= 0 ? null : (
-            <SpeciesRow key={s.scientific} s={s} tally={tallies[s.scientific]} judging={judging} onlyOpen={onlyOpen} startOpen={species.length <= 3}
+            <SpeciesRow key={s.scientific} s={s} tally={tallies[s.scientific]} judging={judging} onlyOpen={onlyOpen} min={min} startOpen={species.length <= 3}
               onMoved={(from, to) => moved(s.scientific, from, to)} />
           ),
         )}
@@ -91,8 +91,8 @@ export function Triage({ species, judging }: { species: TriageSpecies[]; judging
 
 // A species and, once opened, its clips: fetched on the first opening and shown STEP at a time, so a page with
 // thousands of clips stays light and only the rows someone opens cost anything.
-function SpeciesRow({ s, tally, judging, onlyOpen, startOpen, onMoved }: {
-  s: TriageSpecies; tally: Tally; judging: boolean; onlyOpen: boolean; startOpen: boolean; onMoved: (from: string | null, to: string | null) => void;
+function SpeciesRow({ s, tally, judging, onlyOpen, min, startOpen, onMoved }: {
+  s: TriageSpecies; tally: Tally; judging: boolean; onlyOpen: boolean; min: number; startOpen: boolean; onMoved: (from: string | null, to: string | null) => void;
 }) {
   const [open, setOpen] = useState(startOpen);
   const [clips, setClips] = useState<TriageClip[] | null>(null);
@@ -103,7 +103,7 @@ function SpeciesRow({ s, tally, judging, onlyOpen, startOpen, onMoved }: {
   useEffect(() => {
     if (!open || asked.current || failed) return;
     asked.current = true;
-    fetch(`/api/triage/clips?species=${encodeURIComponent(s.scientific)}`)
+    fetch(`/api/triage/clips?species=${encodeURIComponent(s.scientific)}&min=${min}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d: { clips: TriageClip[] }) => {
         setClips(d.clips);
@@ -113,7 +113,7 @@ function SpeciesRow({ s, tally, judging, onlyOpen, startOpen, onMoved }: {
         asked.current = false;
         setFailed(true);
       });
-  }, [open, s.scientific, failed]);
+  }, [open, s.scientific, failed, min]);
   const list = clips ? (onlyOpen ? clips.filter((c) => !done[c.id]) : clips) : [];
   return (
     <details className="rounded-lg border border-line bg-white" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
