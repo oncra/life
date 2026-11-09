@@ -87,7 +87,7 @@ export default function LifeIndexChart({ data }: { data: LifeIndexOut }) {
   const readout = ht === null ? "" : [
     dayLabel(ht, zone),
     hPeriod ? `verdict ${hPeriod.verdict}` : "verdict not computed",
-    hSat ? `greenness ${hSat[1].toFixed(2)} (${fmtTime(hSat[0], zone).slice(0, 10)})` : "no clear scene within 12 days",
+    hSat ? `greenness ${hSat[1].toFixed(2)} (${fmtTime(hSat[0], zone).slice(0, 10)})` : "no clear day within 12 days",
     hSound ? `${hSound.species} species, ${hSound.detections} detections` : data.sound.length ? "nothing heard" : "no recorder",
     hSoil && hSoil.vwc !== null ? `soil ${hSoil.vwc.toFixed(0)}% · ${hSoil.tempC?.toFixed(1) ?? "?"} °C · weather-expected activity ${hSoil.activity?.toFixed(2) ?? "?"}` : data.soil.length ? "no soil reading" : "no probe",
   ].join(" · ");
@@ -134,11 +134,11 @@ export default function LifeIndexChart({ data }: { data: LifeIndexOut }) {
         })}
 
         {/* satellite */}
-        {laneHead(lanes.sat, "Satellite", "greenness (NDVI) per clear Sentinel-2 scene; shaded: growing season")}
+        {laneHead(lanes.sat, "Satellite", "greenness (NDVI) per clear Sentinel-2 day; shaded: growing season")}
         {[0, 0.5, 1].map((v) => <text key={v} x={pad.l - 5} y={satY(v) + 4} fontSize="10" textAnchor="end" fill="#6b7268">{v.toFixed(1)}</text>)}
         <path d={satPath} fill="none" stroke="#2f6b3a" strokeWidth="1" opacity="0.5" />
         {data.sat.map((p, i) => <circle key={i} cx={sx(p[0])} cy={satY(p[1])} r={data.sat.length > 150 ? 1.6 : 2.2} fill="#2f6b3a" />)}
-        {data.sat.length === 0 && empty(lanes.sat, "no clear scene in this span")}
+        {data.sat.length === 0 && empty(lanes.sat, "no clear day in this span")}
 
         {/* sound */}
         {laneHead(lanes.sound, "Sound", "species heard per day (70% sure or more), the recorder in the box")}

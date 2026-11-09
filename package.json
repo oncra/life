@@ -13,6 +13,7 @@
     "clips:test": "tsx scripts/clips-test.ts",
     "config:test": "tsx scripts/config-test.ts",
     "night:test": "tsx scripts/night-test.ts",
+    "readings:test": "tsx scripts/readings-test.ts",
     "db:migrate": "prisma migrate deploy",
     "check:links": "node scripts/check-links.mjs"
   },

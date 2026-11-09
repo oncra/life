@@ -1,5 +1,5 @@
 import { prisma } from "./db";
-import { autonomy, cycling, diversity, periodLabel, productivity, renewal, resilience, structure, verdict, type ReadingOut, type SoilSample } from "./readings";
+import { autonomy, clearDays, cycling, diversity, periodLabel, productivity, renewal, resilience, structure, verdict, type ReadingOut, type SoilSample } from "./readings";
 import { moistureOptimum } from "./context";
 import { inCore } from "./listening";
 import { soilWaterYears } from "./soilwater";
@@ -28,13 +28,14 @@ export async function computeReadings(placeId: string) {
     if (!(devicesBySeason[y] ??= []).includes(s.deviceId)) devicesBySeason[y].push(s.deviceId);
   }
   const water = { seasons: soilWaterYears(obs, wx, place.centroidLat, place.centroidLon), devicesBySeason, weatherSource: weather.length ? weather[weather.length - 1].source : null, lat: place.centroidLat };
-  const pts = sat.map((s) => ({ date: s.date, ndvi: s.ndviMean }));
+  // one observation per clear day: the scenes of one pass seen in two tiles, or processed twice, count once (spec 2.1)
+  const pts = clearDays(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean, valid: s.validFraction })), place.centroidLon);
   // the readings count only the core listening hours (content/spec.md 2.2): extra hours and all-day recorders are kept
   // and shown, never counted, so every place is read on the same hours of the day
   const core = dets.filter((d) => inCore(d.ts.getTime(), place.centroidLat, place.centroidLon));
   const year = new Date().getUTCFullYear();
   const out: ReadingOut[] = [
-    productivity(pts, place.centroidLat, year),
+    productivity(pts, place.centroidLat),
     diversity(core, year),
     structure(idx),
     renewal(core, place.centroidLat),

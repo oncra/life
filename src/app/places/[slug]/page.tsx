@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import LifeMap from "@/components/LifeMap";
 import NdviChart from "@/components/NdviChart";
-import { growingSeasonMeans, verdict, type ReadingOut } from "@/lib/readings";
+import { clearDays, growingSeasonMeans, productivityBasis, seasonSpan, verdict, type ReadingOut } from "@/lib/readings";
 import { carbonSeries, issuable } from "@/lib/carbon";
 import { canSeeExact, canView, publicPlace } from "@/lib/privacy";
 export const dynamic = "force-dynamic";
@@ -37,7 +37,9 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
     prisma.alert.findMany({ where: { device: { placeId: place.id }, resolvedAt: null }, orderBy: { createdAt: "desc" }, include: { device: { select: { model: true } } } }),
   ]);
   const clayPct = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
-  const carbon = carbonSeries(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean })), soilRows, place.landUse, clayPct);
+  // one observation per clear day: the scenes of one pass seen in two tiles, or processed twice, count once (spec 2.1)
+  const days = clearDays(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean, valid: s.validFraction })), place.centroidLon);
+  const carbon = carbonSeries(days, soilRows, place.landUse, clayPct);
   const issue = issuable(carbon, place.areaHa);
   const periods = [...new Set(readings.map((r) => r.period))].sort().reverse();
   const latest = readings.filter((r) => r.period === periods[0]);
@@ -45,7 +47,11 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   latest.sort((a, b) => order.indexOf(a.dimension) - order.indexOf(b.dimension));
   const list: ReadingOut[] = latest.map((r) => ({ dimension: r.dimension, direction: r.direction, confidence: r.confidence, maturity: r.maturity, evidence: (r.evidence as Record<string, unknown>) ?? {} }));
   const v = list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: jobs[0]?.status === "running" || jobs[0]?.status === "queued" ? "satellite backfill in progress" : "not yet computed" };
-  const seasons = growingSeasonMeans(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean })), place.centroidLat);
+  const seasons = growingSeasonMeans(days, place.centroidLat);
+  // the trend line draws what the productivity reading compares: every counted season, and the last one's reference
+  const basis = productivityBasis(days, place.centroidLat);
+  const counted = new Set(basis.complete.map((s) => s.year));
+  const span = (year: number) => { const [from, to] = seasonSpan(place.centroidLat, year); return { from, to }; };
   const vcol: Record<string, string> = { thriving: "bg-green-700", holding: "bg-lime-600", declining: "bg-red-700", insufficient: "bg-gray-500" };
 
   return (
@@ -70,7 +76,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         <div className="rounded-lg border border-line bg-white p-4 text-sm">
           <h2 className="font-semibold">Streams</h2>
           <ul className="mt-2 space-y-1 text-muted">
-            <li>Satellite: {sat.length} clear observations{sat.length ? `, ${sat[0].date.toISOString().slice(0, 10)} to ${sat[sat.length - 1].date.toISOString().slice(0, 10)}` : ""}</li>
+            <li>Satellite: {days.length} clear days ({sat.length} scenes){days.length ? `, ${days[0].date.toISOString().slice(0, 10)} to ${days[days.length - 1].date.toISOString().slice(0, 10)}` : ""}</li>
             <li>Sound recorders: {devices.filter((d) => d.kind === "SOUND").length}</li>
             <li>Soil probes: {devices.filter((d) => d.kind === "SOIL").length}</li>
             <li>Visits: {visits.length}</li>
@@ -111,12 +117,19 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold">Satellite greenness (NDVI), Sentinel-2</h2>
-        <p className="text-sm text-muted">Each dot is one clear scene, cloud-masked with the scene classification layer, averaged over the pixels inside the boundary. Shaded bands are growing seasons.</p>
-        <div className="mt-3 rounded-lg border border-line bg-white p-3"><NdviChart points={sat.map((s) => ({ date: s.date.toISOString(), ndvi: s.ndviMean }))} /></div>
+        <p className="text-sm text-muted">Each dot is one clear day: cloud-masked with the scene classification layer, averaged over the pixels inside the boundary, and the scenes of one pass seen in two tiles (or processed twice) counted once. Shaded bands are growing seasons. The dark line is each season&apos;s value: the line through its clear days, averaged over every day of the season, so a sunny April with many clear days does not outweigh the summer.</p>
+        <div className="mt-3 rounded-lg border border-line bg-white p-3">
+          <NdviChart
+            points={days.map((s) => ({ date: s.date.toISOString(), ndvi: s.ndvi }))}
+            lat={place.centroidLat}
+            seasons={basis.complete.map((s) => ({ year: s.year, mean: s.mean, ...span(s.year) }))}
+            reference={basis.last && basis.ref !== null && basis.complete.length >= 3 ? { ...span(basis.last.year), value: basis.ref } : null}
+          />
+        </div>
         {seasons.length > 0 && (
           <table className="mt-3 text-sm border-collapse">
-            <thead><tr className="text-left text-muted"><th className="pr-4 py-1">Growing season</th><th className="pr-4">Mean NDVI</th><th>Clear scenes</th></tr></thead>
-            <tbody>{seasons.map((s) => <tr key={s.year}><td className="pr-4 py-0.5">{s.year}</td><td className="pr-4">{s.mean.toFixed(3)}</td><td>{s.n}</td></tr>)}</tbody>
+            <thead><tr className="text-left text-muted"><th className="pr-4 py-1">Growing season</th><th className="pr-4">NDVI, season value</th><th className="pr-4">Clear days</th><th></th></tr></thead>
+            <tbody>{seasons.map((s) => <tr key={s.year}><td className="pr-4 py-0.5">{s.year}</td><td className="pr-4">{s.mean.toFixed(3)}</td><td className="pr-4">{s.n}</td><td className="text-xs text-muted">{counted.has(s.year) ? "" : s.n < 4 ? "fewer than four clear days, not counted" : "season not over yet"}</td></tr>)}</tbody>
           </table>
         )}
       </section>
@@ -126,7 +139,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
           <h2 className="text-lg font-semibold">Carbon, inferred (v0.1, a range, not an issuance)</h2>
           <p className="text-sm text-muted">Net ecosystem carbon balance per year: productivity from satellite greenness, minus soil breathing ({carbon[carbon.length - 1].rhSource === "soil-probe" ? "from the soil probe" : "from a temperature climatology until a probe exists"}), minus harvest export for this land use. Every parameter carries a low and a high value; the range is what the evidence supports. Credits would be issued for the lower bound. <a className="underline" href="/docs/carbon">Method</a> · <a className="underline" href={`/api/v1/places/${place.slug}/carbon`}>JSON</a></p>
           <table className="mt-3 text-sm border-collapse">
-            <thead><tr className="text-left text-muted"><th className="pr-4 py-1">Year</th><th className="pr-4">Scenes</th><th className="pr-4">NPP t C/ha</th><th className="pr-4">Soil breathing t C/ha</th><th className="pr-4">Export t C/ha</th><th className="pr-4">Net t CO₂/ha (box)</th><th className="pr-4">Central</th><th>Lower bound for {place.areaHa.toFixed(0)} ha, t CO₂</th></tr></thead>
+            <thead><tr className="text-left text-muted"><th className="pr-4 py-1">Year</th><th className="pr-4">Clear days</th><th className="pr-4">NPP t C/ha</th><th className="pr-4">Soil breathing t C/ha</th><th className="pr-4">Export t C/ha</th><th className="pr-4">Net t CO₂/ha (box)</th><th className="pr-4">Central</th><th>Lower bound for {place.areaHa.toFixed(0)} ha, t CO₂</th></tr></thead>
             <tbody>{carbon.map((c, i) => <tr key={c.year} className="border-t border-line"><td className="pr-4 py-0.5">{c.year}</td><td className="pr-4">{c.observations}</td><td className="pr-4">{c.nppTC.low.toFixed(1)} to {c.nppTC.high.toFixed(1)}</td><td className="pr-4">{c.rhTC.low.toFixed(1)} to {c.rhTC.high.toFixed(1)}</td><td className="pr-4">{c.exportTC.low.toFixed(1)} to {c.exportTC.high.toFixed(1)}</td><td className="pr-4">{c.necbCO2.low.toFixed(1)} to {c.necbCO2.high.toFixed(1)}</td><td className="pr-4">{c.necbCO2.mid.toFixed(1)}</td><td>{issue[i].lowerBoundTCO2.toFixed(0)}</td></tr>)}</tbody>
           </table>
         </section>

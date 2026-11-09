@@ -22,7 +22,8 @@ Copernicus **Sentinel-2 Level-2A** (surface reflectance, 10 m), found through th
 ## Per place
 
 - Backfill seven years on registration; update the last 45 days every six hours.
-- Growing-season mean per year (April to September in the north; October to March in the south) feeds **Productivity**.
+- One value per clear day: scenes of the same day (one pass seen in two tiles, or two products of one tile) count once, their NDVI weighted by valid fraction.
+- One value per growing season (April to September in the north; October to March in the south), the time-weighted mean of its clear days, feeds **Productivity**; the place page draws it as the trend line over the greenness chart.
 - Shocks (a season more than 15% under the place's own median) and recovery times feed **Resilience**.
 
 ## Layers on the map
@@ -50,7 +51,7 @@ blunt about them. They are listed first because anyone paying against this strea
   8.5 t/ha against an actual stock of 7.5: the error equalled the thing being measured. This is why the oracle reads
   **direction against a neighbour crowd** rather than an absolute level, why Productivity is one reading of seven, and
   why no single index can produce a verdict here.
-- Two tiles can cover the same field on the same day; both are stored. Solar-day de-duplication is specified.
+- Two tiles can cover the same field on the same day; both are stored and served, and since 10 November 2026 they count as one clear day.
 - No inward buffer yet: a pixel straddling the boundary mixes the neighbour in. One-pixel erosion is specified.
 - Only NDVI. kNDVI (tanh of NDVI squared, less saturation in dense canopies), NDWI and NDMI are specified.
 - The calendar season rule fails in the tropics; phenology-derived seasons are an open question.
