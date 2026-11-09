@@ -24,7 +24,11 @@ Source: Copernicus Sentinel-2 Level-2A surface reflectance, via the Earth Search
 - compute NDVI per pixel, store mean, 10th and 90th percentile, valid fraction, pixel count, scene id and date;
 - require at least 50% valid pixels and at least 3 pixels, else skip the scene.
 
-Backfill covers seven years on registration (enough to contain the 2018, 2020 and 2022 European droughts); updates run every six hours for the last 45 days. Specified, not built: inward buffer of one pixel against boundary mixing; solar-day de-duplication where two tiles cover the same field; kNDVI, NDWI and NDMI; Landsat and HLS for the 1984 archive; Sentinel-1 backscatter as a soil-moisture and structure proxy.
+Backfill covers seven years on registration (enough to contain the 2018, 2020 and 2022 European droughts); updates run every six hours for the last 45 days.
+
+**One observation per day** (built 10 November 2026). A field near the edge of a tile is seen by two tiles of the same pass, and some tiles hold two products for one day (`_0` and `_1` in the scene id), so one day can arrive as two to four scenes. Every scene stays stored and served; the readings, the carbon inference and the charts count them as one clear day, whose NDVI is the scenes' mean weighted by their valid fraction. The day is the solar day at the place (Sentinel-2 passes at about 10:30 local solar time). Until then every scene counted, so a day seen four times weighed four times as much as a day seen once.
+
+Specified, not built: inward buffer of one pixel against boundary mixing; kNDVI, NDWI and NDMI; Landsat and HLS for the 1984 archive; Sentinel-1 backscatter as a soil-moisture and structure proxy.
 
 ### 2.2 Sound (built: ingest; specified: server-side indices)
 
@@ -75,7 +79,7 @@ Every reading returns `direction ∈ {RISING, HOLDING, FALLING, UNKNOWN}`, `conf
 
 ### 3.1 Productivity (built)
 
-Growing-season mean NDVI per year (April to September in the north, October to March in the south), seasons with fewer than 4 clear observations discarded. Needs three complete seasons. Direction: last season minus the median of the previous three; above +0.03 rising, below −0.03 falling, else holding. Confidence = 0.4 × min(1, observations/10) + 0.4 × min(1, seasons/5) + 0.2. Maturity: consecutive seasons with the same sign against their own trailing median.
+Each growing season (April to September in the north, October to March in the south) gets one value: the time-weighted mean NDVI of its clear days (2.1). Draw the straight line through them, flat before the first and after the last, and average it over every day of the season; this is the season-integrated NDVI divided by the season's length. Until 10 November 2026 the value was the plain mean of every scene, which let a spring with many clear days outweigh the summer: at the first Life Node site, seven clear days in April 2025 against one in April 2024 made a level season read as falling. Seasons with fewer than 4 clear days are discarded. Needs three complete seasons. Direction: last season minus the median of the previous three; above +0.03 rising, below −0.03 falling, else holding. Confidence = 0.4 × min(1, clear days/10) + 0.4 × min(1, seasons/5) + 0.2. Maturity: consecutive seasons with the same sign against their own trailing median. The place page draws these season values as a trend line over the greenness chart, with the last season's reference ±0.03 as a band.
 
 ### 3.2 Diversity (built)
 
@@ -106,7 +110,7 @@ Tested and left out: the share of a rain shower the top 40 cm still holds the ne
 
 ### 3.6 Resilience (built, single-place form)
 
-From the satellite archive: a shock is a growing season more than 15% below the place's own multi-year median. Recovery time is the number of years until a season returns to within 5% of that median. Needs two shocks. Direction: recovery time shortening rising, lengthening falling, equal holding; a shock with no recovery yet is falling. Confidence 0.4 until the neighbour crowd is applied. Specified: compute the same for the regional crowd (all places, or all fields from public parcel registries, on the same soil type within 25 km) and judge the place's drop and recovery relative to the crowd's; add the acoustic check (sound returning with greenness).
+From the satellite archive: a shock is a growing season whose value (3.1) is more than 15% below the place's own multi-year median. Recovery time is the number of years until a season returns to within 5% of that median. Needs two shocks. Direction: recovery time shortening rising, lengthening falling, equal holding; a shock with no recovery yet is falling. Confidence 0.4 until the neighbour crowd is applied. Specified: compute the same for the regional crowd (all places, or all fields from public parcel registries, on the same soil type within 25 km) and judge the place's drop and recovery relative to the crowd's; add the acoustic check (sound returning with greenness).
 
 ### 3.7 Autonomy (built)
 

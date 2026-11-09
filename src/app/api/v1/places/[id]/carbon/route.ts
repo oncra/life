@@ -3,17 +3,18 @@ import { prisma } from "@/lib/db";
 import { json } from "@/lib/auth";
 import { findPlace } from "@/lib/places";
 import { carbonSeries, issuable } from "@/lib/carbon";
+import { clearDays } from "@/lib/readings";
 export const dynamic = "force-dynamic";
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const place = await findPlace(id);
   if (!place || !(await canView(place, req))) return json({ error: "not found" }, 404);
   const [sat, soil] = await Promise.all([
-    prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true } }),
+    prisma.satelliteObs.findMany({ where: { placeId: place.id }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true, validFraction: true } }),
     prisma.soilReading.findMany({ where: { device: { placeId: place.id } }, select: { ts: true, depthCm: true, vwc: true, tempC: true } }),
   ]);
   const clay = (place.context as { soil?: { clayPct?: number } } | null)?.soil?.clayPct;
-  const series = carbonSeries(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean })), soil, place.landUse, clay);
+  const series = carbonSeries(clearDays(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean, valid: s.validFraction })), place.centroidLon), soil, place.landUse, clay);
   return json({
     place: place.slug, areaHa: place.areaHa, landUse: place.landUse, clayPct: clay ?? null,
     method: "necb-v0.1: NPP from NDVI (fAPAR x PAR x LUE, GPP to NPP), Rh from Q10 x moisture (soil probe or climatology), harvest export by land use; every parameter low/high; issue for the lower bound",

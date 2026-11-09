@@ -4,7 +4,7 @@
 // and soil lanes are daily counts and means of the rows the node posted.
 import type { Place } from "@/generated/prisma/client";
 import { prisma } from "./db";
-import { soilActivity, verdict, type Verdict } from "./readings";
+import { clearDays, soilActivity, verdict, type Verdict } from "./readings";
 import { moistureOptimum } from "./context";
 import { DISPLAY_ZONE, dayStart } from "./clock";
 import { coreWindowArrays } from "./listening";
@@ -32,7 +32,7 @@ export type LifeIndexOut = {
   /** the verdict per quarter, oldest first, only the quarters that have readings */
   periods: Period[];
   latest: Period | null;
-  /** [t, ndvi] per clear scene inside the span */
+  /** [t, ndvi] per clear day inside the span (scenes of one day count once, content/spec.md 2.1) */
   sat: [number, number][];
   satTotal: number;
   satSince: number | null;
@@ -77,7 +77,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
   const cw = coreWindowArrays(from, to, place.centroidLat, place.centroidLon);
 
   const [sat, readings, soundRows, soilRows, firstSound, firstSoil] = await Promise.all([
-    prisma.satelliteObs.findMany({ where: { placeId: place.id, date: { gte: new Date(from), lte: new Date(to) } }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true } }),
+    prisma.satelliteObs.findMany({ where: { placeId: place.id, date: { gte: new Date(from), lte: new Date(to) } }, orderBy: { date: "asc" }, select: { date: true, ndviMean: true, validFraction: true } }),
     prisma.reading.findMany({ where: { placeId: place.id }, orderBy: { computedAt: "desc" } }),
     soundIds.length
       ? prisma.$queryRaw<{ day: string; detections: number; species: number }[]>`
@@ -128,7 +128,7 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
   return {
     zone, now, from, to, range,
     periods, latest: periods.length ? periods[periods.length - 1] : null,
-    sat: sat.map((s) => [s.date.getTime(), s.ndviMean] as [number, number]),
+    sat: clearDays(sat.map((s) => ({ date: s.date, ndvi: s.ndviMean, valid: s.validFraction })), place.centroidLon).map((p) => [p.date.getTime(), p.ndvi] as [number, number]),
     satTotal, satSince: firstSat?.date.getTime() ?? null,
     seasons,
     sound: soundRows.map((r) => ({ t: dayT(r.day), species: r.species, detections: r.detections })),

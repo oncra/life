@@ -17,6 +17,8 @@ export interface ReadingOut {
 }
 
 export interface SatPoint { date: Date; ndvi: number }
+/** A stored scene as the readings take it; `valid` is its valid fraction (content/spec.md 2.1). */
+export interface SceneRow { date: Date; ndvi: number; valid?: number | null }
 export interface DetPoint { ts: Date; species: string; scientific?: string | null; confidence: number }
 export interface IdxPoint { ts: Date; ndsi: number | null; anthrophony: number | null; biophony: number | null; adi: number | null }
 export interface SoilPoint { ts: Date; depthCm: number; vwc: number | null; tempC: number | null }
@@ -28,29 +30,82 @@ const season = (lat: number, d: Date) => {
   return { year: north ? d.getUTCFullYear() : m >= 10 ? d.getUTCFullYear() + 1 : d.getUTCFullYear(), growing };
 };
 
+const DAY = 864e5;
+
+/**
+ * One observation per clear day (content/spec.md 2.1). A field near a tile edge is seen by two tiles of the same pass,
+ * and some days were processed twice, so one day can arrive as two to four scenes. Every row stays stored; here they
+ * count once: the day's NDVI is their mean, weighted by the share of the field each scene saw clearly. The day is the
+ * solar day at the place (Sentinel-2 passes at about 10:30 local solar time), dated 00:00 UTC. Idempotent.
+ */
+export function clearDays(rows: SceneRow[], lon = 0): SatPoint[] {
+  const shift = (lon / 15) * 3600e3;
+  const by = new Map<number, { w: number; s: number }>();
+  for (const r of rows) {
+    const day = Math.floor((r.date.getTime() + shift) / DAY) * DAY;
+    const w = r.valid && r.valid > 0 ? r.valid : 1;
+    const e = by.get(day) ?? { w: 0, s: 0 };
+    e.w += w;
+    e.s += w * r.ndvi;
+    by.set(day, e);
+  }
+  return [...by.entries()].sort((a, b) => a[0] - b[0]).map(([t, e]) => ({ date: new Date(t), ndvi: e.s / e.w }));
+}
+
+/** A growing season's first and last day at 00:00 UTC: April to September in the north, October to March in the south. */
+export function seasonSpan(lat: number, year: number): [number, number] {
+  return lat >= 0 ? [Date.UTC(year, 3, 1), Date.UTC(year, 8, 30)] : [Date.UTC(year - 1, 9, 1), Date.UTC(year, 2, 31)];
+}
+
+/**
+ * A season's value (content/spec.md 3.1): the straight line through its clear days, flat before the first and after the
+ * last, averaged over every day of the season. A plain mean of the clear days would let a run of clear days in one
+ * month (a sunny April) outweigh the rest of the season. `pts` are one per day, sorted.
+ */
+function seasonValue(pts: SatPoint[], from: number, to: number): number {
+  let sum = 0, days = 0, k = 0;
+  for (let t = from; t <= to; t += DAY) {
+    while (k < pts.length - 1 && pts[k + 1].date.getTime() <= t) k++;
+    const a = pts[k], b = pts[k + 1], ta = a.date.getTime();
+    sum += t <= ta || !b ? a.ndvi : a.ndvi + ((b.ndvi - a.ndvi) * (t - ta)) / (b.date.getTime() - ta);
+    days++;
+  }
+  return sum / days;
+}
+
+/** Each growing season's value and its number of clear days. */
 export function growingSeasonMeans(points: SatPoint[], lat: number): { year: number; mean: number; n: number }[] {
-  const by = new Map<number, number[]>();
-  for (const p of points) {
+  const by = new Map<number, SatPoint[]>();
+  for (const p of clearDays(points)) {
     const s = season(lat, p.date);
     if (!s.growing) continue;
-    by.set(s.year, [...(by.get(s.year) ?? []), p.ndvi]);
+    by.set(s.year, [...(by.get(s.year) ?? []), p]);
   }
   return [...by.entries()]
-    .map(([year, v]) => ({ year, mean: v.reduce((a, b) => a + b, 0) / v.length, n: v.length }))
+    .map(([year, pts]) => { const [from, to] = seasonSpan(lat, year); return { year, mean: seasonValue(pts, from, to), n: pts.length }; })
     .sort((a, b) => a.year - b.year);
 }
 
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : NaN; };
 
-export function productivity(points: SatPoint[], lat: number, currentYear: number): ReadingOut {
+/**
+ * What the productivity reading compares (content/spec.md 3.1): the complete seasons with four clear days or more, the
+ * last of them, and its reference, the median of the up to three before it. The place page draws exactly this.
+ */
+export function productivityBasis(points: SatPoint[], lat: number, now = new Date()) {
   const seasons = growingSeasonMeans(points, lat).filter((s) => s.n >= 4);
-  const complete = seasons.filter((s) => s.year < currentYear || (s.year === currentYear && new Date().getUTCMonth() >= 9));
-  if (complete.length < 3) {
-    return { dimension: "PRODUCTIVITY", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "need at least three growing seasons with four or more clear observations each", seasons } };
-  }
-  const last = complete[complete.length - 1];
+  const complete = seasons.filter((s) => now.getTime() >= seasonSpan(lat, s.year)[1] + DAY);
+  const last = complete.length ? complete[complete.length - 1] : null;
   const prior = complete.slice(0, -1).slice(-3);
-  const ref = median(prior.map((s) => s.mean));
+  const ref = prior.length ? median(prior.map((s) => s.mean)) : null;
+  return { seasons, complete, last, prior, ref };
+}
+
+export function productivity(points: SatPoint[], lat: number, now = new Date()): ReadingOut {
+  const { seasons, complete, last, ref } = productivityBasis(points, lat, now);
+  if (complete.length < 3 || !last || ref === null) {
+    return { dimension: "PRODUCTIVITY", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "need at least three growing seasons with four or more clear days each", seasons } };
+  }
   const delta = last.mean - ref;
   const direction: Direction = delta > 0.03 ? "RISING" : delta < -0.03 ? "FALLING" : "HOLDING";
   // confidence: observation density and number of seasons
@@ -175,7 +230,6 @@ export function soilActivity(tempC: number, vwc: number, frame: SoilFrame): numb
   return q10 * Math.max(0, 1 - Math.pow((vwc / 100 - frame.optimumVwc / 100) / 0.25, 2));
 }
 
-const DAY = 864e5;
 const doy = (d: Date) => Math.floor((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / DAY);
 const relChange = (a: number, b: number) => (b - a) / Math.max(1e-6, Math.abs(a));
 
