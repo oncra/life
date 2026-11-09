@@ -1,5 +1,6 @@
+import LineIcon from "./LineIcon";
+
 // Simple line icons for the roles on the home page ("Start where you stand"), so a visitor finds their own at a glance.
-// 24 px grid, drawn in currentColor like the header's account icon.
 const PATHS = {
   // a sprout on the ground: the steward of the land
   steward: <><path d="M5 20h14" /><path d="M12 20v-8" /><path d="M12 12c0-3.6-2.6-6.2-6.6-6.2 0 3.6 2.6 6.2 6.6 6.2z" /><path d="M12 14.4c0-3.1 2.3-5.6 6.1-5.6 0 3.1-2.3 5.6-6.1 5.6z" /></>,
@@ -16,10 +17,6 @@ const PATHS = {
 } as const;
 export type Persona = keyof typeof PATHS;
 
-export default function PersonaIcon({ persona, className = "h-5 w-5" }: { persona: Persona; className?: string }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      {PATHS[persona]}
-    </svg>
-  );
+export default function PersonaIcon({ persona, className }: { persona: Persona; className?: string }) {
+  return <LineIcon className={className}>{PATHS[persona]}</LineIcon>;
 }
