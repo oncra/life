@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { NodeWhy, NODE_LEAD, NODE_SCALE } from "@/components/NodeWhy";
+import PersonaIcon, { type Persona } from "@/components/PersonaIcon";
 import { prisma } from "@/lib/db";
 import { nodeStates } from "@/lib/node";
 export const dynamic = "force-dynamic";
@@ -144,17 +145,20 @@ export default async function Home() {
       <section className="py-10">
         <h2 className="text-2xl font-semibold">Start where you stand</h2>
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-          {[
-            ["Steward (farmer, land manager)", "Register your place, get the satellite readings today, then add a recorder and a probe.", "/docs/guide-steward"],
-            ["Installer / node host", "Build a Life Node: one solar 4G box on a post, no farm network. Step-by-step plan with parts, photos and instructions for an AI agent.", "/node"],
-            ["Verifier", "Random and triggered visits. What to look at, what to record, how to file it.", "/docs/roles"],
-            ["Funder, buyer, registry", "Read verdicts by API, pin a method version, let life set the carbon sampling burden.", "/docs/api"],
-            ["Researcher / methodologist", "Propose changes to the seven readings. Everything is open and reproducible.", "/docs/spec"],
-            ["Software agent", "Machine-readable verdicts and evidence at /api/v1. Close your loop against life.", "/api/v1/openapi.json"],
-          ].map(([t, b, h]) => (
-            <Link key={t} href={h} className="rounded-lg border border-line p-4 bg-white hover:border-accent">
-              <div className="font-medium">{t}</div>
-              <div className="mt-1 text-muted">{b}</div>
+          {([
+            ["steward", "Steward (farmer, land manager)", "Register your place, get the satellite readings today, then add a recorder and a probe.", "/docs/guide-steward"],
+            ["node", "Installer / node host", "Build a Life Node: one solar 4G box on a post, no farm network. Step-by-step plan with parts, photos and instructions for an AI agent.", "/node"],
+            ["verifier", "Verifier", "Random and triggered visits. What to look at, what to record, how to file it.", "/docs/roles"],
+            ["funder", "Funder, buyer, registry", "Read verdicts by API, pin a method version, let life set the carbon sampling burden.", "/docs/api"],
+            ["researcher", "Researcher / methodologist", "Propose changes to the seven readings. Everything is open and reproducible.", "/docs/spec"],
+            ["agent", "Software agent", "Machine-readable verdicts and evidence at /api/v1. Close your loop against life.", "/api/v1/openapi.json"],
+          ] as [Persona, string, string, string][]).map(([k, t, b, h]) => (
+            <Link key={t} href={h} className="group rounded-lg border border-line p-4 bg-white hover:border-accent flex items-start gap-3">
+              <span className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#eef2ea] text-accent transition-colors group-hover:bg-accent group-hover:text-white"><PersonaIcon persona={k} className="h-6 w-6" /></span>
+              <span className="min-w-0">
+                <span className="block font-medium">{t}</span>
+                <span className="block mt-1 text-muted">{b}</span>
+              </span>
             </Link>
           ))}
         </div>
