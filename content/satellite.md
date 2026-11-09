@@ -51,7 +51,7 @@ blunt about them. They are listed first because anyone paying against this strea
   8.5 t/ha against an actual stock of 7.5: the error equalled the thing being measured. This is why the oracle reads
   **direction against a neighbour crowd** rather than an absolute level, why Productivity is one reading of seven, and
   why no single index can produce a verdict here.
-- Two tiles can cover the same field on the same day; both are stored and served, and since 10 November 2026 they count as one clear day.
+- Two tiles can cover the same field on the same day; both are stored and served, and since 9 November 2026 they count as one clear day.
 - No inward buffer yet: a pixel straddling the boundary mixes the neighbour in. One-pixel erosion is specified.
 - Only NDVI. kNDVI (tanh of NDVI squared, less saturation in dense canopies), NDWI and NDMI are specified.
 - The calendar season rule fails in the tropics; phenology-derived seasons are an open question.
