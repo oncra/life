@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import AccountLink from "@/components/AccountLink";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -32,14 +33,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="font-semibold tracking-tight flex items-center gap-2 shrink-0 whitespace-nowrap">
               <span className="inline-block w-3 h-3 rounded-full bg-accent" /> Life Oracle
             </Link>
-            <nav className="flex gap-4 text-sm text-muted overflow-x-auto items-center">
+            <nav className="flex-1 min-w-0 flex gap-4 text-sm text-muted overflow-x-auto items-center">
               <Link href={build[0]} className="whitespace-nowrap rounded-full bg-accent text-white px-3 py-1 font-medium">{build[1]}</Link>
               {nav.map(([href, label]) => (
                 <Link key={href} href={href} className="hover:text-foreground whitespace-nowrap">{label}</Link>
               ))}
               <a href="https://github.com/oncra/life" className="hover:text-foreground whitespace-nowrap">GitHub</a>
-              <Link href="/me" className="hover:text-foreground whitespace-nowrap">Your places</Link>
             </nav>
+            <AccountLink />
           </div>
         </header>
         <main className="flex-1">{children}</main>

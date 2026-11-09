@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/session";
+import { isAdminEmail } from "@/lib/privacy";
 import { boxesOf } from "@/lib/boxout";
 import { SignIn } from "@/components/BoxApp";
 import { SignOut } from "@/components/SignOut";
@@ -9,19 +10,22 @@ import { SignOut } from "@/components/SignOut";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your places", description: "Sign in to see your own places exactly and follow what they measure." };
 
-// The places a signed-in person looks after: given to them (PlaceAccess) or carrying their Life Node.
+// The places a signed-in person looks after: given to them (PlaceAccess) or carrying their Life Node. An admin
+// manages every place, so the page also lists every place with a node, straight to its dashboard and owner panel.
 export default async function MePage() {
   const user = await currentUser();
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-6 md:py-10">
-        <SignIn title="Your places" intro="Sign in with your email to see your own places with their exact boundary. We send you a six-digit code; there is no password." />
+        <SignIn title="Sign in" intro="Sign in with your email to see your own places with their exact boundary and run your Life Node. We send you a six-digit code; there is no password." />
       </div>
     );
   }
-  const [access, boxes] = await Promise.all([
+  const admin = isAdminEmail(user.email);
+  const [access, boxes, nodes] = await Promise.all([
     prisma.placeAccess.findMany({ where: { userId: user.id }, include: { place: true }, orderBy: { createdAt: "asc" } }),
     prisma.box.findMany({ where: boxesOf(user.id), include: { place: true }, orderBy: { createdAt: "asc" } }),
+    admin ? prisma.place.findMany({ where: { devices: { some: {} } }, select: { id: true, slug: true, name: true }, orderBy: { name: "asc" } }) : Promise.resolve([]),
   ]);
   const seen = new Set<string>();
   const places = [...access.map((a) => a.place), ...boxes.filter((b) => b.placedAt).map((b) => b.place)].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
@@ -30,7 +34,7 @@ export default async function MePage() {
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Your places</h1>
       <p className="mt-2 text-muted text-sm">Signed in as {user.email}. On these places you see the exact boundary; everyone else sees a circle.</p>
       {places.length === 0 ? (
-        <p className="mt-6">No places yet. A place appears here when it is registered for you, or when your Life Node is in the ground.</p>
+        !admin && <p className="mt-6">No places yet. A place appears here when it is registered for you, or when your Life Node is in the ground.</p>
       ) : (
         <ul className="mt-6 grid gap-3">
           {places.map((p) => (
@@ -42,6 +46,24 @@ export default async function MePage() {
             </li>
           ))}
         </ul>
+      )}
+      {admin && (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold">Every node</h2>
+          <p className="mt-1 text-sm text-muted">Your address is on the oracle&apos;s admin list, so you run every place. Each node dashboard ends with the panel &ldquo;For the owner&rdquo;.</p>
+          {nodes.length === 0 ? <p className="mt-3 text-sm">No place has a node yet.</p> : (
+            <ul className="mt-3 grid gap-3">
+              {nodes.map((p) => (
+                <li key={p.id}>
+                  <Link href={`/places/${p.slug}/node`} className="block rounded-lg border border-line bg-white p-4 hover:border-accent">
+                    <div className="font-semibold">{p.name}</div>
+                    <div className="text-sm text-muted mt-1">Node dashboard and owner panel</div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       )}
       <div className="mt-8 flex gap-4 text-sm">
         <Link href="/box" className="underline">Your Life Nodes</Link>
