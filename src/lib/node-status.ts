@@ -45,7 +45,7 @@ export type StatusInput = {
   /** the owner's meadow-bird window when it is on: the next one that has not ended (the node calls it "night") */
   night: [number, number] | null;
   sound: SoundNow;
-  /** per soil probe, shallow first: its readings of the last two days, oldest first */
+  /** per soil probe, shallow first: its readings of the last two days, oldest first (a probe without one drops out) */
   soil: { depthCm: number | null; rows: { t: number; vwc: number | null; tempC: number | null }[] }[];
 };
 
@@ -71,7 +71,8 @@ export type NodeStatusOut = {
   wake: string | null;
   /** when it booted: the time of the numbers less its uptime */
   upSince: number | null;
-  /** what comes next: a post in the rhythm, the post at a window's end before it sleeps, or its wake for a window */
+  /** what comes next: a post in the rhythm, the post at a window's end before it sleeps, or its wake for a window (for a
+   * quiet node, the wake it has if it is asleep) */
   next: { kind: "post" | "sleep" | "wake"; at: number; name: string | null } | null;
   power: { v: number | null; src: "mppt" | "wittypi" | "usb" | null; piW: number | null; pvW: number | null; charge: string | null; yieldWh: number | null };
   /** the processor and the Witty Pi board; the Pi's throttle flags when the node sent them; the hottest it got (life-heat) */
@@ -152,7 +153,7 @@ export function statusFrom(i: StatusInput): NodeStatusOut {
   else state = "silent";
 
   let next: NodeStatusOut["next"] = null;
-  if (state === "asleep") {
+  if (state === "asleep" || state === "quiet") {
     const ws: { name: string; start: number }[] = windowsAround(i.now, i.lat, i.lon, i.zone);
     if (i.night) ws.push({ name: "night", start: i.night[0] });
     const w = ws.filter((x) => x.start > i.now).sort((a, b) => a.start - b.start)[0];
@@ -178,7 +179,7 @@ export function statusFrom(i: StatusInput): NodeStatusOut {
 
   const soilLast = i.soil
     .map((p) => ({ depthCm: p.depthCm, row: p.rows[p.rows.length - 1] }))
-    .filter((p) => p.row && i.now - p.row.t < 7 * DAY)
+    .filter((p) => p.row && i.now - p.row.t < 2 * DAY)
     .map((p) => ({ depthCm: p.depthCm, vwc: p.row.vwc, tempC: p.row.tempC, t: p.row.t }));
   const vwc = (i.soil.find((p) => p.rows.some((r) => r.vwc !== null))?.rows ?? []).filter((r) => r.vwc !== null).map((r) => [r.t, r.vwc] as Pt);
 

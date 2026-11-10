@@ -228,7 +228,8 @@ export async function nodeStatus(place: Pick<Place, "id" | "centroidLat" | "cent
         count(distinct coalesce(scientific, species))::int as week,
         (count(*) filter (where ts >= ${today}::timestamptz at time zone 'UTC'))::int as dets
       from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${weekAgo}::timestamptz at time zone 'UTC'` : [],
-    soundIds.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: soundIds }, test: false }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
+    // the first bird of the "Last heard here" row, by the name the row gives it (a detector may send only the Latin)
+    soundIds.length ? lastHeard(place.id, 1) : [],
   ]);
   const perHour = Array.from({ length: 24 }, () => 0);
   for (const r of hours) perHour[23 - Math.min(23, Math.max(0, r.h))] += r.n;
@@ -241,7 +242,7 @@ export async function nodeStatus(place: Pick<Place, "id" | "centroidLat" | "cent
     liveEver: devices.some((d) => d.liveAt !== null),
     seenAt: Math.max(0, ...devices.map((d) => ms(d.lastSeenAt) ?? 0)) || null,
     night: sound.length ? nextNight(now, place.centroidLat, place.centroidLon, settingsOf(sound[0]), zone) : null,
-    sound: { today: c?.today ?? 0, week: c?.week ?? 0, detectionsToday: c?.dets ?? 0, last: lastDet ? { species: lastDet.species, t: lastDet.ts.getTime() } : null, perHour },
+    sound: { today: c?.today ?? 0, week: c?.week ?? 0, detectionsToday: c?.dets ?? 0, last: lastDet[0] ? { species: lastDet[0].species, t: lastDet[0].t } : null, perHour },
     soil: soilDevs.map((d) => ({ depthCm: d.depthCm, rows: soil.filter((r) => r.deviceId === d.id).map((r) => ({ t: r.ts.getTime(), vwc: r.vwc, tempC: r.tempC })) })),
   });
 }
