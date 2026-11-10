@@ -57,6 +57,16 @@ export const HeartbeatIn = z.object({
 export const SoundBody = z.object({ detections: z.array(Detection).max(5000).default([]), indices: z.array(Index).max(5000).default([]), heartbeat: z.unknown().optional() });
 export const HeartbeatBody = z.object({ heartbeat: HeartbeatIn });
 
+/** A live post (node/life-live.py, every 20 seconds while the node is on WiFi or a cable, never on 4G): how it is doing
+ * now, the link it posts over (with the WiFi's signal, never its name), and the 4G stick's signal when it has one. The
+ * metrics are the heartbeat's. The device keeps it for the status panel and drops it with the next. */
+export const LiveIn = z.object({
+  net: z.object({ via: z.enum(["wifi", "lan", "4g"]), dBm: z.number().min(-120).max(0).optional() }).optional(),
+  cell: CellIn.optional(),
+  metrics: HeartbeatIn.shape.metrics,
+});
+export const LiveBody = z.object({ live: LiveIn });
+
 export const SoilRow = z.object({
   ts: z.string().datetime({ offset: true }),
   depthCm: z.number().int().min(0).max(300).optional(),
