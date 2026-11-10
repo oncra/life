@@ -8,8 +8,10 @@ import { nightState } from "@/lib/node-night";
 import { configState } from "@/lib/node-config";
 import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
-import { asRange, heatLine, lastHeard, nodeData, nodeSignals, nodeStates, RANGES, signalPoint } from "@/lib/node";
+import { asRange, lastHeard, nodeData, nodeSignals, nodeStatus, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
+import NodeStatus from "@/components/node/NodeStatus";
+import type { StatusState } from "@/lib/node-status";
 import { signalStatus, type NodeSignal } from "@/lib/node-signal";
 import { asIndexRange, INDEX_RANGES, lifeIndexData } from "@/lib/life-index";
 import { ago, dayLabel, fmtTime } from "@/lib/clock";
@@ -34,8 +36,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: p ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: the life index, soil, sound, battery and heartbeats." };
 }
 
-const STATUS_TEXT = { live: "on", asleep: "asleep", stale: "quiet", silent: "silent" } as const;
 const STATUS_BG = { live: "bg-accent", asleep: "bg-white border border-[#7a7a72]", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
+// the dot by the title, from the status panel's state: running is green, asleep a ring, a late post amber
+const TITLE_DOT: Record<StatusState, keyof typeof STATUS_BG> = { live: "live", listening: "live", awake: "live", on: "live", asleep: "asleep", saving: "asleep", quiet: "stale", silent: "silent", never: "silent" };
 const DIM_LABEL: Record<string, string> = { PRODUCTIVITY: "Productivity", DIVERSITY: "Diversity", STRUCTURE: "Structure", RENEWAL: "Renewal", CYCLING: "Cycling", RESILIENCE: "Resilience", AUTONOMY: "Autonomy" };
 const DIR_CLASS: Record<string, string> = { RISING: "text-green-800 bg-green-50 border-green-200", HOLDING: "text-lime-800 bg-lime-50 border-lime-200", FALLING: "text-red-800 bg-red-50 border-red-200", UNKNOWN: "text-gray-600 bg-gray-50 border-gray-200" };
 const VERDICT_BG: Record<string, string> = { thriving: "bg-green-700", holding: "bg-lime-600", declining: "bg-red-700", insufficient: "bg-gray-500" };
@@ -58,16 +61,16 @@ export default async function NodePage({ params, searchParams }: Props) {
     Promise.all(nodes.map((n) => nightState(n.id, data.now))),
     owner ? Promise.all(nodes.map((n) => configState(n.id))) : [],
   ]);
-  const [index, heard, clips, states] = await Promise.all([
+  const [index, heard, clips, panel] = await Promise.all([
     lifeIndexData(stored, indexRange, data.now), lastHeard(stored.id, 5),
     // the clips on /triage are open to every visitor; judging them takes a sign-in
     prisma.clip.count({ where: { device: { placeId: stored.id } } }),
-    // asleep after a planned shutdown, between its listening windows: not the same as a late post
-    nodeStates(data.now, stored.id),
+    // how it is doing now: live on WiFi or a cable, its last readings on 4G, asleep between its windows
+    nodeStatus(stored, data.now),
   ]);
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
-  const status = states[0]?.status === "asleep" ? "asleep" : signalStatus(data.last.heardAt, data.now);
+  const status = panel ? TITLE_DOT[panel.state] : signalStatus(data.last.heardAt, data.now);
   const { last } = data;
   const lastSpecies = data.species.reduce<(typeof data.species)[number] | null>((a, s) => (!a || s.last > a.last ? s : a), null);
   const signal: NodeSignal = {
@@ -79,15 +82,6 @@ export default async function NodePage({ params, searchParams }: Props) {
   const others = await nodeSignals(data.now);
   const allSignals: NodeSignal[] = [signal, ...others.filter((o) => o.slug !== stored.slug)];
   const soilColors = [["#3b82c4", "#d9822b"], ["#1b3f6b", "#8a3b12"], ["#6ba3d6", "#e8a86b"]];
-  const tiles: { label: string; value: string; sub: string; dot?: keyof typeof STATUS_BG }[] = [
-    { label: "Last heard", value: last.heardAt ? ago(last.heardAt, data.now) : "never", sub: last.heardAt ? `${STATUS_TEXT[status]} · ${fmtTime(last.heardAt, data.zone)}` : "nothing received yet", dot: status },
-    { label: "Battery", value: last.battV !== null ? `${last.battV.toFixed(2)} V` : "no reading", sub: last.battSrc === "mppt" ? "at the charge controller" : last.battSrc === "wittypi" ? "at the Witty Pi, a few tenths under the battery" : "on the desk the box runs on USB" },
-    // the Witty Pi's own sensor (boxTempC) sits right above the processor: it is the board's temperature, not the air in the box
-    { label: "Processor", value: last.cpuTempC !== null ? `${last.cpuTempC.toFixed(0)} °C` : "no reading", sub: heatLine(last.heat) || (last.boxTempC !== null ? `Witty Pi board ${last.boxTempC.toFixed(0)} °C` : "") },
-    { label: "Drawing", value: last.piW !== null ? `${last.piW.toFixed(1)} W` : "no reading", sub: last.pvW !== null ? `panel giving ${last.pvW.toFixed(0)} W` : last.diskFreeMb !== null ? `${(last.diskFreeMb / 1000).toFixed(0)} GB free on the card` : "" },
-    { label: "Mobile network", value: last.network ? last.network.name : "no 4G seen", sub: last.network ? [last.network.rsrp !== null ? `${last.network.rsrp} dBm` : last.network.rssi !== null ? `${last.network.rssi} dBm` : "", last.unsent ? `${last.unsent} posts still queued` : ""].filter(Boolean).join(" · ") : "the stick had no network at the last post" },
-    { label: "Heard today", value: `${data.heardToday} species`, sub: `${data.detectionsToday} detection${data.detectionsToday === 1 ? "" : "s"} · ${data.heardWeek} species this week` },
-  ];
   const q = (r: string, i: string = indexRange) => `/places/${stored.slug}/node?range=${r}&index=${i}`;
   const soilProbes = data.soil.filter((p) => p.vwc.length || p.tempC.length || p.last);
   const chartProps = { from: data.from, to: data.to, zone: data.zone, night: data.night };
@@ -110,12 +104,16 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       </div>
 
+      <LastHeard items={heard} now={data.now} zone={data.zone} />
+
       {clips > 0 && (
         <div className="mt-3 text-sm">
           <Link href="/triage" className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 font-medium hover:border-accent">Triage: was the detector right? →</Link>
           <span className="ml-2 text-muted">{clips} clips to listen to</span>
         </div>
       )}
+
+      {panel && <NodeStatus initial={panel} src={`/api/v1/places/${stored.slug}/node/status`} />}
 
       {nightStates.filter((n) => n.settings.on).map((n) => (
         <p key={n.device} className="mt-3 text-sm text-muted max-w-3xl">
@@ -126,8 +124,6 @@ export default async function NodePage({ params, searchParams }: Props) {
       ))}
 
       {panels.map((p) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} config={configs.find((c) => c.device === p.device)} months={months} zone={data.zone} />)}
-
-      <LastHeard items={heard} now={data.now} zone={data.zone} />
 
       <section className="mt-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -163,19 +159,10 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      <div className="mt-6 rounded-xl border border-line bg-white p-3 md:p-4 grid lg:grid-cols-5 gap-4 overflow-hidden">
-        <div className="lg:col-span-3 relative">
-          <Globe signals={allSignals} focus={{ lat: point.lat, lon: point.lon, name: stored.name }} height={420} now={data.now} />
+      <div className="mt-6 rounded-xl border border-line bg-white p-3 md:p-4 overflow-hidden">
+        <div className="relative">
+          <Globe signals={allSignals} focus={{ lat: point.lat, lon: point.lon, name: stored.name }} height={400} now={data.now} />
           <div className="absolute bottom-0 left-1 right-1 text-[11px] leading-snug text-muted">Every post travels from the node to the oracle in Nuremberg; the rings run while the node is being heard. Drag to turn. Land from Natural Earth.</div>
-        </div>
-        <div className="lg:col-span-2 grid grid-cols-2 gap-3 content-start">
-          {tiles.map((t) => (
-            <div key={t.label} className="rounded-lg border border-line bg-background p-3">
-              <div className="text-xs text-muted">{t.label}</div>
-              <div className="text-lg font-semibold mt-0.5 flex items-center gap-2">{t.dot && <span className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_BG[t.dot]}`} />}{t.value}</div>
-              {t.sub && <div className="text-xs text-muted mt-0.5">{t.sub}</div>}
-            </div>
-          ))}
         </div>
       </div>
 

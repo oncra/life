@@ -144,6 +144,12 @@ model Device {
   config      Json?
   configAt    DateTime?
   configBy    String?
+  /// how the node is doing now, while it is on WiFi or a cable: it posts live every 20 seconds (node/life-live.py,
+  /// POST /api/v1/ingest/live) for the status panel on its dashboard, never on 4G. The latest post and the samples of
+  /// the last fifteen minutes, overwritten each time and never kept as history: the heartbeats are the record.
+  /// src/lib/node-status.ts reads it.
+  live        Json?
+  liveAt      DateTime?
   createdAt   DateTime   @default(now())
 
   soundDetections SoundDetection[]

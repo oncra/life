@@ -29,6 +29,8 @@ Reading public places needs no key.
 | `GET /places/{id}/carbon` | yearly net ecosystem carbon balance as a low/central/high range, and what is issuable at the lower bound ([method](carbon.md)) |
 | `GET /places/{id}/readings` | all readings, all periods |
 | `GET /places/{id}/devices` | devices and last-seen |
+| `GET /places/{id}/node` | the Life Node dashboard as data: heartbeats, soil and box series, species counts (`?range=` 24h, 7d, 30d or all) |
+| `GET /places/{id}/node/status` | how the node is doing now: live while it is on WiFi or a cable, its last readings on 4G, asleep between its windows; operator and signal strength, never the cell |
 | `GET /places/{id}/visits` | visits |
 | `GET /api/health` | counts and time |
 
@@ -51,6 +53,8 @@ curl -s https://life.oncra.org/api/v1/places/horaholm-oncra-hor-l-001-hornhuizen
 | `POST /keys` | admin | create a role key |
 | `POST /ingest/sound` | device | detections and indices |
 | `POST /ingest/soil` | device | soil readings |
+| `POST /ingest/heartbeat` | device | how the node is doing, every three hours and at each start and shutdown |
+| `POST /ingest/live` | device | the same, every 20 seconds, only while the node is on WiFi or a cable; the oracle keeps the latest and the last fifteen minutes |
 | `POST /ingest/ttn` | device, or steward/admin key + registered DevEUI | The Things Stack uplink webhook |
 
 Full request shapes are in [data protocols](data-protocols.md) and the OpenAPI document.

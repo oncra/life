@@ -7,7 +7,10 @@ import { batteryOf } from "./battery";
 import { DEFAULT_BLUR_M } from "./privacy";
 import { DISPLAY_ZONE, dayLabel, dayStart, dayStarts } from "./clock";
 import { nights } from "./sun";
+import { nextNight } from "./night";
+import { NIGHT_SELECT, settingsOf } from "./node-night";
 import { POST_EVERY_H, type NodeSignal } from "./node-signal";
+import { liveOf, OPERATORS, statusFrom, type LiveRow, type NodeStatusOut } from "./node-status";
 export { POST_EVERY_H, signalStatus, type NodeSignal } from "./node-signal";
 
 export type Range = "24h" | "7d" | "30d" | "all";
@@ -75,7 +78,6 @@ export type NodeOut = {
   chorus: { days: { t: number; label: string }[]; cells: Record<string, number>; max: number };
 };
 
-const OPERATORS: Record<string, string> = { "20404": "Vodafone NL", "20408": "KPN", "20416": "Odido (T-Mobile NL)" };
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const ms = (d: Date | null | undefined) => (d ? d.getTime() : null);
 // The raw queries below take plain parameters only: a UTC instant as an ISO string cast with `::timestamptz at time
@@ -201,6 +203,47 @@ export async function nodeData(place: Pick<Place, "id" | "centroidLat" | "centro
     tests: tests && tests._count && tests._min.ts && tests._max.ts ? { n: tests._count, first: tests._min.ts.getTime(), last: tests._max.ts.getTime() } : null,
     chorus,
   };
+}
+
+/** The status panel at the top of the node dashboard, read for one place (src/lib/node-status.ts says what it shows and
+ * how), or null when the place has no devices. Also GET /api/v1/places/{id}/node/status, which the panel polls. */
+export async function nodeStatus(place: Pick<Place, "id" | "centroidLat" | "centroidLon">, now = Date.now()): Promise<NodeStatusOut | null> {
+  const zone = DISPLAY_ZONE;
+  const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, depthCm: true, lastSeenAt: true, live: true, liveAt: true, ...NIGHT_SELECT } });
+  if (devices.length === 0) return null;
+  const ids = devices.map((d) => d.id);
+  const sound = devices.filter((d) => d.kind === "SOUND");
+  const soundIds = sound.map((d) => d.id);
+  const soilDevs = devices.filter((d) => d.kind === "SOIL").sort((a, b) => (a.depthCm ?? 0) - (b.depthCm ?? 0));
+  const today = iso(dayStart(now, zone)), dayAgo = iso(now - 864e5), weekAgo = iso(now - 7 * 864e5), nowIso = iso(now);
+  const [beats, soil, hours, counts, lastDet] = await Promise.all([
+    prisma.heartbeat.findMany({ where: { deviceId: { in: ids } }, orderBy: { ts: "desc" }, take: 24, select: { ts: true, event: true, cell: true, metrics: true } }),
+    soilDevs.length ? prisma.soilReading.findMany({ where: { deviceId: { in: soilDevs.map((d) => d.id) }, ts: { gte: new Date(now - 2 * 864e5) } }, orderBy: { ts: "asc" }, select: { deviceId: true, ts: true, vwc: true, tempC: true } }) : [],
+    soundIds.length ? prisma.$queryRaw<{ h: number; n: number }[]>`
+      select floor(extract(epoch from ((${nowIso}::timestamptz at time zone 'UTC') - ts)) / 3600)::int as h, count(*)::int as n
+      from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${dayAgo}::timestamptz at time zone 'UTC'
+      group by 1` : [],
+    soundIds.length ? prisma.$queryRaw<{ today: number; week: number; dets: number }[]>`
+      select (count(distinct coalesce(scientific, species)) filter (where ts >= ${today}::timestamptz at time zone 'UTC'))::int as today,
+        count(distinct coalesce(scientific, species))::int as week,
+        (count(*) filter (where ts >= ${today}::timestamptz at time zone 'UTC'))::int as dets
+      from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${weekAgo}::timestamptz at time zone 'UTC'` : [],
+    soundIds.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: soundIds }, test: false }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
+  ]);
+  const perHour = Array.from({ length: 24 }, () => 0);
+  for (const r of hours) perHour[23 - Math.min(23, Math.max(0, r.h))] += r.n;
+  const c = counts[0];
+  const lives = devices.map((d) => liveOf(d.live)).filter((l): l is LiveRow => l !== null).sort((a, b) => b.at - a.at);
+  return statusFrom({
+    now, lat: place.centroidLat, lon: place.centroidLon, zone,
+    beats: beats.reverse().map((b) => ({ t: b.ts.getTime(), event: b.event, cell: (b.cell ?? null) as Record<string, unknown> | null, metrics: (b.metrics ?? null) as Record<string, unknown> | null })),
+    live: lives[0] ?? null,
+    liveEver: devices.some((d) => d.liveAt !== null),
+    seenAt: Math.max(0, ...devices.map((d) => ms(d.lastSeenAt) ?? 0)) || null,
+    night: sound.length ? nextNight(now, place.centroidLat, place.centroidLon, settingsOf(sound[0]), zone) : null,
+    sound: { today: c?.today ?? 0, week: c?.week ?? 0, detectionsToday: c?.dets ?? 0, last: lastDet ? { species: lastDet.species, t: lastDet.ts.getTime() } : null, perHour },
+    soil: soilDevs.map((d) => ({ depthCm: d.depthCm, rows: soil.filter((r) => r.deviceId === d.id).map((r) => ({ t: r.ts.getTime(), vwc: r.vwc, tempC: r.tempC })) })),
+  });
 }
 
 /** The most recently heard species, newest first, each with its latest detection and its cut-out picture when the
