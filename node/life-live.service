@@ -1,0 +1,15 @@
+[Unit]
+Description=Life node: how it is doing every 20 seconds while it is on WiFi or a cable, never over the 4G stick
+After=network-online.target life-schedule.service
+Wants=network-online.target
+RequiresMountsFor=/data
+[Service]
+Type=simple
+EnvironmentFile=/etc/life-node.env
+Environment=LIFE_SOIL_QUEUE=/var/lib/life-node/queue.jsonl
+ExecStart=/usr/local/bin/life-live
+Restart=always
+RestartSec=30
+Nice=10
+[Install]
+WantedBy=multi-user.target
