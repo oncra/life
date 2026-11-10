@@ -32,7 +32,7 @@ A detection can carry `"test": true`: it was made while a microphone or the node
 
 ### From a Life node
 
-A [node](kit.md) delivers both streams by itself and needs nothing on the farm. `life-push` (the same `clients/birdnet-pi-push.py`) posts new detections from BirdNET-Go every ten minutes, and `life-soil-agent.py` posts the probes every twenty. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
+A [node](kit.md) delivers both streams by itself and needs nothing on the farm. `life-soil-agent.py` reads the probes every twenty minutes into a queue on the card, and `life-push` (the same `clients/birdnet-pi-push.py`) posts the new detections from BirdNET-Go, the heartbeat and that queue over one connection three minutes after the node wakes and every three hours while it is awake. Both buffer to disk while the modem is down and flush on reconnect, so a gap in cellular coverage delays data rather than losing it. On a cable or a WiFi, never over the SIM, `life-live` also posts how the node is doing every 20 seconds and pushes the detections every two minutes, for the live status on its dashboard. `node/provision.sh` writes the device tokens and enables the timers; the node software is in `node/` in the repository.
 
 ### From a BirdNET-Pi or BirdNET-Go
 

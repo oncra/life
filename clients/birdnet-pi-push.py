@@ -51,6 +51,14 @@ BAT_MODELS = {"battybirdnet", "bat"}
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")
 
+# one run at a time: on a Life node life-live runs this every two minutes while the node is on WiFi or a cable, beside
+# the timer's run every three hours, and two runs reading the same cursor would send the same detections twice
+try:
+    _lock = open(str(CURSOR) + ".lock", "a")
+    fcntl.flock(_lock, fcntl.LOCK_EX)
+except OSError as e:  # a cursor in a place without write access: run as before
+    print(f"run lock skipped: {e}", file=sys.stderr)
+
 _url = urllib.parse.urlsplit(API)
 _conn = None
 

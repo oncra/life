@@ -26,8 +26,12 @@ Power and box health ride along, from what is already in the box:
   clock, the guard's trips. With it `bats`: the evening's bat minutes (life-mic), ran, kept out by the heat, kept out
   by the battery, and what the battery read when the evening began. And BirdNET-Go's own count of analyses that did not
   keep up (`overruns`, while its metrics page is on) and its version (`bng`, at a window's start and end).
-All of it is a dozen numbers, about 250 bytes on a post that is sent anyway: no extra TLS handshake, under 2% of the
-SIM's ten-year budget. The boot heartbeat matters most, because it carries the battery after the night.
+- the way the post leaves the node (`net`: {via: wifi, lan or 4g}), from the kernel's route to the internet, so the
+  dashboard can say whether it came over the SIM.
+All of it is a dozen numbers, about 270 bytes on a post that is sent anyway: no extra TLS handshake, under 2% of the
+SIM's ten-year budget. The boot heartbeat matters most, because it carries the battery after the night. life-live reads
+the same metrics every 20 seconds while the node is on WiFi or a cable (node/life-live.py); the VE.Direct port is read
+under a lock in /run/life-node, so the two never split a block between them.
 
 Environment:
     LIFE_DEVICE_TOKEN   the node's SOUND device token (the heartbeat is the node's, not a probe's)
@@ -48,7 +52,7 @@ Environment:
                         the settings it now runs (`settings`, once, about 400 bytes): the oracle sends new ones only when
                         the rev it hears is not its own
 """
-import glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
+import fcntl, glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -184,6 +188,7 @@ def vedirect():
         if not found:
             return {}
         port = found[0]
+    lock = locked(RUN / "vedirect.lock")
     try:
         import serial  # python3-serial, installed by provision.sh
         raw = b""
@@ -198,6 +203,9 @@ def vedirect():
     except Exception as e:  # noqa: BLE001
         print(f"vedirect {port}: {e}", file=sys.stderr)
         return {}
+    finally:
+        if lock:
+            lock.close()
     if not f:
         print(f"vedirect {port}: no complete block in 3 s", file=sys.stderr)
         return {}
@@ -221,6 +229,47 @@ def vedirect():
 
 def power():
     return {**wittypi(), **vedirect()}
+
+
+def locked(path: Path, wait_s: float = 10):
+    """An exclusive lock on `path`, waited for up to wait_s (life-live reads the port every 20 seconds, for about one
+    second); None when it cannot be had, and then the port is read without it."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        f = open(path, "a")
+    except OSError:
+        return None
+    deadline = time.monotonic() + wait_s
+    while True:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return f
+        except OSError:
+            if time.monotonic() > deadline:
+                f.close()
+                return None
+            time.sleep(0.2)
+
+
+def way(route: str | None = None):
+    """How a post leaves the node: by the WiFi (wlan0), the cable (eth0) or the 4G stick (any other interface; usb0,
+    eth1 or wwan0 by the stick's driver), from `ip -4 route get 1.1.1.1`, which sends nothing. None without a route, or
+    by a tunnel that does not say which of the three it rides on."""
+    if route is None:
+        try:
+            r = subprocess.run(["ip", "-4", "route", "get", "1.1.1.1"], capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        if r.returncode != 0:
+            return None
+        route = r.stdout
+    words = route.split()
+    if "dev" not in words[:-1]:
+        return None
+    dev = words[words.index("dev") + 1]
+    if dev.startswith(("tailscale", "wg", "tun", "lo")):
+        return None
+    return {"via": {"wlan0": "wifi", "eth0": "lan"}.get(dev, "4g")}
 
 
 RUN = Path(os.environ.get("LIFE_RUN") or "/run/life-node")
@@ -496,6 +545,9 @@ def build(event):
     c = cell()
     if c:
         hb["cell"] = c
+    n = way()
+    if n:
+        hb["metrics"]["net"] = n
     return hb
 
 
