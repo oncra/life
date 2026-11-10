@@ -22,7 +22,8 @@ assert.equal(s.state, "quiet", "more than four hours without a post");
 assert.equal(s.source, "post");
 assert.deepEqual(s.power, { v: 4.67, src: "usb", piW: 3.95, pvW: null, charge: null, yieldWh: null });
 assert.equal(s.upSince, null, "no uptime for a node that has gone quiet");
-assert.equal(s.next, null);
+const [nextWinter] = ruleWindows(Date.parse("2026-11-10T12:00:00Z"), LAT, LON, METHOD_RULES, ZONE);
+assert.deepEqual(s.next, { kind: "wake", at: nextWinter.start, name: "winter" }, "the wake it has if it is asleep");
 // an hour after that post it was awake for the visit, the next post three hours after it
 s = statusFrom(base({ beats: [visit], now: visit.t + H }));
 assert.equal(s.state, "awake");
@@ -116,9 +117,9 @@ assert.equal(s.spark.span, "posts");
 assert.deepEqual(s.spark.rsrp, [[dawnPost.t, -101]]);
 assert.deepEqual(s.spark.v, [[dawnPost.t, 4.73], [shutdown.t, 4.73]]);
 
-// soil: the last reading of each probe heard in the past week, the shallow probe's line
-s = statusFrom(base({ soil: [{ depthCm: 10, rows: [{ t: now - 3 * H, vwc: 22.5, tempC: 8 }, { t: now - H, vwc: 23, tempC: 8.2 }] }, { depthCm: 30, rows: [{ t: now - 9 * 864e5, vwc: 30, tempC: 10 }] }] }));
-assert.deepEqual(s.soil, [{ depthCm: 10, vwc: 23, tempC: 8.2, t: now - H }], "a probe silent for a week drops out");
+// soil: the last reading of each probe heard in the past two days, the shallow probe's line
+s = statusFrom(base({ soil: [{ depthCm: 10, rows: [{ t: now - 3 * H, vwc: 22.5, tempC: 8 }, { t: now - H, vwc: 23, tempC: 8.2 }] }, { depthCm: 30, rows: [{ t: now - 3 * 864e5, vwc: 30, tempC: 10 }] }] }));
+assert.deepEqual(s.soil, [{ depthCm: 10, vwc: 23, tempC: 8.2, t: now - H }], "a probe silent for two days drops out");
 assert.deepEqual(s.spark.vwc, [[now - 3 * H, 22.5], [now - H, 23]]);
 
 // signal bars and the Pi's throttle flags

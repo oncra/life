@@ -85,9 +85,13 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
     case "on": line = <>{lastPost.replace(/^l/, "L")}</>; break;
     case "asleep": line = <>Asleep since {s.postAt ? clock(s.postAt) : "its last post"}{s.next?.kind === "wake" ? `, wakes ${when(s.next.at)} for its ${winName(s.next.name)}` : ""}</>; break;
     case "saving": line = <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery; it starts again once the panel has lifted it above 13.2 V</>; break;
-    case "quiet": line = s.window?.end != null && s.window.end < now
-      ? <>Its {winName(s.window.name)} ended at {clock(s.window.end)}, and the post it sends before it sleeps has not arrived. It may be asleep with that post still queued.</>
-      : <>No post for {s.postAt ? spanLabel(now - s.postAt) : "a while"}, so one is late. It posts every three hours while it is awake.</>; break;
+    case "quiet": {
+      const wakes = s.next?.kind === "wake" ? `wakes ${when(s.next.at)} for its ${winName(s.next.name)}` : "";
+      line = s.window?.end != null && s.window.end < now
+        ? <>Its {winName(s.window.name)} ended at {clock(s.window.end)}, and the post it sends before it sleeps has not arrived. It may be asleep with that post still queued{wakes ? `; then it ${wakes}` : ""}.</>
+        : <>No post for {s.postAt ? spanLabel(now - s.postAt) : "a while"}, so one is late.{wakes ? ` If it is asleep, it ${wakes}.` : ""}</>;
+      break;
+    }
     case "silent": line = <>Nothing heard since {s.postAt ? `${dayLabel(s.postAt, z)} ${clock(s.postAt)}` : "it was installed"}.</>; break;
     default: line = <>This node has not posted yet.</>;
   }
@@ -101,7 +105,7 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
       const from = s.window?.start ?? s.postAt ?? n.at - 3600e3;
       bar = { from, to: n.at, left: s.window?.start != null ? `${winName(n.name)} opened ${clock(s.window.start)}` : `last post ${clock(from)}`, right: `${s.state === "live" ? "sleeps" : "posts once more and sleeps"} at ${clock(n.at)}, ${left}` };
     }
-    if (n.kind === "wake" && s.postAt) bar = { from: s.postAt, to: n.at, left: `asleep since ${clock(s.postAt)}`, right: `wakes ${when(n.at)}, ${left}` };
+    if (n.kind === "wake" && s.state === "asleep" && s.postAt) bar = { from: s.postAt, to: n.at, left: `asleep since ${clock(s.postAt)}`, right: `wakes ${when(n.at)}, ${left}` };
   }
 
   const p = s.power, h = s.heat, l = s.link, snd = s.sound;
