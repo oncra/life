@@ -11,6 +11,7 @@ import { nextNight } from "./night";
 import { NIGHT_SELECT, settingsOf } from "./node-night";
 import { POST_EVERY_H, type NodeSignal } from "./node-signal";
 import { liveOf, OPERATORS, statusFrom, type LiveRow, type NodeStatusOut } from "./node-status";
+import { TRIAGE_MIN_DEFAULT } from "./triage";
 export { POST_EVERY_H, signalStatus, type NodeSignal } from "./node-signal";
 
 export type Range = "24h" | "7d" | "30d" | "all";
@@ -300,6 +301,28 @@ export async function heard(opts: { placeId?: string; limit?: number; minConfide
 /** The node dashboard's row: the last species heard on one place, every confidence. */
 export function lastHeard(placeId: string, n = 5): Promise<HeardRow[]> {
   return heard({ placeId, limit: n });
+}
+
+/** What a bird in the dashboard's row plays when it is tapped: the newest clip of that species on this place that
+ * still has its sound. From the score /triage starts at (below it a node keeps only a sample, and most of those are
+ * noise), and never a clip someone judged wrong. Keyed like `HeardRow.key`; a species without such a clip is absent.
+ * Clips reach the oracle only over a WiFi or a cable, so the newest clip can be older than the last detection. */
+export type HeardClip = { id: string; t: number; confidence: number; expansion: number | null };
+export async function heardClips(placeId: string, keys: string[]): Promise<Record<string, HeardClip>> {
+  const out: Record<string, HeardClip> = {};
+  if (keys.length === 0) return out;
+  const devices = (await prisma.device.findMany({ where: { placeId }, select: { id: true } })).map((d) => d.id);
+  if (devices.length === 0) return out;
+  const found = await Promise.all(keys.map((scientific) => prisma.clip.findFirst({
+    where: { deviceId: { in: devices }, scientific, file: { not: null }, confidence: { gte: TRIAGE_MIN_DEFAULT / 100 }, reviews: { none: { verdict: "wrong" } } },
+    orderBy: { ts: "desc" },
+    select: { id: true, ts: true, confidence: true, expansion: true },
+  })));
+  keys.forEach((k, i) => {
+    const c = found[i];
+    if (c) out[k] = { id: c.id, t: c.ts.getTime(), confidence: c.confidence, expansion: c.expansion };
+  });
+  return out;
 }
 
 /** Whether a node is listening, for a page that shows what it hears: `asleep` after a planned shutdown (the field
