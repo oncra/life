@@ -8,7 +8,7 @@ import { nightState } from "@/lib/node-night";
 import { configState } from "@/lib/node-config";
 import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
-import { asRange, lastHeard, nodeData, nodeSignals, nodeStatus, RANGES, signalPoint } from "@/lib/node";
+import { asRange, heardClips, lastHeard, nodeData, nodeSignals, nodeStatus, RANGES, signalPoint } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
 import NodeStatus from "@/components/node/NodeStatus";
 import type { StatusState } from "@/lib/node-status";
@@ -68,6 +68,8 @@ export default async function NodePage({ params, searchParams }: Props) {
     // how it is doing now: live on WiFi or a cable, its last readings on 4G, asleep between its windows
     nodeStatus(stored, data.now),
   ]);
+  // a tap on a bird in the row plays its newest clip
+  const birdClips = await heardClips(stored.id, heard.map((h) => h.key));
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
   const status = panel ? TITLE_DOT[panel.state] : signalStatus(data.last.heardAt, data.now);
@@ -104,7 +106,7 @@ export default async function NodePage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      <LastHeard items={heard} now={data.now} zone={data.zone} />
+      <LastHeard items={heard} clips={birdClips} now={data.now} zone={data.zone} />
 
       {clips > 0 && (
         <div className="mt-3 text-sm">

@@ -115,3 +115,8 @@ main { overflow-x: clip; }
   .bl-card .bl-moves { opacity: 0; transition: opacity 0.12s; }
   .bl-card:hover .bl-moves, .bl-card:focus-within .bl-moves { opacity: 1; }
 }
+
+/* The bars beside a bird in "Last heard here" while its clip plays. */
+@keyframes sound-bar { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+.sound-bar { animation: sound-bar 0.9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sound-bar { animation: none; } }
