@@ -12,12 +12,12 @@ with `clips-app-v`. (The release marked Latest is the node's image, not this app
 
 | Laptop | File |
 | :-- | :-- |
-| Mac with Apple silicon (M1 or later) | `life-clips-macos-arm64` |
-| Mac with an Intel processor | `life-clips-macos-amd64` |
-| Windows PC | `life-clips-windows-amd64.exe` |
+| Mac with an Apple chip (M1, M2, M3, M4 or later) | `life-clips-mac-Apple-M1-or-later` |
+| Mac with an Intel processor | `life-clips-mac-Intel` |
+| Windows PC | `life-clips-windows.exe` |
 
 A direct link has this form, with the version you want:
-`https://github.com/oncra/life/releases/download/clips-app-v1.0.0/life-clips-macos-arm64`. Apple menu > About This
+`https://github.com/oncra/life/releases/download/clips-app-v1.0.0/life-clips-mac-Apple-M1-or-later`. Apple menu > About This
 Mac says which Mac you have ("Chip: Apple M..." or "Processor: Intel"). `SHA256SUMS` beside the files lists their
 SHA-256.
 
@@ -26,7 +26,7 @@ SHA-256.
 **macOS.** The app is not signed by Apple, so macOS asks once.
 
 1. A browser saves the file without permission to run it. Open Terminal and type
-   `chmod +x ~/Downloads/life-clips-macos-*`, then press Return.
+   `chmod +x ~/Downloads/life-clips-mac-*`, then press Return.
 2. In Finder, right-click the file, choose Open, then Open again. On macOS 15 or later, or when there is no Open
    button: close the message, go to System Settings > Privacy & Security, scroll down, click Open Anyway beside
    life-clips, and open the file again.
@@ -35,7 +35,7 @@ SHA-256.
 4. If macOS asks whether Terminal may find devices on your local network, choose Allow. That is how the app reaches
    the node.
 
-**Windows.** Double-click `life-clips-windows-amd64.exe`. If Windows says "Windows protected your PC", click More info,
+**Windows.** Double-click `life-clips-windows.exe`. If Windows says "Windows protected your PC", click More info,
 then Run anyway. A console window opens and the app appears in your browser. Keep that window open while you work.
 
 ## A visit in three steps

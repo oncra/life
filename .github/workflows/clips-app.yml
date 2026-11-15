@@ -69,9 +69,10 @@ jobs:
           build() {
             CGO_ENABLED=0 GOOS="$1" GOARCH="$2" go build -trimpath -ldflags "-s -w -X main.version=$TAG" -o "dist/$3" .
           }
-          build darwin arm64 life-clips-macos-arm64
-          build darwin amd64 life-clips-macos-amd64
-          build windows amd64 life-clips-windows-amd64.exe
+          # named for the laptop, not the processor architecture: whoever has an M4 should not need to know that is arm64
+          build darwin arm64 life-clips-mac-Apple-M1-or-later
+          build darwin amd64 life-clips-mac-Intel
+          build windows amd64 life-clips-windows.exe
           (cd dist && sha256sum life-clips-* > SHA256SUMS)
           ls -l dist
       - name: Attach to the release
@@ -81,8 +82,19 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # no backticks in these notes: the heredoc is unquoted so that $TAG expands
+            cat > notes.md <<EOF
+          The Life Clips laptop app. Take the one file for your laptop:
+
+          | Your laptop | File |
+          | :-- | :-- |
+          | Mac with an Apple chip (M1, M2, M3, M4 or later) | life-clips-mac-Apple-M1-or-later |
+          | Mac with an Intel processor | life-clips-mac-Intel |
+          | Windows PC | life-clips-windows.exe |
+
+          Apple menu > About This Mac says which Mac you have: "Chip: Apple M..." or "Processor: Intel". How to start the app the first time, and how a visit goes: [clients/clips-app/README.md](https://github.com/oncra/life/blob/$TAG/clients/clips-app/README.md). SHA256SUMS lists the SHA-256 of each file.
+          EOF
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest=false \
-              --title "Life Clips ${TAG#clips-app-}" \
-              --notes "The Life Clips laptop app: download the file for your laptop. How to start it: clients/clips-app/README.md."
+              --title "Life Clips ${TAG#clips-app-}" --notes-file notes.md
           fi
           gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
