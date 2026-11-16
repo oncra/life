@@ -738,7 +738,12 @@ class Cut(unittest.TestCase):
         self.assertEqual((r["sha256"], r["bytes"]), (sha(out.read_bytes()), out.stat().st_size))
         self.assertLess(r["bytes"], 100_000)
         self.assertAlmostEqual(duration(out), 7.0, delta=0.15)
-        self.assertAlmostEqual(peak(out), -2.0, delta=1.5)
+        # levelled: the loudest moment goes to -2 dBFS, and the AAC encoder overshoots it where the tone starts and
+        # where it steps down, by an amount that depends on the processor (1.0 dB on GitHub's AMD runners, 1.6 dB on
+        # its Intel ones, 1.1 dB on a Mac): the two dB of room keep the clip under full scale
+        top = peak(out)
+        self.assertGreater(top, -3.5)
+        self.assertLess(top, 0.0)
         self.assertEqual(nd.files(), [r["file"]])                      # BirdNET-Go's 15 seconds are gone
 
     def slowed(self, bat: Path):
