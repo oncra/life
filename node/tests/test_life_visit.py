@@ -514,10 +514,13 @@ class Hotspot(VisitTest):
         p = self.start(VISIT_HOTSPOT_WAIT_S="4")
         self.wait_for(lambda: self.state().get("phase") == "looking")
         first = self.state()["lookUntil"]
+        self.wait_for(lambda: any(a[3:6] == ["device", "wifi", "list"] for a in self.net.nmcli()))   # it looked once
         time.sleep(1.2)
+        # a hotspot switched on late: the node would not look again before its four seconds are up, the magnet makes
+        # it look at once (set before the magnet, since the look it starts can come before this test hears of it)
+        self.net.set("visible", "hotspot\n")
         self.magnet()
         self.wait_for(lambda: self.state().get("lookUntil", first) > first)
-        self.net.set("visible", "hotspot\n")
         out = self.finish(p)
         self.assertIn("a magnet: looking for the hotspot for", out)
         self.assertEqual(len(self.oracle.clips), 6)
