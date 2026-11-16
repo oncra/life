@@ -75,6 +75,7 @@ _max = float(os.environ.get("VISIT_MAX_MIN") or 30)
 MAX_S = min(_max if _max > 0 else 30, 60) * 60   # the unit's RuntimeMaxSec (65 min) is the backstop
 HOTSPOT_S = float(os.environ.get("VISIT_HOTSPOT_WAIT_S") or 180)
 NEW_S = min(HOTSPOT_S, 90.0)   # at least this long to find a hotspot whose settings arrived while the node looked
+SETTLE_S = 20.0                # the longest the node waits for a post under way before it joins a phone
 RETRY_S = float(os.environ.get("VISIT_RETRY_S") or 15)   # between uploads that sent nothing
 SEND_MIN_S = min(30.0, MAX_S / 20)   # no new upload with less of the visit left than this
 WIFI_MIN_S = min(60.0, MAX_S / 10)   # nor the node's own WiFi
@@ -338,18 +339,32 @@ def ask() -> None:
     sh(["systemctl", "start", "--no-block", PUSH_UNIT], timeout=30)
 
 
+def posting() -> bool:
+    """Whether a life-push is under way (the one ask() started, say)."""
+    return sh(["systemctl", "is-active", PUSH_UNIT], timeout=10).stdout.strip() == "activating"
+
+
+def settle(seconds: float) -> None:
+    """Until a life-push under way has finished, at most `seconds`."""
+    end = time.monotonic() + max(0.0, seconds)
+    while time.monotonic() < end and not STOP.is_set() and posting():
+        STOP.wait(1)
+
+
 def push(seconds: float) -> None:
     """life-push now and wait for it. A push still running (the one ask() started) is waited for first: a start would
     join it, and its heartbeat would show the visit as it was then."""
     end = time.monotonic() + max(1.0, seconds)
-    while time.monotonic() < end and not STOP.is_set() and sh(["systemctl", "is-active", PUSH_UNIT], timeout=10).stdout.strip() == "activating":
-        STOP.wait(1)
+    settle(end - time.monotonic())
     sh(["systemctl", "start", PUSH_UNIT], timeout=max(1.0, end - time.monotonic()))
 
 
 def hotspot(v: dict, until: float) -> bool:
     """Join the visitor's phone hotspot; True once the node's way to the internet is it. Settings that arrive while it
-    looks (the answer to ask()) are taken up at once, with at least NEW_S to find the new name."""
+    looks (the answer to ask()) are taken up at once, with at least NEW_S to find the new name, and told to the owner's
+    page with a post once the one that brought them has finished. The phone is joined only after a post under way has
+    finished (at most SETTLE_S): the way out moves to the phone, and a post begun over the SIM would hang on its
+    connection for a minute (node 1, 16 November 2026), and the page with it. Joined, the node posts over the phone."""
     end = min(until, time.monotonic() + HOTSPOT_S)
     AGAIN.clear()
     nm("connection", "delete", AP_CON)   # a second search comes from the node's own WiFi: the radio is one thing at a time
@@ -358,23 +373,29 @@ def hotspot(v: dict, until: float) -> bool:
     say(f"looking for the hotspot \"{v['ssid']}\" for {max(0, int(end - time.monotonic()))} s")
     note(phase="looking", hotspot=v["ssid"], lookUntil=epoch(end), sent=None)   # sent: set once this search's clips went
     ask()
+    tell = False   # something for the owner's page, posted as soon as no post is under way
     while not STOP.is_set() and (time.monotonic() < end or AGAIN.is_set()):
         if AGAIN.is_set():
             AGAIN.clear()
             end = max(end, min(until, time.monotonic() + HOTSPOT_S))
             say(f"a magnet: looking for the hotspot for {max(0, int(end - time.monotonic()))} s")
             note(lookUntil=epoch(end))
-            ask()
+            tell = True
         fresh = settings()
         if fresh["rev"] != v["rev"]:
             if (fresh["ssid"], fresh["psk"]) != (v["ssid"], v["psk"]):
                 end = max(end, min(until, time.monotonic() + NEW_S))
                 say(f"new settings from the oracle: looking for the hotspot \"{fresh['ssid']}\" for {max(0, int(end - time.monotonic()))} s")
                 note(hotspot=fresh["ssid"], lookUntil=epoch(end))
+                tell = True
             v = fresh
+        if tell and not posting():
+            ask()
+            tell = False
         seen = visible()
         name = next((s for s in seen if s == v["ssid"]), None) or next((s for s in seen if norm(s) == norm(v["ssid"])), None)
         if name:
+            settle(min(SETTLE_S, until - time.monotonic()))
             nm("connection", "delete", HOTSPOT_CON)
             r = nm("connection", "add", "save", "no", "type", "wifi", "con-name", HOTSPOT_CON, "ifname", IFACE, "ssid", name,
                    "wifi-sec.key-mgmt", "wpa-psk", "wifi-sec.psk", v["psk"], "connection.autoconnect", "no",
@@ -383,6 +404,7 @@ def hotspot(v: dict, until: float) -> bool:
             if up.returncode == 0 and wait_way(IFACE, 30):
                 say(f"on the hotspot \"{name}\"")
                 note(phase="hotspot")
+                ask()   # over the phone now: the page says so before the first clip arrives
                 return True
             say(f"could not join \"{name}\": {(up.stderr or up.stdout).strip()[:160]}")
         pause(max(0.0, min(5.0, end - time.monotonic())))

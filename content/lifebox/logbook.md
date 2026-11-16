@@ -27,6 +27,19 @@ by Apple, so it opens with a double click and one Open. It has no window of its 
 release that has the file, so the app stays available in the minutes between a new release and its signed Mac app.
 ([#167](https://github.com/oncra/life/pull/167), [#168](https://github.com/oncra/life/pull/168))
 
+### On the phone in three seconds, and the page a minute behind
+
+*Learning.* Node 1 got the new visit code on 16 November, and at home we tried the hotspot route with an iPhone. The
+first search found nothing in its three minutes: an iPhone shows its hotspot to other devices only while its Personal
+Hotspot screen is open. In the second the node was on the phone in three seconds, and the page said so a minute later.
+The post the node had begun over the SIM as the visit started was still under way; when the way out moved to the phone
+its connection hung for about a minute, and the post after the clips waited for it. In the first search the page had
+also kept showing the default name "hotspot", while the node looked for the iPhone named in the answer to that post.
+
+*Change.* The node joins the phone only once a post under way has finished, at most 20 seconds, and posts over the
+phone as soon as it is on it, so the page says so before the first clip. New settings that arrive during the search are
+posted back once the post that brought them is done, so the page shows the name the node looks for.
+
 ## 4 November 2026
 
 ### The winter window opens at civil dawn
