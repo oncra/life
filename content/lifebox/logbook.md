@@ -25,7 +25,7 @@ is small, and together they are too much for someone standing at a node with the
 by Apple, so it opens with a double click and one Open. It has no window of its own: it lives in the browser and stops
 20 seconds after its page is closed. The node page has one button for a Mac, and each download comes from the newest
 release that has the file, so the app stays available in the minutes between a new release and its signed Mac app.
-([#167](https://github.com/oncra/life/pull/167))
+([#167](https://github.com/oncra/life/pull/167), [#168](https://github.com/oncra/life/pull/168))
 
 ## 4 November 2026
 
