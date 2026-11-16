@@ -15,6 +15,18 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 *Change.* The phone's hotspot is now the way, and a laptop the way without phone signal. The visit posts as it starts, a few kilobytes over the SIM, and takes the settings in the answer while it looks, so a hotspot set at the box works at once; it looks for three minutes, and at least 90 seconds more after new settings; it posts again when the clips have gone and when it opens its own WiFi. The node's page leads with three steps (the hotspot, once; the magnet at the box; then follow it here) and follows the visit as it happens: the node looking for which hotspot until when, the clips as they arrive, all arrived and the hotspot can go off, or why the hotspot did not work. The magnet held once more sends a node whose own WiFi has no laptop on it back to look for the hotspot. The laptop's way sits behind a fold, with the app one click from the page. [#166](https://github.com/oncra/life/pull/166)
 
+### The laptop app should open like any other app
+
+*Learning.* The Mac download was a bare program. Before it ran, macOS wanted `chmod` typed in Terminal, a right-click
+and Open, and from macOS 15 a visit to Privacy & Security; the page also asked which processor the Mac has. Each step
+is small, and together they are too much for someone standing at a node with the clips waiting.
+
+*Change.* Life Clips for Mac is now one app for Apple chips and Intel alike, signed with a Developer ID and notarized
+by Apple, so it opens with a double click and one Open. It has no window of its own: it lives in the browser and stops
+20 seconds after its page is closed. The node page has one button for a Mac, and each download comes from the newest
+release that has the file, so the app stays available in the minutes between a new release and its signed Mac app.
+([#167](https://github.com/oncra/life/pull/167))
+
 ## 4 November 2026
 
 ### The winter window opens at civil dawn
