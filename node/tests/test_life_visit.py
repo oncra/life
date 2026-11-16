@@ -104,6 +104,8 @@ if a[:2] == ["connection", "up"]:
             print("Error: Connection activation failed: Secrets were required, but not provided", file=sys.stderr)
             sys.exit(4)
         wr("way", "wlan0")
+        with open(os.path.join(d, "order.log"), "a") as f:   # the posts and the joins, in the order they happened
+            f.write("up " + c["ssid"] + "\n")
     if a[2] not in active:
         active.append(a[2])
     save()
@@ -173,7 +175,11 @@ if a == ["is-active", "life-sound.service"]:   # push_running: how many more tim
     if n > 0:
         open(p, "w").write(str(n - 1))
     print("activating" if n > 0 else "inactive")
+    with open(os.path.join(d, "order.log"), "a") as f:
+        f.write("is-active " + ("activating" if n > 0 else "inactive") + "\n")
 if a[:1] == ["start"] and a[-1] == "life-sound.service":   # life-push
+    with open(os.path.join(d, "order.log"), "a") as f:
+        f.write(" ".join(a[:-1]) + "\n")
     run = os.path.join(os.environ["VISIT_RUN"], "state.json")
     with open(os.path.join(d, "pushes.jsonl"), "a") as f:   # what each heartbeat reads as visitNow, in order
         f.write((" ".join(open(run).read().split()) if os.path.exists(run) else "null") + "\n")
@@ -386,24 +392,35 @@ class Hotspot(VisitTest):
         self.visit()
         log = self.net.lines("systemctl.log")
         self.assertEqual(log[0], "start --no-block life-sound.service")   # before anything is sent: the page shows the visit
-        seen, sent = self.pushes()
+        seen, joined, sent = self.pushes()
         self.assertEqual((seen["phase"], seen["hotspot"], seen["reason"]), ("looking", "hotspot", "magnet"))
+        self.assertEqual((joined["phase"], joined["sent"]), ("hotspot", None))   # on the phone: the page says so at once
         self.assertLessEqual(seen["since"], seen["lookUntil"])
         self.assertLessEqual(seen["lookUntil"], seen["until"])
         self.assertEqual((sent["phase"], sent["sent"]), ("sent", 6))      # after the clips: how many went, and none left
         self.assertEqual(len(self.oracle.clips), 6)
 
-    def test_the_last_post_waits_for_one_still_running(self):
-        # the post at the start can still be under way over a slow SIM when the clips are sent: a start would join it,
-        # and the page would keep showing the node looking
+    def test_the_phone_is_joined_once_the_post_under_way_has_finished(self):
+        # node 1, 16 November 2026: the phone was there at once, the node joined it three seconds into the post it had
+        # begun over the SIM, and that post hung on its connection for a minute, the page with it
         self.net.set("visible", "hotspot\n")
+        self.net.set("push_running", "2")
+        self.visit()
+        order = self.net.lines("order.log")
+        self.assertEqual(order[:5], ["start --no-block", "is-active activating", "is-active activating", "is-active inactive", "up hotspot"])
+        self.assertEqual(order[5], "start --no-block")                 # then a post over the phone
+        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "hotspot", "sent"])
+        self.assertEqual(len(self.oracle.clips), 6)
+
+    def test_the_last_post_waits_for_one_still_running(self):
+        # a start would join a post still under way, and the page would keep showing the visit as it was then
+        self.net.set("way", "eth0")
         self.node.execute("update kept set collected = 1")   # nothing to send: the last post follows the first at once
         self.net.set("push_running", "2")
         self.visit()
-        log = self.net.lines("systemctl.log")
-        self.assertEqual(log.count("is-active life-sound.service"), 3)
-        self.assertLess(log.index("is-active life-sound.service"), log.index("start life-sound.service"))
-        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "sent"])
+        order = self.net.lines("order.log")
+        self.assertEqual(order, ["start --no-block", "is-active activating", "is-active activating", "is-active inactive", "start"])
+        self.assertEqual([x["phase"] for x in self.pushes()], ["online", "sent"])
 
     def test_a_hotspot_set_on_the_spot_works_at_the_first_visit(self):
         # the node knew only the default; the owner typed the iPhone's name on the page while standing at the box, and
@@ -413,6 +430,8 @@ class Hotspot(VisitTest):
         out = self.visit()
         self.assertIn('new settings from the oracle: looking for the hotspot "Sven\'s iPhone"', out)
         self.assertEqual(self.net.added("life-visit-hotspot")["ssid"], "Sven’s iPhone")
+        self.assertEqual([(x["phase"], x["hotspot"]) for x in self.pushes()],   # the page shows the name the node now looks for
+                         [("looking", "hotspot"), ("looking", "Sven's iPhone"), ("hotspot", "Sven's iPhone"), ("sent", "Sven's iPhone")])
         self.assertEqual(len(self.oracle.clips), 6)
         self.assertEqual(self.last()["how"], "hotspot")
         self.assertNotIn(PHONE_PSK, out)
@@ -492,7 +511,7 @@ class Hotspot(VisitTest):
         self.assertIn("looks for the hotspot again", out)
         self.assertEqual(len(self.oracle.clips), 6)
         self.assertEqual({k: self.last()[k] for k in ("how", "sent", "handed")}, {"how": "hotspot+wifi", "sent": 6, "handed": 0})
-        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "wifi", "looking", "sent"])
+        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "wifi", "looking", "hotspot", "sent"])
         self.assertPutBack()
 
     def test_a_magnet_leaves_a_laptop_on_the_own_wifi_be(self):
