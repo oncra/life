@@ -80,7 +80,7 @@ export default async function TriagePage({ searchParams }: { searchParams: Promi
         in each score band of 0.1, so the low scores are heard as well as the high ones. Listen, look at the spectrogram if it helps, and say whether
         it is the species named. Anyone may listen; judging takes a sign-in. Each clip starts a second before the detected part and stops a second after it, and every clip is
         brought to the same loudness, so the quieter microphone is heard as well as the louder one. Your verdicts set each species&apos; own
-        threshold. The sound is deleted after {CLIP_KEEP_DAYS} days; the verdicts stay.
+        threshold. A clip that has a verdict stays here; the others leave this page after {CLIP_KEEP_DAYS} days, and the ones worth keeping for research go to the archive first.
       </p>
       <p className="mt-2 text-muted text-sm">
         Clips the detector scored under {pct}% are left out. {TRIAGE_MIN_DEFAULT}% is the usual starting point in the published work on

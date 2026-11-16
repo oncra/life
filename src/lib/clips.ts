@@ -4,13 +4,14 @@ import { z } from "zod";
 import { prisma } from "./db";
 import { authenticate, canManagePlace, forbidden, json, unauthorized } from "./auth";
 import { canSeeExact } from "./privacy";
+import { archiveOn } from "./clip-archive";
 
 // Clips of detections, for checking by ear whether the detector was right (/triage) and for research. A node keeps
 // them only by its steward's choice (LIFE_KEEP_CLIPS, node/life-clips.py), and they never come over its SIM: the node
 // sends them over a cable or a WiFi it is on, or at a visit over the visitor's hotspot or on a laptop (src/lib/grant.ts). The files live under CLIP_DIR, beside the box images
 // on the host so they survive a redeploy; the database keeps each clip's facts and the verdicts on it. A clip's sound
 // is deleted after CLIP_KEEP_DAYS, or its place's own clipKeepDays; its row and the verdicts stay, for the
-// per-species thresholds.
+// per-species thresholds. A clip worth keeping for research is first copied to the archive (src/lib/clip-archive.ts).
 
 export const CLIP_DIR = process.env.CLIP_DIR ?? path.join(process.env.IMAGE_DIR ?? path.join(process.cwd(), "images"), "clips");
 export const CLIP_KEEP_DAYS = Number(process.env.CLIP_KEEP_DAYS ?? 30);
@@ -72,13 +73,18 @@ export async function dropClipFile(file: string) {
 }
 
 /** Deletes the sound of clips older than their place keeps it (Place.clipKeepDays: null for CLIP_KEEP_DAYS, 0 for as
- * long as the place exists). Their rows and the verdicts on them stay. */
+ * long as the place exists). Their rows and the verdicts on them stay. A clip someone has judged keeps its sound for
+ * good: it is the calibration set. With the research archive on (CLIP_ARCHIVE=1, src/lib/clip-archive.ts), the sound
+ * goes only once it is in the archive or was judged not worth keeping; until then it waits here, so a stalled copy
+ * fills the disk slowly rather than losing a clip. */
 export async function pruneClips(now = new Date()): Promise<number> {
   const before = (days: number) => new Date(now.getTime() - days * 86400e3);
   const own = await prisma.place.findMany({ where: { clipKeepDays: { gt: 0 } }, select: { id: true, clipKeepDays: true } });
   const old = await prisma.clip.findMany({
     where: {
       file: { not: null },
+      reviews: { none: {} },
+      ...(archiveOn() ? { AND: [{ OR: [{ archivedAt: { not: null } }, { archiveSkip: true }] }] } : {}),
       OR: [
         { device: { place: { clipKeepDays: null } }, createdAt: { lt: before(CLIP_KEEP_DAYS) } },
         ...own.map((p) => ({ device: { placeId: p.id }, createdAt: { lt: before(p.clipKeepDays!) } })),

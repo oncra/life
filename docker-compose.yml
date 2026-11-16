@@ -36,6 +36,8 @@ services:
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       # the password that lets a browser change /backlog (signed-in people and the admin key need none)
       BACKLOG_PASSWORD: ${BACKLOG_PASSWORD:-}
+      # 1: a clip's sound is deleted only once it is in the research archive or judged not worth keeping (src/lib/clip-archive.ts)
+      CLIP_ARCHIVE: ${CLIP_ARCHIVE:-}
       IMAGE_DIR: /images
     volumes:
       # the golden image split for per-box images, and each box's own boot part (node/image/split-golden.sh)
@@ -56,6 +58,7 @@ services:
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
       CHECKIN_WEBHOOK_URL: ${CHECKIN_WEBHOOK_URL:-}
       CHECKIN_WEBHOOK_TOKEN: ${CHECKIN_WEBHOOK_TOKEN:-}
+      CLIP_ARCHIVE: ${CLIP_ARCHIVE:-}
       IMAGE_DIR: /images
     volumes:
       # the background-removal model for species pictures lives at /images/models (src/lib/species-image.ts)
