@@ -51,6 +51,9 @@ Environment:
                         (`cfgRev`, 8 characters on every post; on trial, refused or left out when so), and after a change
                         the settings it now runs (`settings`, once, about 400 bytes): the oracle sends new ones only when
                         the rev it hears is not its own
+    VISIT_RUN           default /run/life-visit; its state.json says what a running visit does (`visitNow`: its phase,
+                        since and until when, and the hotspot it looks for until when), so the owner's page can follow a
+                        visit: about 100 bytes, only on the posts made during one
 """
 import fcntl, glob, json, os, subprocess, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -425,7 +428,7 @@ def clips():
     sent, and the batches a laptop took at a visit (`clipsHanded`, "batch:clips,..."): the oracle answers with those it
     has every clip of (`clipsReceived`), and the node deletes them. The settings for a visit the node has (`visitRev`,
     -1 for none, only on a node with life-visit) let the oracle send them when they changed, and only then; how the
-    last visit went (`visitLast`) shows on the owner's page."""
+    last visit went (`visitLast`) and what a running one does (`visitNow`) show on the owner's page."""
     out = {}
     state = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node"))
     try:
@@ -433,6 +436,17 @@ def clips():
     except Exception:  # noqa: BLE001 - none yet
         if Path(os.environ.get("LIFE_VISIT_BIN", "/usr/local/bin/life-visit")).exists():
             out["visitRev"] = -1
+    now = None
+    try:
+        now = json.loads(Path(os.environ.get("VISIT_RUN", "/run/life-visit"), "state.json").read_text())
+        os.kill(int(now["pid"]), 0)
+    except PermissionError:
+        pass   # a visit run by another user: it is there
+    except Exception:  # noqa: BLE001 - no visit running, or one that died before its teardown
+        now = None
+    if isinstance(now, dict):
+        out["visitNow"] = {k: now[k] for k in ("phase", "since", "until", "lookUntil", "hotspot", "sent")
+                           if isinstance(now.get(k), (str, int, float)) and not isinstance(now.get(k), bool)}
     try:
         last = json.loads((state / "visit-last.json").read_text())
         out["visitLast"] = {k: last[k] for k in ("at", "reason", "how", "sent", "handed", "minutes", "laptop")

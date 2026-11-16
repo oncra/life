@@ -7,16 +7,26 @@ the Witty Pi's button input, and that this program reads on GPIO 22 while the no
 
 1. The node joins the visitor's phone hotspot: the name and password its owner set on the node's page on the oracle,
    "hotspot" and 12345678 until then. A visible name that differs only in case, spaces or the kind of apostrophe is
-   taken too (an iPhone calls its hotspot "Sven’s iPhone", with a curly one). On the hotspot life-clips sends the
-   waiting clips to the oracle itself, and life-push posts, so the visitor sees on the node's page that they arrived.
-   Each clip is deleted from the card once the oracle has it, checked by its SHA-256.
+   taken too (an iPhone calls its hotspot "Sven’s iPhone", with a curly one). The visit posts as it starts, over the
+   SIM in a field: the node's page shows that the node is looking and for which hotspot, and the oracle's answer brings
+   the newest settings, which the search takes up while it looks, so a hotspot set on the spot works at the first
+   visit. On the hotspot life-clips sends the waiting clips to the oracle itself, and life-push posts, so the visitor
+   sees on the node's page that they arrived. Each clip is deleted from the card once the oracle has it, checked by
+   its SHA-256.
 2. Without a hotspot within VISIT_HOTSPOT_WAIT_S, or with clips still waiting when the hotspot is done, the node opens
    its own WiFi: life- and the last six characters of its id, with the password on its page. The Life Clips app on a
    laptop takes the clips from http://10.42.0.1 (or 169.254.42.1, when the laptop got no address), with a grant the
    node signs for exactly those clips, and sends them to the oracle once it is online again. The node deletes them when
    the oracle's answer to a heartbeat names the batch (life-clips receipt); until then they stay, and leave any way.
+   It posts as its WiFi opens, so the page tells the visitor the hotspot was not found. The magnet held once more,
+   with no laptop on that WiFi, closes it and sends the node looking for the hotspot again, with the newest settings:
+   a hotspot switched on late, or a password put right on the page meanwhile. Held while it looks, it looks longer.
 
 A node on a cable or a WiFi of its own already sends its clips (life-clips upload); a visit there only sends them now.
+
+What the visit is doing (RUN/state.json: its phase, start, end, the hotspot it looks for and until when) rides along
+in each heartbeat while it runs (life-heartbeat, visitNow): start, looking, hotspot, online, sent (life-push after the
+clips, with how many are left) and wifi. The oracle counts the clips that arrived since the start.
 
 The node's own WiFi leads nowhere: its DHCP answers carry no gateway and no DNS server, and a firewall table lets a
 laptop on it reach the clip server and DHCP and nothing else on the node. Without that table (nftables) the WiFi stays
@@ -27,13 +37,15 @@ window, unless the owner has a maintenance window open; one inside a listening w
     life-visit apply < answer        the oracle's answer to a heartbeat, from life-push: its `visit` settings (the hotspot,
                                      the password of the node's own WiFi, the node's id) go to LIFE_STATE/visit.json
     life-visit run [boot|magnet]     the visit (life-visit@.service)
-    life-visit watch                 while the node is up: a magnet on the visit contact starts a visit
+    life-visit watch                 while the node is up: a magnet on the visit contact starts a visit, or sends a
+                                     running one back to the hotspot (again)
+    life-visit again                 a running visit looks for the hotspot again (unless a laptop is on its WiFi)
     life-visit end                   end a running visit now
     life-visit teardown              put the WiFi back as it was (the unit's ExecStopPost; harmless at any time)
     life-visit status [--json]
 
 env: LIFE_VISIT (1 = visits on), LIFE_VISIT_PIN (the contact's BCM pin, 22; empty when none is fitted),
-     LIFE_VISIT_PULL (pn: the contact's circuit holds the line), VISIT_MAX_MIN (30, at most 60), VISIT_HOTSPOT_WAIT_S (90),
+     LIFE_VISIT_PULL (pn: the contact's circuit holds the line), VISIT_MAX_MIN (30, at most 60), VISIT_HOTSPOT_WAIT_S (180),
      LIFE_STATE (/data/life-node), LIFE_CLIPS_BIN (/usr/local/bin/life-clips), LIFE_WINDOW_BIN (/usr/local/sbin/life-window),
      LIFE_PUSH_UNIT (life-sound.service); for the tests: LIFE_VISIT_IFACE (wlan0), VISIT_RUN (/run/life-visit),
      VISIT_BIND and VISIT_PORT (where the clip server listens instead of the node's own WiFi), VISIT_RETRY_S (15)
@@ -61,7 +73,8 @@ PIN = os.environ.get("LIFE_VISIT_PIN", "").strip()
 PULL = os.environ.get("LIFE_VISIT_PULL", "pn").strip() or "pn"
 _max = float(os.environ.get("VISIT_MAX_MIN") or 30)
 MAX_S = min(_max if _max > 0 else 30, 60) * 60   # the unit's RuntimeMaxSec (65 min) is the backstop
-HOTSPOT_S = float(os.environ.get("VISIT_HOTSPOT_WAIT_S") or 90)
+HOTSPOT_S = float(os.environ.get("VISIT_HOTSPOT_WAIT_S") or 180)
+NEW_S = min(HOTSPOT_S, 90.0)   # at least this long to find a hotspot whose settings arrived while the node looked
 RETRY_S = float(os.environ.get("VISIT_RETRY_S") or 15)   # between uploads that sent nothing
 SEND_MIN_S = min(30.0, MAX_S / 20)   # no new upload with less of the visit left than this
 WIFI_MIN_S = min(60.0, MAX_S / 10)   # nor the node's own WiFi
@@ -83,6 +96,7 @@ HELD = 3             # reads in a row, a second apart, before the contact counts
 TABLE = "life_visit"
 DEVICE = re.compile(r"[A-Za-z0-9_-]{6,64}")
 STOP = threading.Event()   # SIGTERM (the unit stopped) or SIGUSR1 (life-visit end): wind the visit down
+AGAIN = threading.Event()  # SIGUSR2 (a magnet held while the visit runs): look for the hotspot again
 
 # The node's own WiFi admits DHCP, the clip server and a ping, and nothing else; nothing crosses it to elsewhere. The
 # first two lines make loading it again replace it in one go.
@@ -304,13 +318,60 @@ def wait_way(dev: str, seconds: float) -> bool:
     return False
 
 
+def epoch(t: float) -> int:
+    """A deadline on the monotonic clock as Unix time, for the files other programs read."""
+    return int(time.time() + max(0.0, t - time.monotonic()))
+
+
+def pause(seconds: float) -> None:
+    """Wait, but not past a stop or a magnet."""
+    end = time.monotonic() + seconds
+    while not STOP.is_set() and not AGAIN.is_set() and time.monotonic() < end:
+        STOP.wait(max(0.0, min(0.5, end - time.monotonic())))
+
+
+def ask() -> None:
+    """Post now, over the way the node has (the SIM in a field), a few kB: the owner's page shows at once that a visit
+    is on and which hotspot it looks for, and the oracle's answer brings the newest visit settings (life-push hands it
+    to `apply`). The timer's first push comes three minutes after boot, when the search is over: without this, a
+    hotspot set on the spot would wait for the next visit."""
+    sh(["systemctl", "start", "--no-block", PUSH_UNIT], timeout=30)
+
+
+def push(seconds: float) -> None:
+    """life-push now and wait for it. A push still running (the one ask() started) is waited for first: a start would
+    join it, and its heartbeat would show the visit as it was then."""
+    end = time.monotonic() + max(1.0, seconds)
+    while time.monotonic() < end and not STOP.is_set() and sh(["systemctl", "is-active", PUSH_UNIT], timeout=10).stdout.strip() == "activating":
+        STOP.wait(1)
+    sh(["systemctl", "start", PUSH_UNIT], timeout=max(1.0, end - time.monotonic()))
+
+
 def hotspot(v: dict, until: float) -> bool:
-    """Join the visitor's phone hotspot; True once the node's way to the internet is it."""
+    """Join the visitor's phone hotspot; True once the node's way to the internet is it. Settings that arrive while it
+    looks (the answer to ask()) are taken up at once, with at least NEW_S to find the new name."""
     end = min(until, time.monotonic() + HOTSPOT_S)
+    AGAIN.clear()
+    nm("connection", "delete", AP_CON)   # a second search comes from the node's own WiFi: the radio is one thing at a time
     if not firewall(GUEST):
         say("no firewall table (is nftables installed?): on the hotspot the node takes connections as on any WiFi")
     say(f"looking for the hotspot \"{v['ssid']}\" for {max(0, int(end - time.monotonic()))} s")
-    while time.monotonic() < end and not STOP.is_set():
+    note(phase="looking", hotspot=v["ssid"], lookUntil=epoch(end), sent=None)   # sent: set once this search's clips went
+    ask()
+    while not STOP.is_set() and (time.monotonic() < end or AGAIN.is_set()):
+        if AGAIN.is_set():
+            AGAIN.clear()
+            end = max(end, min(until, time.monotonic() + HOTSPOT_S))
+            say(f"a magnet: looking for the hotspot for {max(0, int(end - time.monotonic()))} s")
+            note(lookUntil=epoch(end))
+            ask()
+        fresh = settings()
+        if fresh["rev"] != v["rev"]:
+            if (fresh["ssid"], fresh["psk"]) != (v["ssid"], v["psk"]):
+                end = max(end, min(until, time.monotonic() + NEW_S))
+                say(f"new settings from the oracle: looking for the hotspot \"{fresh['ssid']}\" for {max(0, int(end - time.monotonic()))} s")
+                note(hotspot=fresh["ssid"], lookUntil=epoch(end))
+            v = fresh
         seen = visible()
         name = next((s for s in seen if s == v["ssid"]), None) or next((s for s in seen if norm(s) == norm(v["ssid"])), None)
         if name:
@@ -324,7 +385,7 @@ def hotspot(v: dict, until: float) -> bool:
                 note(phase="hotspot")
                 return True
             say(f"could not join \"{name}\": {(up.stderr or up.stdout).strip()[:160]}")
-        STOP.wait(max(0.0, min(5.0, end - time.monotonic())))
+        pause(max(0.0, min(5.0, end - time.monotonic())))
     say("no hotspot")
     return False
 
@@ -348,8 +409,9 @@ def send(dev: str, until: float) -> int:
             break
         STOP.wait(RETRY_S)
     sent = max(0, start - c.counts()["waiting"])
+    note(phase="sent", sent=sent)
     if c.way_out() == dev and not STOP.is_set():
-        sh(["systemctl", "start", PUSH_UNIT], timeout=min(180.0, until - time.monotonic()))
+        push(min(180.0, until - time.monotonic()))
     return sent
 
 
@@ -503,7 +565,9 @@ def serve(visit: Visit) -> list[ThreadingHTTPServer]:
 
 
 def own_wifi(v: dict, until: float) -> dict:
-    """The node's own WiFi for a laptop, until the visit's time is up or the laptop says it is done."""
+    """The node's own WiFi for a laptop, until the visit's time is up, the laptop says it is done, or a magnet held with
+    no laptop on it sends the node back to the hotspot ("again")."""
+    AGAIN.clear()   # before the WiFi is announced: a magnet held as soon as it is open counts
     ssid = own_ssid(v)
     if not ssid or not v["apPsk"]:
         say("the node's own WiFi stays closed: it has no id and password from the oracle yet (a heartbeat answer brings them)")
@@ -532,9 +596,19 @@ def own_wifi(v: dict, until: float) -> dict:
     note(phase="wifi", ssid=ssid, port=servers[0].server_address[1], until=visit.until_epoch())
     say(f"the node's own WiFi \"{ssid}\" is open until {datetime.fromtimestamp(visit.until_epoch()).strftime('%H:%M')}; "
         "the clips are at http://10.42.0.1")
-    checked = time.monotonic()
+    ask()   # over the SIM, if the node has one: the owner's page says the hotspot was not found and the laptop's way is open
+    checked, again = time.monotonic(), False
     while not STOP.is_set() and not visit.finished.is_set() and time.monotonic() < until:
-        visit.finished.wait(max(0.0, min(5.0, until - time.monotonic())))
+        visit.finished.wait(max(0.0, min(1.0, until - time.monotonic())))
+        if AGAIN.is_set():
+            AGAIN.clear()
+            with visit.lock:
+                busy = bool(visit.laptops)
+            if not busy:
+                say("a magnet: the node closes its own WiFi and looks for the hotspot again")
+                again = True
+                break
+            say("a magnet, but a laptop is on the node's own WiFi: it stays open")
         if time.monotonic() - checked >= CHECK_S:
             checked = time.monotonic()
             if not active(AP_CON) and nm("--wait", "30", "connection", "up", AP_CON, timeout=45).returncode != 0:
@@ -551,7 +625,7 @@ def own_wifi(v: dict, until: float) -> dict:
             dns.kill()
     if visit.finished.is_set():
         say("the laptop is done")
-    return {"opened": True, "handed": visit.handed, "files": visit.files, "laptop": bool(visit.laptops)}
+    return {"opened": True, "handed": visit.handed, "files": visit.files, "laptop": bool(visit.laptops), "again": again}
 
 
 def teardown() -> int:
@@ -593,13 +667,13 @@ def run(reason: str) -> int:
         return 0
     for sig in (signal.SIGTERM, signal.SIGUSR1):
         signal.signal(sig, lambda *_: STOP.set())
+    signal.signal(signal.SIGUSR2, lambda *_: AGAIN.set())
     t0 = time.monotonic()
     until = t0 + MAX_S
     rec = {"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "reason": reason, "how": "none", "sent": 0, "handed": 0}
-    note(pid=os.getpid(), reason=reason, phase="start", until=int(time.time() + MAX_S))
+    note(pid=os.getpid(), reason=reason, phase="start", since=int(time.time()), until=int(time.time() + MAX_S))
     say(f"a visit ({reason}), at most {MAX_S / 60:g} minutes")
     try:
-        v = settings()
         c = clips()
         try:   # clips whose cutting waited for a cool processor (the bat hour) go too
             c.cut_all()
@@ -608,16 +682,27 @@ def run(reason: str) -> int:
         dev = c.way_out()
         if dev:
             say(f"the node is online over {dev} already: sending its clips now")
+            note(phase="online")
+            ask()
             rec["how"], rec["sent"] = "online", send(dev, until)
         else:
             radio_on()
-            if hotspot(v, until):
-                rec["how"], rec["sent"] = "hotspot", send(IFACE, until)
-            if not STOP.is_set() and c.counts()["waiting"] and until - time.monotonic() > WIFI_MIN_S:
-                got = own_wifi(v, until)
+            ways = set()
+            while True:   # a magnet held on the node's own WiFi, with no laptop on it, brings the search back
+                if hotspot(settings(), until):   # settings(): the oracle's answer may have brought new ones meanwhile
+                    ways.add("hotspot")
+                    rec["sent"] += send(IFACE, until)
+                if STOP.is_set() or not c.counts()["waiting"] or until - time.monotonic() <= WIFI_MIN_S:
+                    break
+                got = own_wifi(settings(), until)
                 if got.get("opened"):
-                    rec["how"] = "hotspot+wifi" if rec["how"] == "hotspot" else "wifi"
-                    rec["handed"], rec["laptop"] = got["handed"], got["laptop"]
+                    ways.add("wifi")
+                    rec["handed"] += got["handed"]
+                    rec["laptop"] = rec.get("laptop", False) or got["laptop"]
+                if not got.get("again") or STOP.is_set():
+                    break
+            if ways:
+                rec["how"] = "+".join(w for w in ("hotspot", "wifi") if w in ways)
     finally:
         teardown()
         try:
@@ -659,9 +744,22 @@ def watch(every: float = 1.0, rounds: int | None = None) -> int:
         streak += 1
         if streak >= HELD and not held:
             held = True
-            say("a magnet on the visit contact: a visit starts")
-            sh(["systemctl", "start", "--no-block", "life-visit@magnet.service"], timeout=30)
+            if again():
+                say("a magnet on the visit contact: the running visit looks for the hotspot again")
+            else:
+                say("a magnet on the visit contact: a visit starts")
+                sh(["systemctl", "start", "--no-block", "life-visit@magnet.service"], timeout=30)
     return 0
+
+
+def again() -> bool:
+    """Tell a running visit that a magnet was held (SIGUSR2): it looks for the hotspot again, a hotspot switched on late
+    or a password put right on the page meanwhile, unless a laptop is on the node's own WiFi. False when none runs."""
+    try:
+        os.kill(int(json.loads((RUN / "state.json").read_text())["pid"]), signal.SIGUSR2)
+        return True
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
 
 
 def end() -> int:
@@ -708,6 +806,10 @@ def main() -> int:
         return run(args[1] if len(args) > 1 and args[1] in ("boot", "magnet") else "by-hand")
     if cmd == "watch":
         return watch()
+    if cmd == "again":
+        if not again():
+            say("no visit is running")
+        return 0
     if cmd == "end":
         return end()
     if cmd == "teardown":

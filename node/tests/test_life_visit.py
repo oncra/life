@@ -160,11 +160,26 @@ while True:
     time.sleep(0.1)
 ''',
     "systemctl": r'''
-import os, sys
-with open(os.path.join(os.environ["FAKE_NET"], "systemctl.log"), "a") as f:
+import os, shutil, sys
+d = os.environ["FAKE_NET"]
+with open(os.path.join(d, "systemctl.log"), "a") as f:
     f.write(" ".join(sys.argv[1:]) + "\n")
-if sys.argv[1:] == ["is-system-running"]:
+a = sys.argv[1:]
+if a == ["is-system-running"]:
     print("running")
+if a == ["is-active", "life-sound.service"]:   # push_running: how many more times a push is still running
+    p = os.path.join(d, "push_running")
+    n = int(open(p).read()) if os.path.exists(p) else 0
+    if n > 0:
+        open(p, "w").write(str(n - 1))
+    print("activating" if n > 0 else "inactive")
+if a[:1] == ["start"] and a[-1] == "life-sound.service":   # life-push
+    run = os.path.join(os.environ["VISIT_RUN"], "state.json")
+    with open(os.path.join(d, "pushes.jsonl"), "a") as f:   # what each heartbeat reads as visitNow, in order
+        f.write((" ".join(open(run).read().split()) if os.path.exists(run) else "null") + "\n")
+    answer = os.path.join(d, "push_answer.json")
+    if "--no-block" in a and os.path.exists(answer):   # the oracle's answer, as life-visit apply would keep it
+        shutil.copy(answer, os.path.join(os.environ["LIFE_STATE"], "visit.json"))
 ''',
     "life-window": r'''
 import os, sys
@@ -310,6 +325,28 @@ class VisitTest(unittest.TestCase):
     def last(self) -> dict:
         return json.loads((self.node.state / "visit-last.json").read_text())
 
+    def pushes(self) -> list:
+        """What the node's page heard: the visit as each life-push read it, in order."""
+        return [json.loads(line) for line in self.net.lines("pushes.jsonl")]
+
+    def state(self) -> dict:
+        try:
+            return json.loads((self.run_dir / "state.json").read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def wait_for(self, done, seconds: float = 20) -> None:
+        end = time.time() + seconds
+        while not done():
+            if time.time() > end:
+                self.fail(f"waited {seconds} s; the visit is at {self.state()}")
+            time.sleep(0.05)
+
+    def magnet(self) -> None:
+        """The magnet held while the visit runs (life-visit watch tells the visit so)."""
+        r = subprocess.run([sys.executable, "-B", str(NODE / "life-visit.py"), "again"], env=self.env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
     def assertPutBack(self):
         """Nothing of the visit is left: no connection, no firewall table, no dnsmasq, the radio off again."""
         self.assertEqual(self.net.cons(), {})
@@ -343,6 +380,51 @@ class Hotspot(VisitTest):
         self.assertLess(guest.index("established"), guest.index('iifname "wlan0" drop'))
         self.assertNotIn("tcp dport", guest)                                         # no clip server, no SSH, no BirdNET-Go page
         self.assertPutBack()
+
+    def test_the_visit_posts_as_it_starts_and_says_what_it_looks_for(self):
+        self.net.set("visible", "hotspot\n")
+        self.visit()
+        log = self.net.lines("systemctl.log")
+        self.assertEqual(log[0], "start --no-block life-sound.service")   # before anything is sent: the page shows the visit
+        seen, sent = self.pushes()
+        self.assertEqual((seen["phase"], seen["hotspot"], seen["reason"]), ("looking", "hotspot", "magnet"))
+        self.assertLessEqual(seen["since"], seen["lookUntil"])
+        self.assertLessEqual(seen["lookUntil"], seen["until"])
+        self.assertEqual((sent["phase"], sent["sent"]), ("sent", 6))      # after the clips: how many went, and none left
+        self.assertEqual(len(self.oracle.clips), 6)
+
+    def test_the_last_post_waits_for_one_still_running(self):
+        # the post at the start can still be under way over a slow SIM when the clips are sent: a start would join it,
+        # and the page would keep showing the node looking
+        self.net.set("visible", "hotspot\n")
+        self.node.execute("update kept set collected = 1")   # nothing to send: the last post follows the first at once
+        self.net.set("push_running", "2")
+        self.visit()
+        log = self.net.lines("systemctl.log")
+        self.assertEqual(log.count("is-active life-sound.service"), 3)
+        self.assertLess(log.index("is-active life-sound.service"), log.index("start life-sound.service"))
+        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "sent"])
+
+    def test_a_hotspot_set_on_the_spot_works_at_the_first_visit(self):
+        # the node knew only the default; the owner typed the iPhone's name on the page while standing at the box, and
+        # the answer to the post at the visit's start brings it while the node looks
+        self.net.set("visible", "Sven’s iPhone\n")
+        self.net.set("push_answer.json", json.dumps({"rev": 3, "device": DEVICE, "ssid": "Sven's iPhone", "psk": PHONE_PSK, "apPsk": AP_PSK}))
+        out = self.visit()
+        self.assertIn('new settings from the oracle: looking for the hotspot "Sven\'s iPhone"', out)
+        self.assertEqual(self.net.added("life-visit-hotspot")["ssid"], "Sven’s iPhone")
+        self.assertEqual(len(self.oracle.clips), 6)
+        self.assertEqual(self.last()["how"], "hotspot")
+        self.assertNotIn(PHONE_PSK, out)
+        self.assertPutBack()
+
+    def test_a_new_password_for_the_laptop_is_used_at_once(self):
+        self.net.set("push_answer.json", json.dumps({"rev": 3, "device": DEVICE, "ssid": "hotspot", "psk": PHONE_PSK, "apPsk": "nieuw-wachtwoord-2"}))
+        p = self.start()
+        port = self.port(p)
+        self.post(port, "/api/done", {})
+        self.finish(p)
+        self.assertEqual(self.net.added("life-visit-ap")["wifi-sec.psk"], "nieuw-wachtwoord-2")
 
     def test_the_hotspot_works_without_nftables(self):
         (self.net.bin / "nft").unlink()
@@ -383,6 +465,9 @@ class Hotspot(VisitTest):
         self.finish(p)
         self.assertEqual(self.oracle.clips, {})
         self.assertEqual(self.last()["how"], "wifi")
+        looking, wifi = self.pushes()
+        self.assertEqual((looking["phase"], wifi["phase"], wifi["hotspot"]), ("looking", "wifi", "hotspot"))   # the page: not found
+        self.assertEqual(wifi["until"], looking["until"])
         self.assertPutBack()
 
     def test_a_phone_without_data_leaves_the_laptop_way_open(self):
@@ -397,12 +482,54 @@ class Hotspot(VisitTest):
         self.assertEqual(self.last()["how"], "hotspot+wifi")
         self.assertPutBack()
 
+    def test_a_magnet_on_the_own_wifi_sends_the_node_back_to_the_hotspot(self):
+        # the hotspot was not on in time; the visitor switches it on and holds the magnet once more
+        p = self.start()
+        self.port(p)
+        self.net.set("visible", "hotspot\n")
+        self.magnet()
+        out = self.finish(p)
+        self.assertIn("looks for the hotspot again", out)
+        self.assertEqual(len(self.oracle.clips), 6)
+        self.assertEqual({k: self.last()[k] for k in ("how", "sent", "handed")}, {"how": "hotspot+wifi", "sent": 6, "handed": 0})
+        self.assertEqual([x["phase"] for x in self.pushes()], ["looking", "wifi", "looking", "sent"])
+        self.assertPutBack()
+
+    def test_a_magnet_leaves_a_laptop_on_the_own_wifi_be(self):
+        p = self.start()
+        port = self.port(p)
+        self.assertEqual(self.get(port, "/api/hello")[0], 200)
+        self.net.set("visible", "hotspot\n")
+        self.magnet()
+        time.sleep(2.5)                                        # the visit hears it within a second
+        self.assertIsNone(self.net.added("life-visit-hotspot"))
+        self.assertEqual(self.get(port, "/api/hello")[0], 200)  # still open
+        self.post(port, "/api/done", {})
+        out = self.finish(p)
+        self.assertIn("a laptop is on the node's own WiFi: it stays open", out)
+        self.assertEqual(self.last()["how"], "wifi")
+        self.assertPutBack()
+
+    def test_a_magnet_while_it_looks_gives_it_more_time(self):
+        p = self.start(VISIT_HOTSPOT_WAIT_S="4")
+        self.wait_for(lambda: self.state().get("phase") == "looking")
+        first = self.state()["lookUntil"]
+        time.sleep(1.2)
+        self.magnet()
+        self.wait_for(lambda: self.state().get("lookUntil", first) > first)
+        self.net.set("visible", "hotspot\n")
+        out = self.finish(p)
+        self.assertIn("a magnet: looking for the hotspot for", out)
+        self.assertEqual(len(self.oracle.clips), 6)
+        self.assertEqual(self.last()["how"], "hotspot")
+
     def test_a_node_on_a_cable_sends_without_touching_its_wifi(self):
         self.net.set("way", "eth0")
         self.visit()
         self.assertEqual(len(self.oracle.clips), 6)
         self.assertEqual([a for a in self.net.nmcli() if a[:1] == ["radio"] or a[:2] == ["connection", "add"]], [])
         self.assertEqual(self.last()["how"], "online")
+        self.assertEqual([(x["phase"], x.get("hotspot")) for x in self.pushes()], [("online", None), ("sent", None)])
 
     def test_nothing_waiting_and_no_hotspot_is_a_short_visit(self):
         self.node.execute("update kept set collected = 1")
@@ -638,7 +765,9 @@ class Contact(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.net = Net(Path(self._tmp.name))
         self.old = dict(os.environ)
-        os.environ.update({"PATH": f"{self.net.bin}:{os.environ['PATH']}", "FAKE_NET": str(self.net.dir), "LIFE_VISIT": "1", "LIFE_VISIT_PIN": "22"})
+        self.run_dir = Path(self._tmp.name) / "run"
+        os.environ.update({"PATH": f"{self.net.bin}:{os.environ['PATH']}", "FAKE_NET": str(self.net.dir), "LIFE_VISIT": "1", "LIFE_VISIT_PIN": "22",
+                           "VISIT_RUN": str(self.run_dir)})
 
     def tearDown(self):
         os.environ.clear()
@@ -678,6 +807,17 @@ class Contact(unittest.TestCase):
 
     def test_held_again_later_starts_another(self):
         self.assertEqual(self.watch("0111000000111"), 2)
+
+    def test_held_during_a_visit_sends_that_visit_back_to_the_hotspot(self):
+        visit = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])   # stands for the running visit
+        try:
+            self.run_dir.mkdir()
+            (self.run_dir / "state.json").write_text(json.dumps({"pid": visit.pid, "phase": "wifi"}))
+            self.assertEqual(self.watch("0011100000"), 0)                 # no second visit
+            self.assertEqual(visit.wait(10), -signal.SIGUSR2)            # the running one was told
+        finally:
+            visit.kill()
+            visit.wait()
 
     def test_no_contact_fitted_reads_nothing(self):
         self.assertEqual(self.watch("0111", LIFE_VISIT_PIN=""), 0)

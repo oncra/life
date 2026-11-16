@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 16 November 2026
+
+### The clips should leave with a phone, and the page should say how it goes
+
+*Learning.* On 15 November node 1's clips, 785 of them, were to come off by a visit, and three presses of the button (10:40, 13:54 and 14:27) did not do it. Each time the node looked 90 seconds for a hotspot called "hotspot", the default, which no phone near it had, and then opened its own WiFi for half an hour. At the third, the laptop app joined that WiFi and the node offered its 785 clips (46 MB), but the laptop went back to the phone to reach the internet before it had taken one, and the app then said to join the WiFi by hand, which read as "joining does not work". Four things stood between the visitor and the clips. The hotspot's name and password, set on the node's page, reached the node only with its first post, three minutes after it woke, when its search was over: set at the box, they worked one visit later. Ninety seconds is short for someone who wakes the node and then goes looking for the hotspot setting. Nothing on the page said what the node was doing. And the app came from GitHub as a bare program that a Mac does not open without the Terminal or its security settings. That evening a press of the button, with the node on a network of its own, sent all 785 in 72 seconds: that is how easy it should be in a field.
+
+*Change.* The phone's hotspot is now the way, and a laptop the way without phone signal. The visit posts as it starts, a few kilobytes over the SIM, and takes the settings in the answer while it looks, so a hotspot set at the box works at once; it looks for three minutes, and at least 90 seconds more after new settings; it posts again when the clips have gone and when it opens its own WiFi. The node's page leads with three steps (the hotspot, once; the magnet at the box; then follow it here) and follows the visit as it happens: the node looking for which hotspot until when, the clips as they arrive, all arrived and the hotspot can go off, or why the hotspot did not work. The magnet held once more sends a node whose own WiFi has no laptop on it back to look for the hotspot. The laptop's way sits behind a fold, with the app one click from the page. [#166](https://github.com/oncra/life/pull/166)
+
 ## 4 November 2026
 
 ### The winter window opens at civil dawn
