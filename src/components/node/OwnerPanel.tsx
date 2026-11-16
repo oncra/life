@@ -190,7 +190,6 @@ export default function OwnerPanel({ place, state: initial, night, config, month
               <a className={`${button} inline-block`} href={`${APP}/mac`}>Download for Mac</a>
               <a className={`${button} inline-block`} href={`${APP}/windows`}>Download for Windows</a>
             </div>
-            <p className="text-xs text-muted">A Mac with an Intel processor (Apple menu, About This Mac): <a className="underline" href={`${APP}/mac-intel`}>this download</a>.</p>
             <div>The node&apos;s WiFi <code className="ml-1">{s.apSsid}</code>, password <code className="ml-1">{s.apPsk}</code></div>
             <button type="button" disabled={busy !== null} onClick={() => call("ap", "visit", "PUT", { apPsk: null }, "A new password. The node takes it when the visit starts.")} className={button}>Draw a new password</button>
           </div>
