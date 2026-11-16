@@ -336,9 +336,32 @@ def make_song(path: Path):
 
 
 def make_bat(path: Path):
-    """A bat clip from the AudioMoth: 15 s of WAV at 192 kHz, a 40 kHz tone, 20 dB louder from 3 to 6 s."""
+    """A bat clip from the AudioMoth: 15 s at 192 kHz, a 40 kHz tone, 20 dB louder from 3 to 6 s. As FLAC, the way
+    BirdNET-Go keeps a bat's clip from 20261014 on, or as WAV, its other choice (ffmpeg's WAV has the extensible
+    header above 48 kHz, BirdNET-Go's own the plain one: Rate reads both)."""
+    codec = {".flac": "flac", ".wav": "pcm_s16le"}[path.suffix]
     subprocess.run([FFMPEG, "-nostdin", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=40000:sample_rate=192000:duration=15",
-                    "-af", "volume=-30dB,volume=enable='between(t,3,6)':volume=20dB", "-c:a", "pcm_s16le", str(path)], check=True)
+                    "-af", "volume=-30dB,volume=enable='between(t,3,6)':volume=20dB", "-c:a", codec, str(path)], check=True)
+
+
+def wav_head(rate: int, extensible=False, junk=False) -> bytes:
+    """A mono 16-bit WAV with a moment of silence, its header by hand: the plain fmt chunk BirdNET-Go's own writer
+    puts at any rate, or the WAVE_FORMAT_EXTENSIBLE one ffmpeg puts above 48 kHz; `junk` puts the JUNK chunk in front
+    that a writer keeps free for an RF64 header."""
+    def le(n: int, size: int) -> bytes:
+        return n.to_bytes(size, "little")
+    fmt = le(0xFFFE if extensible else 1, 2) + le(1, 2) + le(rate, 4) + le(rate * 2, 4) + le(2, 2) + le(16, 2)
+    if extensible:   # cbSize, valid bits, the channel mask (front centre) and the PCM SubFormat GUID
+        fmt += le(22, 2) + le(16, 2) + le(4, 4) + bytes.fromhex("0100000000001000800000aa00389b71")
+    body = (b"WAVE" + (b"JUNK" + le(28, 4) + bytes(28) if junk else b"") + b"fmt " + le(len(fmt), 4) + fmt
+            + b"data" + le(200, 4) + bytes(200))
+    return b"RIFF" + le(len(body), 4) + body
+
+
+def flac_head(rate: int) -> bytes:
+    """The start of a mono 16-bit FLAC file: its marker and STREAMINFO, the block every FLAC begins with."""
+    info = (4096).to_bytes(2, "big") * 2 + bytes(6) + (rate << 44 | 15 << 36).to_bytes(8, "big") + bytes(16)
+    return b"fLaC" + bytes([0x80]) + len(info).to_bytes(3, "big") + info
 
 
 def duration(path: Path) -> float:
@@ -645,6 +668,40 @@ class KeepAll(unittest.TestCase):
         nd.agrees(self)
 
 
+class Rate(unittest.TestCase):
+    """A clip recorded faster than 48 kHz is a bat's: the rate is read from the clip's own header, whatever writer
+    made it and whichever Python reads it (the wave module refuses the extensible header before 3.12)."""
+
+    def setUp(self):
+        self.mod = load({})
+        self._dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self._dir.cleanup()
+
+    def rate(self, name: str, data: bytes) -> int:
+        p = Path(self._dir.name) / name
+        p.write_bytes(data)
+        return self.mod.rate(p)
+
+    def test_wav_and_flac_say_their_rate(self):
+        for name, data, want in [("plain.wav", wav_head(192000), 192000),              # BirdNET-Go's own WAV
+                                 ("extensible.wav", wav_head(192000, extensible=True), 192000),   # ffmpeg's
+                                 ("junk-first.wav", wav_head(384000, extensible=True, junk=True), 384000),
+                                 ("bird.wav", wav_head(48000), 48000),
+                                 ("bat.flac", flac_head(192000), 192000),              # BirdNET-Go's for a bat
+                                 ("bird.flac", flac_head(48000), 48000)]:
+            with self.subTest(name):
+                self.assertEqual(self.rate(name, data), want)
+
+    def test_anything_else_counts_as_48_khz(self):
+        for name, data in [("song.opus", b"OggS" + bytes(60)), ("cut-short.wav", wav_head(192000)[:26]),
+                           ("not-sound.wav", b"not sound at all " * 20), ("empty.flac", b"")]:
+            with self.subTest(name):
+                self.assertEqual(self.rate(name, data), 48000)
+        self.assertEqual(self.mod.rate(Path(self._dir.name) / "gone.flac"), 48000)
+
+
 @unittest.skipUnless(FFMPEG, "ffmpeg is not installed")
 class Cut(unittest.TestCase):
     """The node cuts each kept clip to its final form: seven seconds from the detection, levelled, AAC."""
@@ -652,9 +709,11 @@ class Cut(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._tmp = tempfile.TemporaryDirectory()
-        cls.song, cls.bat = Path(cls._tmp.name) / "song.opus", Path(cls._tmp.name) / "bat.wav"
+        tmp = Path(cls._tmp.name)
+        cls.song, cls.bat, cls.bat_flac = tmp / "song.opus", tmp / "bat.wav", tmp / "bat.flac"
         make_song(cls.song)
         make_bat(cls.bat)
+        make_bat(cls.bat_flac)
 
     @classmethod
     def tearDownClass(cls):
@@ -682,14 +741,20 @@ class Cut(unittest.TestCase):
         self.assertAlmostEqual(peak(out), -2.0, delta=1.5)
         self.assertEqual(nd.files(), [r["file"]])                      # BirdNET-Go's 15 seconds are gone
 
-    def test_a_bat_is_cut_to_its_three_seconds_and_slowed_ten_times(self):
+    def slowed(self, bat: Path):
         nd = self.node
-        nd.detect(4, 0.7, MAY, audio=self.bat)
+        nd.detect(4, 0.7, MAY, audio=bat)
         nd.mod.sample(random.Random(1), now=NOW)
         r = nd.rows()[0]
         self.assertEqual(r["file"], "clips/2026-05/20260504-070000_pipistrellus_pipistrellus_0.7_1.x10.m4a")
         self.assertEqual((r["clip_s"], r["from_s"], r["to_s"], r["expansion"]), (3.2, 0.1, 3.1, 10))   # in recording seconds
         self.assertAlmostEqual(duration(nd.home / r["file"]), 32.0, delta=0.3)
+
+    def test_a_bat_is_cut_to_its_three_seconds_and_slowed_ten_times(self):
+        self.slowed(self.bat)
+
+    def test_a_bat_in_flac_as_birdnet_go_keeps_it_is_slowed_the_same(self):
+        self.slowed(self.bat_flac)
 
     def test_a_clip_ffmpeg_cannot_read_stays_as_birdnet_wrote_it(self):
         nd = self.node
