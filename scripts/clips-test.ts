@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -243,6 +243,44 @@ async function main() {
     await pruneClips();
     assert.equal(await prisma.clip.count({ where: { deviceId: device.id, file: { not: null } } }), 0, "seven days: the sound of clips ten days old is gone");
     assert.ok((await prisma.clip.count({ where: { deviceId: device.id } })) > 0, "the rows stay, for the thresholds");
+
+    // --- the research archive: what is kept, and the sound waits for it ---
+    const arch = await import("../src/lib/clip-archive");
+    process.env.CLIP_ARCHIVE = "1";
+    const mk = (ref: string, scientific: string, confidence: number, ts: string, created = ago(10)) =>
+      prisma.clip.create({ data: { deviceId: device.id, detectionRef: ref, ts: new Date(ts), scientific, confidence, source: "AudioMoth", file: `${device.id}/${ref}.m4a`, mime: "audio/mp4", sha256: sha(ref), createdAt: created } });
+    const high = await mk("a-high", "Turdus merula", 0.81, "2026-05-03T05:00:00Z");
+    const low = [];
+    for (let k = 1; k <= 7; k++) low.push(await mk(`a-low${k}`, "Botaurus stellaris", 0.12, `2026-05-0${k + 1}T05:00:00Z`));
+    const judgedClip = await mk("a-judged", "Botaurus stellaris", 0.13, "2026-05-20T05:00:00Z");
+    const fresh = await mk("a-fresh", "Ardea cinerea", 0.21, "2026-05-21T05:00:00Z", ago(1));
+    const user = await prisma.user.create({ data: { email: `clips-test-${Date.now()}@example.org` } });
+    try {
+      await prisma.clipReview.create({ data: { clipId: judgedClip.id, userId: user.id, verdict: "wrong", actual: "ship horn" } });
+      const f = (c: { file: string | null }) => c.file!;
+      const pending = await arch.archivePending();
+      const mine = pending.filter((x) => x.startsWith(`${device.id}/a-`));
+      assert.deepEqual(mine, [high, ...low.slice(0, 5), judgedClip, fresh].map(f).sort(), "0.5 and up, the first five of a band below it, a judged clip whatever its rank, and a band's first");
+      assert.equal(await pruneClips(), 0, "with the archive on, nothing older than seven days goes before it is archived or judged");
+      assert.equal(await arch.archiveSkip(), 2, "the sixth and seventh low clips are judged not worth keeping; the fresh one is too new to judge");
+      assert.equal(await arch.archiveDone(mine), 8, "eight clips reached the archive");
+      assert.deepEqual((await arch.archivePending()).filter((x) => x.startsWith(`${device.id}/a-`)), [], "nothing of these waits any more");
+      // a clip that arrives late, heard before the archived ones, does not push one of them out of its band
+      const late = await mk("a-late", "Botaurus stellaris", 0.14, "2026-05-01T04:00:00Z");
+      assert.equal((await arch.archivePending()).includes(f(late)), false, "the archived five keep the band's slots");
+      assert.equal(await pruneClips(), 8, "the archived and the skipped clips older than seven days lose their sound here");
+      const left = await prisma.clip.findMany({ where: { deviceId: device.id, detectionRef: { startsWith: "a-" }, file: { not: null } }, select: { detectionRef: true } });
+      assert.deepEqual(left.map((c) => c.detectionRef).sort(), ["a-fresh", "a-judged", "a-late"], "the judged clip keeps its sound for good; the fresh and the late one wait to be judged");
+      const dir = path.join(tmp, "manifest");
+      const written = await arch.archiveManifests(dir, ago(1));
+      assert.deepEqual(written, [path.join(place.id, "2026-05.csv")]);
+      const csv = readFileSync(path.join(dir, written[0]), "utf8").trim().split("\n");
+      assert.equal(csv.length, 9, "a header and the eight archived clips of May");
+      assert.ok(csv.some((l) => l.startsWith(`${high.id},`) && l.includes(`,${device.id}/a-high.m4a,`)), "the archive name stays after the oracle forgot the file");
+    } finally {
+      delete process.env.CLIP_ARCHIVE;
+      await prisma.user.delete({ where: { id: user.id } });
+    }
 
     console.log("clips:test ok");
   } finally {

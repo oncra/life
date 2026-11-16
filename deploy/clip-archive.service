@@ -1,0 +1,7 @@
+[Unit]
+Description=Life oracle: copy the clips worth keeping to the research archive
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/life/deploy/clip-archive.sh

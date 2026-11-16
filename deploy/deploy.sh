@@ -11,4 +11,9 @@ docker compose build --pull app
 docker compose up -d --remove-orphans
 # the build cache grows by a few hundred MB per deploy and once filled the disk (12 October 2026); keep the recent layers only
 docker builder prune -f --keep-storage 3G >/dev/null 2>&1 || true
+# the research archive's nightly copy (deploy/clip-archive.sh), when it is switched on in .env
+if grep -q '^CLIP_ARCHIVE=1' .env; then
+  sudo install -m 644 deploy/clip-archive.service deploy/clip-archive.timer /etc/systemd/system/
+  sudo systemctl daemon-reload && sudo systemctl enable --now clip-archive.timer >/dev/null
+fi
 docker compose ps

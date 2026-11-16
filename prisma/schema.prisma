@@ -530,6 +530,12 @@ model Clip {
   gainDb       Float?
   /// the laptop batch it came in with (ClipBatch.batch), when a laptop carried it
   batch        String?
+  /// when its sound reached the research archive (src/lib/clip-archive.ts); null while it has not
+  archivedAt   DateTime?
+  /// its name in the archive, which stays when the oracle deletes its own copy and forgets `file`
+  archiveFile  String?
+  /// judged not worth keeping for research, so its sound goes at the end of its days on the oracle
+  archiveSkip  Boolean      @default(false)
   createdAt    DateTime     @default(now())
   reviews      ClipReview[]
 
