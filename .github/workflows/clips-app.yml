@@ -88,11 +88,11 @@ jobs:
 
           | Your laptop | File |
           | :-- | :-- |
-          | Mac with an Apple chip (M1, M2, M3, M4 or later) | life-clips-mac-Apple-M1-or-later |
-          | Mac with an Intel processor | life-clips-mac-Intel |
+          | Mac, any (Apple chip or Intel) | Life-Clips-Mac.zip: open it and double-click Life Clips |
           | Windows PC | life-clips-windows.exe |
+          | Mac, for the command line | life-clips-mac-Apple-M1-or-later or life-clips-mac-Intel |
 
-          Apple menu > About This Mac says which Mac you have: "Chip: Apple M..." or "Processor: Intel". How to start the app the first time, and how a visit goes: [clients/clips-app/README.md](https://github.com/oncra/life/blob/$TAG/clients/clips-app/README.md). SHA256SUMS lists the SHA-256 of each file.
+          The Mac app is signed and notarized by Apple, and joins this release shortly after the other files. How to start the app the first time, and how a visit goes: [clients/clips-app/README.md](https://github.com/oncra/life/blob/$TAG/clients/clips-app/README.md). SHA256SUMS lists the SHA-256 of the program files.
           EOF
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest=false \
               --title "Life Clips ${TAG#clips-app-}" --notes-file notes.md

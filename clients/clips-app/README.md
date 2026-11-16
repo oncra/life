@@ -7,36 +7,33 @@ the oracle.
 
 ## Download
 
-Life Clips is published as a release of [oncra/life](https://github.com/oncra/life/releases), under a tag that starts
-with `clips-app-v`. (The release marked Latest is the node's image, not this app.) Take the file for your laptop:
+The node's page in the Life Oracle has a download button for each kind of laptop, which always gives the newest
+version. The files are releases of [oncra/life](https://github.com/oncra/life/releases), under tags that start with
+`clips-app-v` (the release marked Latest is the node's image, not this app):
 
 | Laptop | File |
 | :-- | :-- |
-| Mac with an Apple chip (M1, M2, M3, M4 or later) | `life-clips-mac-Apple-M1-or-later` |
-| Mac with an Intel processor | `life-clips-mac-Intel` |
+| Mac, any (Apple chip or Intel, macOS 12 or later) | `Life-Clips-Mac.zip`, the app, signed and notarized by Apple |
 | Windows PC | `life-clips-windows.exe` |
+| Mac, for the command line | `life-clips-mac-Apple-M1-or-later` or `life-clips-mac-Intel` |
 
-A direct link has this form, with the version you want:
-`https://github.com/oncra/life/releases/download/clips-app-v1.0.0/life-clips-mac-Apple-M1-or-later`. Apple menu > About This
-Mac says which Mac you have ("Chip: Apple M..." or "Processor: Intel"). `SHA256SUMS` beside the files lists their
-SHA-256.
+`SHA256SUMS` lists the SHA-256 of the program files.
 
 ## First start
 
-**macOS.** The app is not signed by Apple, so macOS asks once.
-
-1. A browser saves the file without permission to run it. Open Terminal and type
-   `chmod +x ~/Downloads/life-clips-mac-*`, then press Return.
-2. In Finder, right-click the file, choose Open, then Open again. On macOS 15 or later, or when there is no Open
-   button: close the message, go to System Settings > Privacy & Security, scroll down, click Open Anyway beside
-   life-clips, and open the file again.
-3. A Terminal window opens and the app appears in your browser. Keep that window open while you work: closing it
-   stops the app.
-4. If macOS asks whether Terminal may find devices on your local network, choose Allow. That is how the app reaches
-   the node.
+**macOS.** Open `Life-Clips-Mac.zip` if your browser did not unpack it, and double-click Life Clips. macOS asks once
+whether to open an app from the internet: choose Open. The app has no window of its own: it opens in your browser,
+and closing that page stops it. The first time it reaches a node, macOS asks whether Life Clips may find devices on
+your local network: choose Allow, as that is how it reaches the node. You can move it to Applications first, or keep
+it where it is.
 
 **Windows.** Double-click `life-clips-windows.exe`. If Windows says "Windows protected your PC", click More info,
 then Run anyway. A console window opens and the app appears in your browser. Keep that window open while you work.
+
+**The Mac programs for the command line** are not signed. A browser saves them without permission to run; in
+Terminal, `chmod +x ~/Downloads/life-clips-mac-*` gives it, and `~/Downloads/life-clips-mac-Apple-M1-or-later` (or
+`-Intel`) starts it. If macOS refuses the file, allow it under System Settings > Privacy & Security > Open Anyway.
+Apple menu > About This Mac says which Mac you have ("Chip: Apple M..." or "Processor: Intel").
 
 ## A visit in three steps
 
@@ -87,4 +84,9 @@ external disk. `LIFE_CLIPS_WIFI_PASSWORD` gives `fetch` the WiFi password withou
 ## Building
 
 Go 1.23 or later, and nothing else: `go build` in this folder, `go test ./...` for the tests. A tag `clips-app-v*`
-builds the release files (`.github/workflows/clips-app.yml`).
+builds the release files (`.github/workflows/clips-app.yml`). The Mac app is made from that release's two Mac programs
+on a Mac that holds the Developer ID key, by `mac/make-mac-app.sh <tag>`: one program for both kinds of Mac (lipo),
+the bundle (`mac/Info.plist`, the icon drawn by `mac/icon.py`), signed with the hardened runtime, notarized, stapled
+and attached to the release as `Life-Clips-Mac.zip`. `mac/make-mac-app.sh <tag> --try DIR` builds it from programs in
+DIR, signed ad hoc, to try. Started as the app, Life Clips ends 20 seconds after its page was closed (the page says
+bye as it goes; a reload comes back in time), or after 30 minutes without a word from it, never during a download.
