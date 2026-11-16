@@ -768,9 +768,15 @@ def status(con) -> dict:
 
 
 def write_status(con) -> None:
-    tmp = HOME / "status.json.tmp"
-    tmp.write_text(json.dumps(status(con)))
-    os.replace(tmp, HOME / "status.json")
+    """status.json, which the heartbeat reads. The sample, an upload, a laptop's handover and the heartbeat's answer
+    each write it as they end, and two can end at the same moment, so they take turns under a lock of their own:
+    sharing the one temporary file, the second rename would find it gone, or the first would move into place a file
+    the second is still writing. The status is read under the lock too, so the last one in leaves the newest count."""
+    with open(HOME / ".status-lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        tmp = HOME / "status.json.tmp"
+        tmp.write_text(json.dumps(status(con)))
+        os.replace(tmp, HOME / "status.json")
 
 
 def sha256(p: Path | bytes) -> str:

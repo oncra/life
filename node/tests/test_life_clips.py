@@ -29,6 +29,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 import unittest
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -1314,7 +1315,7 @@ class Stress(unittest.TestCase):
     def test_sample_and_upload_at_the_same_time(self):
         nd, o = self.node, self.oracle
         sampler, sender = nd.module(), nd.module()      # two programs on one node: the timer's sample and a visit's upload
-        errors, done = [], threading.Event()
+        errors, done = [], threading.Event()            # with their tracebacks, so a failure says where
 
         def send():
             try:
@@ -1322,7 +1323,7 @@ class Stress(unittest.TestCase):
                     sender.upload(seconds=5)
                     time.sleep(0.005)
             except BaseException as e:  # noqa: BLE001
-                errors.append(e)
+                errors.append("".join(traceback.format_exception(e)))
 
         t = threading.Thread(target=send)
         t.start()
@@ -1336,7 +1337,7 @@ class Stress(unittest.TestCase):
                     nd.detect(1 + i % 2, conf, MAY + timedelta(days=k % 25, seconds=i * 13))
                 sampler.sample(random.Random(k), now=LATER)
         except BaseException as e:  # noqa: BLE001
-            errors.append(e)
+            errors.append("".join(traceback.format_exception(e)))
         finally:
             done.set()
             t.join(120)
@@ -1350,6 +1351,54 @@ class Stress(unittest.TestCase):
         self.assertLessEqual(bands["0.3"], 10)                         # and no more than five per band and species
         self.assertEqual(max(o.by_ref.values()), 1)                    # each of them once
         self.assertEqual({r["ref"] for r in nd.rows() if r["via"] == "upload"}, set(o.clips))
+
+    def test_two_programs_write_the_status_at_once(self):
+        """The moment the test above met now and then: one program writes the status while another's waits to be
+        renamed into place, and an upload has sent the last clip in between. Both come through, and the heartbeat
+        finds one whole file with the newest count."""
+        nd = self.node
+        first, second = nd.module(), nd.module()
+        con = first.connect()
+        nd.execute("""insert into kept (det, ts, ref, cell, file, scientific, confidence, band, month, bytes, sha256)
+                      values (1, 1, '1@1', 'c', 'clips/1.m4a', 'Turdus merula', 0.8, '0.8', '2026-05', 9, 'x')""")
+        errors, turn = [], threading.Event()
+
+        def other():
+            c = second.connect()
+            try:
+                second.write_status(c)
+            except BaseException as e:  # noqa: BLE001
+                errors.append("".join(traceback.format_exception(e)))
+            finally:
+                c.close()
+                turn.set()
+
+        t = threading.Thread(target=other)
+        replace, flock = os.replace, fcntl.flock
+
+        def waits(f, how):
+            if threading.current_thread() is t:
+                turn.set()               # the other program waits for its turn
+            return flock(f, how)
+
+        def rename(src, dst):
+            if threading.current_thread() is not t and t.ident is None:
+                nd.execute("update kept set collected = 1, via = 'upload' where ref = '1@1'")
+                t.start()
+                turn.wait(10)            # until the other has written its status, or waits to
+            return replace(src, dst)
+
+        os.replace, fcntl.flock = rename, waits
+        try:
+            first.write_status(con)
+        finally:
+            os.replace, fcntl.flock = replace, flock
+            if t.ident is not None:
+                t.join(10)
+            con.close()
+        self.assertEqual(errors, [])
+        self.assertEqual(nd.status()["waiting"], 0)                    # not the count read before the upload
+        self.assertEqual([p.name for p in nd.home.glob("status.json*")], ["status.json"])
 
 
 class Heartbeat(unittest.TestCase):
