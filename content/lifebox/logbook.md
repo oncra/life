@@ -39,6 +39,7 @@ also kept showing the default name "hotspot", while the node looked for the iPho
 *Change.* The node joins the phone only once a post under way has finished, at most 20 seconds, and posts over the
 phone as soon as it is on it, so the page says so before the first clip. New settings that arrive during the search are
 posted back once the post that brought them is done, so the page shows the name the node looks for.
+([#170](https://github.com/oncra/life/pull/170))
 
 ## 4 November 2026
 
