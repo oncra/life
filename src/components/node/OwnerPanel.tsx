@@ -1,24 +1,70 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { VisitState } from "@/lib/node-visit";
 import type { NightState } from "@/lib/node-night";
 import type { ConfigState } from "@/lib/node-config";
 import NightWindow from "./NightWindow";
 import NodeSettings from "./NodeSettings";
 
-// The owner's corner of the node dashboard: the WiFi the node uses on a visit, the alarm window, the clips, on the node
-// and on the oracle, the meadow-bird window (NightWindow) and the settings over 4G (NodeSettings). Shown only to
-// whoever may run the node (src/lib/privacy.ts canManage); the API checks again.
+// The owner's corner of the node dashboard. It opens with the visit, the way the clips leave a node in a field: the
+// phone's hotspot (set once), what to do at the box, and the visit as it happens, from the node's posts and the clips
+// arriving; the laptop app is the way without phone signal. Then the alarm window, the clips, on the node and on the
+// oracle, the meadow-bird window (NightWindow) and the settings over 4G (NodeSettings). Shown only to whoever may run
+// the node (src/lib/privacy.ts canManage); the API checks again.
 
 type Props = { place: string; state: VisitState; night?: NightState; config?: ConfigState; months: { month: string; n: number }[]; zone: string };
 
-const APP = "https://github.com/oncra/life/tree/main/clients/clips-app";
+/** The newest Life Clips app for each kind of laptop (src/app/download/life-clips/[os]/route.ts). */
+const APP = "/download/life-clips";
 const VISIT_HOW: Record<string, string> = {
   online: "the node was online already",
   hotspot: "over a phone's hotspot",
   wifi: "a laptop on the node's WiFi",
   "hotspot+wifi": "a hotspot, then a laptop",
   none: "nothing taken",
+};
+
+type Line = { tone: "wait" | "go" | "ok" | "warn"; text: string };
+
+const clips = (k: number) => `${k} ${k === 1 ? "clip" : "clips"}`;
+const AGAIN = "Switch the hotspot on, keep its screen open and hold the magnet on the mark once more: the node looks again.";
+
+/** What a visit going on now looks like to the visitor (VisitState.now, from the node's posts at its turns): where the
+ * node is, and the clips that reached the oracle since the visit began. `left` is what the node's newest post said was
+ * still on it; posted after the clips went (phase sent), that is what stays. No clock of the browser's own: the oracle
+ * says whether the search is still on, so the page renders the same on the server and in the browser. */
+function visitLine(s: VisitState, clock: (iso: string) => string): Line | null {
+  const n = s.now;
+  if (!n) return null;
+  const name = n.hotspot ? ` "${n.hotspot}"` : "";
+  const left = s.clips?.waiting ?? null;
+  if (n.phase === "sent") {
+    const off = n.hotspot ? " You can switch your hotspot off." : "";
+    if (left === 0) return { tone: "ok", text: n.arrived ? `All ${clips(n.arrived)} arrived.${off}` : `There was nothing to send.${off}` };
+    return { tone: "go", text: `${clips(n.arrived)} arrived; ${left === null ? "some are" : `${left} ${left === 1 ? "is" : "are"}`} still on the node.` };
+  }
+  if (n.phase === "wifi") {
+    const wifi = `it has opened its own WiFi for a laptop, until ${clock(n.until)}`;
+    if (n.arrived) return { tone: "warn", text: `${clips(n.arrived)} arrived over your hotspot; for the ${left === null ? "clips" : clips(left)} left ${wifi}. ${AGAIN}` };
+    if (n.sent !== null) return { tone: "warn", text: `The node joined your hotspot, but no clip went out over it: does your phone have mobile data here? Now ${wifi}.` };
+    return { tone: "warn", text: `The node did not find your hotspot${name}, so ${wifi}. Check its name and password in step 1. ${AGAIN}` };
+  }
+  if (n.arrived) return { tone: "go", text: `${n.hotspot ? "On your hotspot: " : ""}${n.arrived}${left ? ` of ${left}` : ""} clips arrived.` };
+  if (n.phase === "online") return { tone: "go", text: "The node is online over its own connection and sends its clips." };
+  if (n.phase === "hotspot") return { tone: "go", text: `The node is on your hotspot${name} and starts sending.` };
+  if (n.phase === "looking" && n.lookUntil) {
+    return n.looking
+      ? { tone: "wait", text: `The node is awake and looks for your hotspot${name} until ${clock(n.lookUntil)}. Keep the hotspot screen open until your phone shows a connection.` }
+      : { tone: "warn", text: `The node looked for your hotspot${name} until ${clock(n.lookUntil)} and has not said it found it. No clips within a minute? ${AGAIN}` };
+  }
+  return { tone: "wait", text: "The node is starting the visit." };
+}
+
+const TONE: Record<Line["tone"], string> = {
+  wait: "border-amber-300 bg-amber-50",
+  go: "border-accent bg-green-50",
+  ok: "border-accent bg-green-50 font-medium",
+  warn: "border-red-300 bg-red-50",
 };
 
 export default function OwnerPanel({ place, state: initial, night, config, months, zone }: Props) {
@@ -30,6 +76,31 @@ export default function OwnerPanel({ place, state: initial, night, config, month
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const base = `/api/v1/places/${encodeURIComponent(place)}/devices/${encodeURIComponent(s.device)}`;
   const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("en-GB", { timeZone: zone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "never");
+  const clock = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { timeZone: zone, hour: "2-digit", minute: "2-digit" });
+  const live = s.now !== null;
+
+  // While the panel is open the visit shows as it happens: every 5 s during one, every 20 s otherwise, so that its start
+  // shows within moments of the node's first post, and at once when the phone comes back from its hotspot screen. A
+  // hidden tab asks nothing; the form keeps what is being typed.
+  useEffect(() => {
+    let gone = false;
+    async function look() {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const r = await fetch(`${base}/visit`, { cache: "no-store" });
+        if (r.ok && !gone) setS(await r.json());
+      } catch {
+        // no connection for a moment: the next tick asks again
+      }
+    }
+    const id = setInterval(look, live ? 5_000 : 20_000);
+    document.addEventListener("visibilitychange", look);
+    return () => {
+      gone = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", look);
+    };
+  }, [base, live]);
 
   async function call(label: string, path: string, method: string, body?: unknown, done?: string) {
     setBusy(label);
@@ -57,38 +128,76 @@ export default function OwnerPanel({ place, state: initial, night, config, month
   }
 
   const c = s.clips;
+  const line = visitLine(s, clock);
   const input = "mt-1 w-full rounded border border-line px-2 py-1.5 bg-white";
   const button = "rounded-md border border-line bg-white px-3 py-1.5 hover:border-accent disabled:opacity-50";
+  const step = "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white";
   return (
     <section className="mt-6 rounded-lg border border-accent/40 bg-white p-4">
       <h2 className="text-lg font-semibold">For the owner</h2>
-      <p className="text-sm text-muted max-w-3xl">Only you see this. A visit takes the clips off the node: turn on your phone&apos;s hotspot, hold the magnet on the mark for three seconds, and the node wakes, joins the hotspot and sends its clips to the oracle itself. That takes a few minutes; the clips show up below as they arrive. Without a hotspot, the laptop app fetches them over the node&apos;s own WiFi. After at most 30 minutes the node sleeps again, unless it is in a listening window or the alarm is silenced.</p>
+      <p className="text-sm text-muted max-w-3xl">Only you see this.</p>
       {msg && <div className={`mt-3 rounded border p-2 text-sm ${msg.ok ? "border-accent bg-green-50" : "border-red-300 bg-red-50"}`}>{msg.text}</div>}
 
-      <div className="mt-4 grid gap-6 md:grid-cols-2 text-sm">
-        <form onSubmit={(e) => { e.preventDefault(); call("visit", "visit", "PUT", { ssid, psk }, "Saved. The node gets it with its next heartbeat."); }} className="space-y-2">
-          <h3 className="font-medium">Your phone&apos;s hotspot</h3>
-          <label className="block">Name<input required maxLength={32} value={ssid} onChange={(e) => setSsid(e.target.value)} className={input} autoComplete="off" /></label>
-          <label className="block">Password
-            <div className="flex gap-2"><input required minLength={8} maxLength={63} type={show ? "text" : "password"} value={psk} onChange={(e) => setPsk(e.target.value)} className={`${input} font-mono`} autoComplete="off" />
-              <button type="button" onClick={() => setShow(!show)} className={`${button} mt-1`}>{show ? "Hide" : "Show"}</button></div>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button disabled={busy !== null} className="rounded-md bg-accent px-3 py-1.5 text-white disabled:opacity-50">{busy === "visit" ? "Saving…" : "Save"}</button>
-            {!(s.defaults.ssid && s.defaults.psk) && <button type="button" disabled={busy !== null} onClick={() => call("default", "visit", "PUT", { ssid: null, psk: null }, "Back to hotspot / 12345678.")} className={button}>Use the default</button>}
+      <div className="mt-4 max-w-3xl text-sm">
+        <h3 className="text-base font-semibold">Take the clips off the node</h3>
+        <p className="text-muted">Your phone&apos;s hotspot does it: the node joins it and sends its clips to the oracle itself. No app, and the box stays shut.</p>
+        <ol className="mt-3 space-y-5">
+          <li className="flex gap-3">
+            <span className={step}>1</span>
+            <form onSubmit={(e) => { e.preventDefault(); call("visit", "visit", "PUT", { ssid, psk }, "Saved. The node takes it when the visit starts."); }} className="min-w-0 flex-1 space-y-2">
+              <div className="font-medium">Your phone&apos;s hotspot, once</div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="block">Name<input required maxLength={32} value={ssid} onChange={(e) => setSsid(e.target.value)} className={input} autoComplete="off" autoCapitalize="off" spellCheck={false} /></label>
+                <label className="block">Password
+                  <div className="flex gap-2"><input required minLength={8} maxLength={63} type={show ? "text" : "password"} value={psk} onChange={(e) => setPsk(e.target.value)} className={`${input} font-mono`} autoComplete="off" autoCapitalize="off" spellCheck={false} />
+                    <button type="button" onClick={() => setShow(!show)} className={`${button} mt-1`}>{show ? "Hide" : "Show"}</button></div>
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button disabled={busy !== null} className="rounded-md bg-accent px-3 py-1.5 text-white disabled:opacity-50">{busy === "visit" ? "Saving…" : "Save"}</button>
+                {!(s.defaults.ssid && s.defaults.psk) && <button type="button" disabled={busy !== null} onClick={() => call("default", "visit", "PUT", { ssid: null, psk: null }, "Back to hotspot / 12345678.")} className={button}>Use the default</button>}
+                <span className="text-xs">{s.nodeHas ? <span className="text-green-800">The node has it.</span> : <span className="text-amber-700">The node takes it when the visit starts.</span>}</span>
+              </div>
+              <p className="text-xs text-muted">On an iPhone the name is the phone&apos;s name (Settings, General, About) and the password is under Settings, Personal Hotspot; turn on Maximise Compatibility there. On Android: Settings, Hotspot, with WPA2 or WPA2/WPA3, not WPA3 alone. Capitals, spaces and the kind of apostrophe do not matter.</p>
+            </form>
+          </li>
+          <li className="flex gap-3">
+            <span className={step}>2</span>
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">At the node</div>
+              <p>Turn on your hotspot and keep its screen open. Then hold the magnet on the mark for three seconds, or press the button on a sleeping node once. Within two minutes the node joins your phone, which then shows a connection; come back to this page to see the clips arrive.</p>
+            </div>
+          </li>
+          <li className="flex gap-3">
+            <span className={step}>3</span>
+            <div className="min-w-0 flex-1" aria-live="polite">
+              <div className="font-medium">Follow it here</div>
+              {line ? <div className={`mt-1 rounded border p-2 ${TONE[line.tone]}`}>{line.text}</div> : (
+                <p className="text-muted">
+                  {c ? (c.waiting ? `${clips(c.waiting)} wait on the node, as it said at ${when(s.heardAt)}. ` : "Nothing waits on the node now. ") : ""}
+                  As soon as the node starts the visit it shows here, and then the clips as they arrive.
+                </p>
+              )}
+            </div>
+          </li>
+        </ol>
+
+        <details className="mt-5 rounded border border-line p-3">
+          <summary className="cursor-pointer font-medium">No phone signal at the node? Use a laptop</summary>
+          <div className="mt-2 space-y-2">
+            <p>When the node does not find your hotspot within three minutes, it opens a WiFi of its own until the visit ends. The Life Clips app on a laptop joins it, takes the clips, and sends them to the oracle once the laptop is online again; the node deletes them when the oracle has them all.</p>
+            <div className="flex flex-wrap gap-2">
+              <a className={`${button} inline-block`} href={`${APP}/mac`}>Download for Mac</a>
+              <a className={`${button} inline-block`} href={`${APP}/windows`}>Download for Windows</a>
+            </div>
+            <p className="text-xs text-muted">A Mac with an Intel processor (Apple menu, About This Mac): <a className="underline" href={`${APP}/mac-intel`}>this download</a>.</p>
+            <div>The node&apos;s WiFi <code className="ml-1">{s.apSsid}</code>, password <code className="ml-1">{s.apPsk}</code></div>
+            <button type="button" disabled={busy !== null} onClick={() => call("ap", "visit", "PUT", { apPsk: null }, "A new password. The node takes it when the visit starts.")} className={button}>Draw a new password</button>
           </div>
-          <p className="text-xs text-muted">The default works at every node: name your hotspot <code>hotspot</code> with password <code>12345678</code>. Or type your phone&apos;s own hotspot name here; capitals, extra spaces and the kind of apostrophe do not matter. On an iPhone the hotspot&apos;s name is the phone&apos;s name (Settings, General, About); turn on Maximise Compatibility, and keep the Personal Hotspot screen open until the node has joined, because an iPhone hides its hotspot otherwise. On Android choose WPA2 or WPA2/WPA3, not WPA3 alone.</p>
-          <p className="text-xs">{s.nodeHas ? <span className="text-green-800">The node has these settings.</span> : <span className="text-amber-700">The node gets these with its next heartbeat, within the hour while it is awake. Until then it uses what it had{s.nodeRev === -1 ? " (the default)" : ""}.</span>}</p>
-        </form>
+        </details>
+      </div>
 
-        <div className="space-y-2">
-          <h3 className="font-medium">The node&apos;s own WiFi, for a laptop</h3>
-          <div>Name <code className="ml-1">{s.apSsid}</code></div>
-          <div>Password <code className="ml-1">{s.apPsk}</code></div>
-          <button type="button" disabled={busy !== null} onClick={() => call("ap", "visit", "PUT", { apPsk: null }, "A new password. The node gets it with its next heartbeat.")} className={button}>Draw a new password</button>
-          <p className="text-xs text-muted">For many clips or no phone signal: the <a href={APP} className="underline">Life Clips app</a> for macOS and Windows joins this WiFi, downloads the clips and sends them to the oracle once the laptop is online again. The node deletes them when the oracle has them all.</p>
-        </div>
-
+      <div className="mt-6 grid gap-6 md:grid-cols-2 text-sm">
         <div className="space-y-2">
           <h3 className="font-medium">Alarm</h3>
           {s.maintenance ? (

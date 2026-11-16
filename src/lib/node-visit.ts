@@ -69,14 +69,41 @@ function lastVisit(v: unknown): LastVisit {
   };
 }
 
-/** What the owner sees and sets: the visit settings, whether the node has them yet, its clips and its last visit as its
- * last heartbeat said, and the alarm window. */
+/** A visit going on now, from the node's newest heartbeat (`visitNow`, which life-visit keeps while it runs and posts at
+ * its turns, node/life-visit.py): start, looking for the hotspot (which one, until when; `looking` while that time is
+ * not up), hotspot, online (a node on a cable sends at once), sent (the clips went; the heartbeat's clipsWaiting is
+ * what is left) or wifi (the node's own, for a laptop). `sent` is how many left over the hotspot the node joined, null
+ * when it joined none. Only while the visit's time is not up. `arrived` counts the clips that reached the oracle since
+ * the visit began, a minute of the node's clock running ahead allowed. */
+export type VisitNow = { phase: string; since: string; until: string; lookUntil: string | null; looking: boolean; hotspot: string | null; sent: number | null; arrived: number } | null;
+
+function visitNow(v: unknown, heardAt: Date | undefined): Omit<NonNullable<VisitNow>, "arrived"> | null {
+  if (!v || typeof v !== "object" || Array.isArray(v) || !heardAt) return null;
+  const o = v as Record<string, unknown>;
+  const t = (x: unknown) => (typeof x === "number" && Number.isFinite(x) && x > 1e9 ? new Date(x * 1000) : null);
+  const until = t(o.until);
+  const now = Date.now();
+  if (!until || until.getTime() <= now) return null;
+  const phase = typeof o.phase === "string" ? o.phase.slice(0, 16) : "start";
+  const lookUntil = t(o.lookUntil);
+  return {
+    phase, since: (t(o.since) ?? heardAt).toISOString(), until: until.toISOString(),
+    lookUntil: lookUntil?.toISOString() ?? null, looking: phase === "looking" && !!lookUntil && lookUntil.getTime() > now,
+    hotspot: typeof o.hotspot === "string" ? o.hotspot.slice(0, 64) : null,
+    sent: typeof o.sent === "number" && Number.isFinite(o.sent) && o.sent >= 0 ? o.sent : null,
+  };
+}
+
+/** What the owner sees and sets: the visit settings, whether the node has them yet, its clips, its last visit and a
+ * visit going on now as its last heartbeat said, and the alarm window. */
 export async function visitState(deviceId: string) {
   const [d, hb] = await Promise.all([
     prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { visitSsid: true, visitPsk: true, visitApPsk: true, visitRev: true, maintenanceFrom: true, maintenanceUntil: true } }),
     prisma.heartbeat.findFirst({ where: { deviceId }, orderBy: { ts: "desc" }, select: { ts: true, metrics: true } }),
   ]);
   const m = (hb?.metrics ?? {}) as Record<string, unknown>;
+  const live = visitNow(m.visitNow, hb?.ts);
+  const now: VisitNow = live ? { ...live, arrived: await prisma.clip.count({ where: { deviceId, createdAt: { gte: new Date(Date.parse(live.since) - 60_000) } } }) } : null;
   const nodeRev = typeof m.visitRev === "number" ? m.visitRev : null;
   const handed = typeof m.clipsHanded === "string" ? m.clipsHanded.split(",").reduce((s, b) => s + (Number(b.split(":")[1]) || 0), 0) : 0;
   const clips: ClipsOnNode = typeof m.clipsWaiting === "number" ? {
@@ -87,7 +114,7 @@ export async function visitState(deviceId: string) {
     device: deviceId,
     ssid: d.visitSsid ?? VISIT_DEFAULTS.ssid, psk: d.visitPsk ?? VISIT_DEFAULTS.psk, apSsid: apSsid(deviceId), apPsk: await apPskFor(deviceId, d.visitApPsk),
     defaults: { ssid: d.visitSsid === null, psk: d.visitPsk === null },
-    rev: d.visitRev, nodeRev, nodeHas: nodeRev === d.visitRev, heardAt: hb?.ts.toISOString() ?? null, clips, last: lastVisit(m.visitLast),
+    rev: d.visitRev, nodeRev, nodeHas: nodeRev === d.visitRev, heardAt: hb?.ts.toISOString() ?? null, clips, last: lastVisit(m.visitLast), now,
     maintenance: d.maintenanceUntil && d.maintenanceUntil > new Date() ? { from: d.maintenanceFrom?.toISOString() ?? null, until: d.maintenanceUntil.toISOString() } : null,
   };
 }

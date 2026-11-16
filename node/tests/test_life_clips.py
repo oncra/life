@@ -1378,6 +1378,29 @@ class Heartbeat(unittest.TestCase):
                                                         "sent": 31, "handed": 0, "minutes": 4.2}})
             os.environ.pop("LIFE_VISIT_BIN")
 
+    def test_a_running_visit_rides_along(self):
+        with tempfile.TemporaryDirectory() as t:
+            os.environ["LIFE_CLIPS_DIR"] = t
+            os.environ["LIFE_STATE"] = t
+            os.environ["VISIT_RUN"] = t
+            loader = importlib.machinery.SourceFileLoader("life_heartbeat", str(NODE / "life-heartbeat.py"))
+            spec = importlib.util.spec_from_loader(loader.name, loader)
+            hb = importlib.util.module_from_spec(spec)
+            loader.exec_module(hb)
+            self.assertNotIn("visitNow", hb.clips())                                  # no visit
+            run = {"pid": os.getpid(), "reason": "boot", "phase": "looking", "since": 1763300000, "until": 1763301800,
+                   "lookUntil": 1763300180, "hotspot": "Sven’s iPhone", "sent": None, "port": 80, "flag": True}
+            Path(t, "state.json").write_text(json.dumps(run))
+            self.assertEqual(hb.clips()["visitNow"], {"phase": "looking", "since": 1763300000, "until": 1763301800,
+                                                      "lookUntil": 1763300180, "hotspot": "Sven’s iPhone"})
+            Path(t, "state.json").write_text(json.dumps({**run, "phase": "wifi", "sent": 0}))   # joined, but nothing went
+            self.assertEqual({k: hb.clips()["visitNow"].get(k) for k in ("phase", "sent")}, {"phase": "wifi", "sent": 0})
+            gone = subprocess.Popen([sys.executable, "-c", "pass"])
+            gone.wait()
+            Path(t, "state.json").write_text(json.dumps({**run, "pid": gone.pid}))   # a visit that died before its teardown
+            self.assertNotIn("visitNow", hb.clips())
+            os.environ.pop("VISIT_RUN")
+
 
 if __name__ == "__main__":
     unittest.main()

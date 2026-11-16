@@ -7,9 +7,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * A node's visit settings (src/lib/node-visit.ts): the phone hotspot it joins on a visit and the password of its own
- * WiFi for a laptop. GET shows them with whether the node has them yet and its clips as its last heartbeat said. PUT
- * {ssid?, psk?, apPsk?}: a value sets it, null puts the default back (for apPsk: draws a new password). The node
- * hears a change with its next heartbeat answer. A managing key, or the place's owner signed in.
+ * WiFi for a laptop. GET shows them with whether the node has them yet, its clips as its last heartbeat said and a
+ * visit going on now (the visit's own posts, and the clips that arrived since it began). PUT {ssid?, psk?, apPsk?}: a
+ * value sets it, null puts the default back (for apPsk: draws a new password). The node hears a change with its next
+ * heartbeat answer, and a visit posts as it starts. A managing key, or the place's owner signed in.
  */
 async function guard(req: Request, ctx: { params: Promise<{ id: string; deviceId: string }> }): Promise<Response | { deviceId: string }> {
   const { id, deviceId } = await ctx.params;
@@ -39,5 +40,5 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string; dev
   if (b.apPsk !== undefined) data.visitApPsk = b.apPsk ?? newApPsk();
   if (Object.keys(data).length === 1) return json({ error: "send ssid, psk or apPsk" }, 400);
   await prisma.device.update({ where: { id: g.deviceId }, data, select: { id: true } });
-  return json({ ...(await visitState(g.deviceId)), note: "The node gets these with its next heartbeat answer, within the hour while it is awake." }, 200, { "cache-control": "no-store" });
+  return json({ ...(await visitState(g.deviceId)), note: "The node takes these when a visit starts (it posts then), or with its next heartbeat answer." }, 200, { "cache-control": "no-store" });
 }
