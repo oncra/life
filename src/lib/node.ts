@@ -304,20 +304,23 @@ export function lastHeard(placeId: string, n = 5): Promise<HeardRow[]> {
 }
 
 /** What a bird in the dashboard's row plays when it is tapped: the newest clip of that species on this place that
- * still has its sound. From the score /triage starts at (below it a node keeps only a sample, and most of those are
- * noise), and never a clip someone judged wrong. Keyed like `HeardRow.key`; a species without such a clip is absent.
- * Clips reach the oracle only over a WiFi or a cable, so the newest clip can be older than the last detection. */
+ * still has its sound and was never judged wrong, scored from PLAY_GOOD (80%) up. Only a species without one falls back
+ * to the newest from the score /triage starts at (50%): clips scored between the two are mostly poor to listen to
+ * (Sven, 2026-11-16), and below 50% a node keeps only a sample. Keyed like `HeardRow.key`; a species with neither is
+ * absent. Clips reach the oracle only over a WiFi or a cable, so the newest clip can be older than the last detection. */
+export const PLAY_GOOD = 0.8;
 export type HeardClip = { id: string; t: number; confidence: number; expansion: number | null };
 export async function heardClips(placeId: string, keys: string[]): Promise<Record<string, HeardClip>> {
   const out: Record<string, HeardClip> = {};
   if (keys.length === 0) return out;
   const devices = (await prisma.device.findMany({ where: { placeId }, select: { id: true } })).map((d) => d.id);
   if (devices.length === 0) return out;
-  const found = await Promise.all(keys.map((scientific) => prisma.clip.findFirst({
-    where: { deviceId: { in: devices }, scientific, file: { not: null }, confidence: { gte: TRIAGE_MIN_DEFAULT / 100 }, reviews: { none: { verdict: "wrong" } } },
+  const newest = (scientific: string, min: number) => prisma.clip.findFirst({
+    where: { deviceId: { in: devices }, scientific, file: { not: null }, confidence: { gte: min }, reviews: { none: { verdict: "wrong" } } },
     orderBy: { ts: "desc" },
     select: { id: true, ts: true, confidence: true, expansion: true },
-  })));
+  });
+  const found = await Promise.all(keys.map(async (k) => (await newest(k, PLAY_GOOD)) ?? newest(k, TRIAGE_MIN_DEFAULT / 100)));
   keys.forEach((k, i) => {
     const c = found[i];
     if (c) out[k] = { id: c.id, t: c.ts.getTime(), confidence: c.confidence, expansion: c.expansion };
