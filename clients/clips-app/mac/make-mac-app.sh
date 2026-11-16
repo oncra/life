@@ -20,7 +20,9 @@ if [ "${2:-}" = "--try" ]; then try=$(cd "${3:?--try needs a folder}" && pwd); f
 here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
 kc="$work/sign.keychain-db"
+keychains=()   # the user's keychain search list as it was, put back when this ends
 cleanup() {
+  if [ ${#keychains[@]} -gt 0 ]; then security list-keychains -d user -s "${keychains[@]}" 2>/dev/null || true; fi
   security delete-keychain "$kc" 2>/dev/null || true
   rm -rf "$work"
 }
@@ -61,9 +63,13 @@ if [ -n "$try" ]; then
   exit 0
 fi
 
-# a keychain of its own for the signing, deleted when this ends: no prompts, nothing left in the login keychain
+# a keychain of its own for the signing, deleted when this ends: no prompts, nothing left in the login keychain. It
+# joins the search list while it lives, as codesign builds the chain it embeds (up to Apple's G2 intermediate, which
+# macOS does not ship) from that list; the list is put back as it was.
 pw=$(openssl rand -hex 16)
+while IFS= read -r k; do k=${k#*\"}; keychains+=("${k%\"*}"); done < <(security list-keychains -d user)
 security create-keychain -p "$pw" "$kc"
+security list-keychains -d user -s "$kc" ${keychains[@]+"${keychains[@]}"}
 security set-keychain-settings "$kc"
 security unlock-keychain -p "$pw" "$kc"
 curl -fsSL -o "$work/g2.cer" https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer   # the intermediate
