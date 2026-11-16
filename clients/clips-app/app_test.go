@@ -795,4 +795,78 @@ func TestCommandLine(t *testing.T) {
 	if code := run([]string{"version"}, &out, &errb); code != 0 || !strings.Contains(out.String(), version) {
 		t.Fatalf("version: %d %q", code, out.String())
 	}
+	if code := run([]string{"status", "--dir", r.dir, "-psn_0_1234567"}, &out, &errb); code != 0 { // as Finder may start it
+		t.Fatalf("the process number Finder hands an app was read as a flag: %d\n%s", code, errb.String())
+	}
+}
+
+// Started from Finder the app has no window: it goes when its page does, but not while a job runs, and not when the
+// page is only reloaded.
+func TestTheAppGoesWithItsPage(t *testing.T) {
+	r := newRig(t, makeClips(1))
+	a := r.app()
+	a.byeGrace = 80 * time.Millisecond
+	h := a.uiHandler("127.0.0.1:5000", "k3y", func() {})
+	do := func(method, url, key string) int {
+		req := httptest.NewRequest(method, url, nil)
+		if key != "" {
+			req.Header.Set("X-Token", key)
+		}
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	quit := make(chan struct{})
+	gone := func(within time.Duration) bool {
+		select {
+		case <-quit:
+			return true
+		case <-time.After(within):
+			return false
+		}
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	a.mu.Lock()
+	a.seen = time.Now()
+	a.mu.Unlock()
+	go a.linger(ctx, func() { close(quit) })
+
+	for _, url := range []string{"http://127.0.0.1:5000/api/bye", "http://127.0.0.1:5000/api/bye?t=wrong"} {
+		if code := do("POST", url, ""); code != http.StatusForbidden {
+			t.Fatalf("%s: %d", url, code)
+		}
+	}
+	if code := do("POST", "http://127.0.0.1:5000/api/bye?t=k3y", ""); code != http.StatusNoContent { // a beacon has no headers
+		t.Fatalf("bye: %d", code)
+	}
+	if do("GET", "http://127.0.0.1:5000/api/status", "k3y") != http.StatusOK || gone(300*time.Millisecond) {
+		t.Fatalf("a reloaded page ended the app")
+	}
+	a.mu.Lock()
+	a.p.Job = "fetch"
+	a.mu.Unlock()
+	do("POST", "http://127.0.0.1:5000/api/bye?t=k3y", "")
+	if gone(300 * time.Millisecond) {
+		t.Fatalf("the app ended during a download")
+	}
+	a.mu.Lock()
+	a.p.Job = ""
+	a.mu.Unlock()
+	if !gone(2 * time.Second) {
+		t.Fatalf("the app outlived its page")
+	}
+
+	b := r.app()
+	b.idleQuit = 100 * time.Millisecond
+	b.mu.Lock()
+	b.seen = time.Now()
+	b.mu.Unlock()
+	quiet := make(chan struct{})
+	go b.linger(ctx, func() { close(quiet) })
+	select {
+	case <-quiet:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("a page that went silent kept the app")
+	}
 }

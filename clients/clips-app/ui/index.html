@@ -271,7 +271,7 @@ async function poll() {
     st = await api("/api/status");
     render();
   } catch (e) {
-    $("doing").textContent = "Life Clips does not answer. Is its window still open?";
+    $("doing").textContent = "Life Clips does not answer: it has stopped. Open it again to carry on; nothing done so far is lost.";
   }
   timer = setTimeout(poll, st && (st.job || st.node) ? 1000 : 4000);
 }
@@ -299,6 +299,9 @@ $("quitBtn").addEventListener("click", () => {
     document.querySelector("main").replaceChildren(el("h1", "Life Clips has stopped"), el("p", "You can close this tab."));
   });
 });
+
+// closing the page ends Life Clips when it was opened from Finder; a reload comes back in time
+addEventListener("pagehide", () => { if (key) navigator.sendBeacon("/api/bye?t=" + encodeURIComponent(key)); });
 
 if (!key) {
   $("nokey").hidden = false;

@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -51,6 +52,8 @@ func main() {
 }
 
 func run(args []string, stdout, stderr io.Writer) int {
+	// Finder may hand an app it starts its process number (-psn_0_123): not an argument of ours
+	args = slices.DeleteFunc(slices.Clone(args), func(s string) bool { return strings.HasPrefix(s, "-psn_") })
 	cmd := "ui"
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		cmd, args = args[0], args[1:]
@@ -124,6 +127,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	case "send":
 		err = a.send(ctx)
 	case "ui":
+		if inApp() { // no window of its own to keep open: it goes when its page does
+			a.byeGrace, a.idleQuit = 20*time.Second, 30*time.Minute
+		}
 		err = a.serveUI(ctx, !noBrowser)
 	}
 	switch {
@@ -157,12 +163,23 @@ type App struct {
 	workers    int           // downloads at once
 	chunk      int           // clips per handover; the node signs at most 2000 at once
 	findFor    time.Duration // how long to wait for the node to answer after joining its WiFi
+	byeGrace   time.Duration // the app ends this long after its page said bye and none came back (0: never)
+	idleQuit   time.Duration // the app ends after this long without a word from its page (0: never)
 
 	mu     sync.Mutex // guards everything below, and the state in every store
 	stores map[string]*store
 	noted  map[string]bool
 	p      progress
 	cancel context.CancelFunc
+	seen   time.Time // the page's last request
+	bye    time.Time // when the page last said it was going
+}
+
+// inApp says whether this runs as Life Clips.app, started from Finder: there is then no window of its own that shows
+// where the page is or that could be closed to stop it.
+func inApp() bool {
+	exe, err := os.Executable()
+	return err == nil && strings.Contains(filepath.ToSlash(exe), ".app/Contents/MacOS/")
 }
 
 func newApp(dir, node, oracle string) (*App, error) {

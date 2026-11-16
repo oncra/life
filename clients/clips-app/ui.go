@@ -18,7 +18,8 @@ import (
 )
 
 // The page. The app serves one page on 127.0.0.1 and opens the browser on it; the page asks /api/status every
-// second or so and starts jobs with POSTs. One job runs at a time.
+// second or so and starts jobs with POSTs. One job runs at a time. As it is closed, the page says bye (a beacon to
+// /api/bye), which ends the app that was started from Finder (linger).
 
 //go:embed ui/index.html
 var indexHTML []byte
@@ -49,6 +50,12 @@ func (a *App) serveUI(ctx context.Context, open bool) error {
 			fmt.Fprintf(a.out, "Open that address in your browser (%v).\n", err)
 		}
 	}
+	a.mu.Lock()
+	a.seen = time.Now()
+	a.mu.Unlock()
+	if a.byeGrace > 0 || a.idleQuit > 0 {
+		go a.linger(ctx, quit)
+	}
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
 	select {
@@ -68,6 +75,39 @@ func (a *App) serveUI(ctx context.Context, open bool) error {
 	sctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	return srv.Shutdown(sctx)
+}
+
+// linger ends the app once its page has gone: closed (the page says bye as it goes, and no page came back within
+// byeGrace, as one that is reloaded does), or silent for idleQuit. A job that runs finishes first. For the app started
+// from Finder, which nobody can see running: started again, it opens the page again.
+func (a *App) linger(ctx context.Context, quit func()) {
+	tick := time.Second
+	for _, d := range []time.Duration{a.byeGrace, a.idleQuit} {
+		if d > 0 && d/4 < tick {
+			tick = d / 4
+		}
+	}
+	t := time.NewTicker(tick)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case now := <-t.C:
+			a.mu.Lock()
+			seen, bye, job := a.seen, a.bye, a.p.Job != ""
+			a.mu.Unlock()
+			gone := a.byeGrace > 0 && bye.After(seen) && now.Sub(bye) >= a.byeGrace
+			silent := a.idleQuit > 0 && now.Sub(seen) >= a.idleQuit
+			if (gone || silent) && !job {
+				if a.out != nil {
+					fmt.Fprintln(a.out, "The page has gone: Life Clips stops.")
+				}
+				quit()
+				return
+			}
+		}
+	}
 }
 
 func (a *App) busy() bool {
@@ -121,6 +161,12 @@ func (a *App) uiHandler(host, token string, quit func()) http.Handler {
 		a.mu.Unlock()
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 	})
+	mux.HandleFunc("POST /api/bye", func(w http.ResponseWriter, r *http.Request) { // the page is being closed
+		a.mu.Lock()
+		a.bye = time.Now()
+		a.mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/quit", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 		go quit()
@@ -130,9 +176,20 @@ func (a *App) uiHandler(host, token string, quit func()) http.Handler {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}
-		if strings.HasPrefix(r.URL.Path, "/api/") && subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Token")), []byte(token)) != 1 {
-			writeJSON(w, http.StatusForbidden, map[string]string{"error": "open Life Clips from the address it printed in its window"})
-			return
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			key := r.Header.Get("X-Token")
+			if key == "" && r.URL.Path == "/api/bye" { // a beacon from a closing page carries no headers of its own
+				key = r.URL.Query().Get("t")
+			}
+			if subtle.ConstantTimeCompare([]byte(key), []byte(token)) != 1 {
+				writeJSON(w, http.StatusForbidden, map[string]string{"error": "open Life Clips from the address it printed in its window"})
+				return
+			}
+			if r.URL.Path != "/api/bye" {
+				a.mu.Lock()
+				a.seen = time.Now()
+				a.mu.Unlock()
+			}
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
