@@ -16,7 +16,7 @@ const POINTS: { title: string; icon: ReactNode; body: ReactNode }[] = [
   {
     title: "Its own power",
     icon: ICON.sun,
-    body: "A 40 W panel and a 20 Ah battery. A small scheduler wakes the box for its listening hours and puts it to sleep after. Below 12.1 V it shuts itself down cleanly, and it starts again once the sun has lifted the battery above 13.2 V, or in frost once its box is warm enough for the battery to take a charge.",
+    body: "A 40 W panel and a 10 Ah battery. A small scheduler wakes the box for its listening hours and puts it to sleep after. Below 12.1 V it shuts itself down cleanly, and it starts again once the sun has lifted the battery above 13.2 V, or in frost once its box is warm enough for the battery to take a charge.",
   },
   {
     title: "Its own 4G",
@@ -43,7 +43,7 @@ const POINTS: { title: string; icon: ReactNode; body: ReactNode }[] = [
     icon: ICON.euro,
     body: (
       <>
-        About €809 in parts, the SIM for ten years included: about €81 a year, with no routine visits. Every part, shop and price is published, and the software and the build guide are open. Where the other listening boxes fit best, and what each costs with its visits counted: <Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>.
+        About €797 in parts, the SIM for ten years included: about €80 a year, with no routine visits. Every part, shop and price is published, and the software and the build guide are open. Where the other listening boxes fit best, and what each costs with its visits counted: <Link className="underline" href="/docs/kit#how-it-compares">how it compares</Link>.
       </>
     ),
   },

@@ -15,6 +15,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 *Change.* The guard stops at 12.1 V now: about 12.2 V at the cells when the charge is not blocked, a few per cent left and far above the cells' limit, and in frost well under what a half-full battery reads through the diode. And a node the guard has stopped waits for warmth. When the battery comes back it powers off again at once and looks every half hour while the sun is up, after sunset at the start of its next window. At a look the sensor, after half an hour off, reads the air in the box, and under 5 °C the node goes off again. The battery warms after the air, so 5 °C is a margin; this winter's frost mornings will show whether it is the right one. While the node waits the board's guard is off, because with it on the board skips a start that comes while the battery reads low, and that start comes round again a month later; the node arms it again first thing at every boot. A look posts only every three hours, so a day of frost costs a post every three hours, not one every half hour. The node's page shows such a node as saving its battery, waiting for warmth, with its last reading and its next look. [#174](https://github.com/oncra/life/pull/174)
 
+### Back to the 10 Ah battery, and everything in the one box
+
+*Learning.* The 20 Ah battery became the standard on 12 October because it loses no listening where the panel gets half the sun. Where the panel sees the sky the 10 Ah does nearly as well: on ten measured winters at Schiphol a free panel kept it above 26 % with no morning lost, and node 1 has run on one since September. The difference is in shade: with half a free panel's harvest the 10 Ah loses 2 % of the winter mornings and up to 3 % of the core in the worst month, the 20 Ah none. Without any charge a full 10 Ah lasts about 9 days of winter hours, the 20 Ah about 19.
+
+*Change.* The kit's battery is the 10 Ah again, the same Green Cell CUBE node 1 runs on, now from reichelt (€61.85 with the dangerous-goods surcharge, in stock), and everything goes in the reichelt box; the 20 Ah stays in the list for a site in shade or under a crop. Its Faston terminals take 6.3 mm receptacles on the battery lead instead of ring terminals. The budget per node falls from about €826 to €797. Burying the battery below the frost line waits for a later prototype.
+
 ## 16 November 2026
 
 ### A bat's clip now comes as FLAC, and it would have been cut as a bird's
