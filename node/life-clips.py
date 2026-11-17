@@ -47,8 +47,10 @@ until its loudest moment is at -2 dBFS (at most 60 dB up, so the quiet I2S micro
 AudioMoth; the gain is written beside the clip, so the original level can be had back) and stores it as AAC (.m4a),
 which every browser plays. A clip recorded faster than 48 kHz (a bat, on the AudioMoth at 192 kHz) is cut to its
 detected three seconds with a tenth of a second either side and slowed down ten times (.x10.m4a): AAC keeps nothing
-above about 18 kHz, and slowed down a call at 40 kHz is heard at 4 kHz. Without ffmpeg, or when it fails, the clip
-stays as BirdNET-Go wrote it, with its timing; nothing is lost for want of a cut.
+above about 18 kHz, and slowed down a call at 40 kHz is heard at 4 kHz. Such a clip comes from BirdNET-Go 20261014 or
+later, which keeps a bat's clip at the full rate as FLAC (or WAV) whatever the export type, and the rate is read from
+the clip's own header (`rate`). Without ffmpeg, or when it fails, the clip stays as BirdNET-Go wrote it, with its
+timing; nothing is lost for want of a cut.
 
 How a clip leaves the node, each way deleting it only once its copy is known to be good:
 - `upload`: the node posts it to the oracle (POST /clips, with its own token), bound to the interface it checked, so
@@ -104,7 +106,6 @@ import sys
 import time
 import urllib.parse
 import uuid
-import wave
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -149,7 +150,8 @@ BATS_FRESH_S = 15 * 60   # life-mic writes its bat decision at least every five 
 BIND = sys.platform.startswith("linux") and os.environ.get("LIFE_CLIPS_BIND", "1").strip() != "0"
 
 # BirdNET-Go's config while clips are kept, and while they are not. Its threshold goes down so that every score band
-# has detections in it; export goes to small Opus files that only this program deletes.
+# has detections in it; export goes to small Opus files that only this program deletes. From BirdNET-Go 20261014 on,
+# a bat's clip is FLAC all the same: its realtime.audio.export.ultrasonictype, left at its default.
 ON = [(("realtime", "audio", "export", "enabled"), "true"),
       (("realtime", "audio", "export", "type"), "opus"),
       (("realtime", "audio", "export", "bitrate"), "32k"),
@@ -644,14 +646,31 @@ def sweep(con, now: float) -> int:
 
 
 def rate(clip: Path) -> int:
-    """The sample rate of a WAV clip; BirdNET-Go's Opus clips are 48 kHz."""
-    if clip.suffix.lower() != ".wav":
-        return 48000
+    """The sample rate a clip was recorded at, from its own header. From 20261014 on, BirdNET-Go keeps a bat's clip at
+    the microphone's full rate, losslessly as its realtime.audio.export.ultrasonictype (FLAC by default, or WAV)
+    whatever the export type; every other clip is Opus at 48 kHz, and anything unreadable counts as 48 kHz. Read here
+    rather than with the wave module, which knows no FLAC and before Python 3.12 refuses the WAVE_FORMAT_EXTENSIBLE
+    header that ffmpeg writes above 48 kHz."""
     try:
-        with wave.open(str(clip)) as w:
-            return w.getframerate()
-    except (wave.Error, EOFError, OSError):
-        return 48000
+        with open(clip, "rb") as f:
+            head = f.read(21)
+            if len(head) == 21 and head[:4] == b"fLaC" and (head[4] & 0x7F) == 0:
+                # STREAMINFO, always the first metadata block: the rate is its 20 bits from the block's byte 10
+                return int.from_bytes(head[18:21], "big") >> 4 or 48000
+            if head[:4] in (b"RIFF", b"RF64") and head[8:12] == b"WAVE":
+                f.seek(12)
+                for _ in range(16):   # the chunks before the sound, the fmt chunk among the first
+                    chunk = f.read(8)
+                    if len(chunk) < 8:
+                        break
+                    size = int.from_bytes(chunk[4:], "little")
+                    if chunk[:4] == b"fmt ":
+                        fmt = f.read(8)   # format tag, channels, rate: the same place in the plain and extensible kinds
+                        return (int.from_bytes(fmt[4:], "little") or 48000) if len(fmt) == 8 else 48000
+                    f.seek(size + size % 2, os.SEEK_CUR)
+    except OSError:
+        pass
+    return 48000
 
 
 def cut_window(pre: float, length: float, slow: int) -> tuple[float, float]:

@@ -69,7 +69,7 @@ BirdNET-Go resamples the 192 kHz to the 256 kHz its bat model expects and to the
 
 A node on an older image gets the same without a reflash: copy the repository's `node/` and `clients/` folders to the node and run `sudo bash node/apply-mic.sh <mode>` there. It writes `life-mic`, its units and `life-push` to the live root and to the read-only one under it, so it holds after a reboot, takes out `life-bats` where a node has it, sets the mode in `/data/life-node/env` and restarts BirdNET-Go. The bat model files come with `bat-model.sh` against `/data`. Without the command-line tool, set the microphone once to 192 kHz from a laptop (`AudioMoth-USB-Microphone config 192000`, then `persist`).
 
-Not yet: the clips of bat detections. `life-clips` has BirdNET-Go write Opus clips, which carry nothing above 20 kHz, so a bat clip would hold nothing of the call. BirdNET-Go 20261014 can write bat clips as FLAC at the full rate; that comes with the next BirdNET-Go update.
+The clips of bat detections need BirdNET-Go 20261014 or later. `life-clips` has BirdNET-Go write Opus clips, which carry nothing above 20 kHz, and an older BirdNET-Go writes a bat's clip that way too, so it holds nothing of the call. From 20261014 on, BirdNET-Go keeps a bat's clip at the microphone's full rate in `realtime.audio.export.ultrasonictype` (FLAC by default, or WAV) whatever the export type, and `life-clips` reads that rate from the clip's own header, then cuts it to its three seconds and slows it down ten times.
 
 ## Witty Pi
 
