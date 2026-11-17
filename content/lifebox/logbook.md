@@ -21,6 +21,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 *Change.* Every place now has a switch, "Who sees this page", in the owner's panel on the node dashboard. It is on by default, so nothing changed for any place. Turned off, the page, its status, the birds the node heard and their clips answer "not found", as a private place does, to everyone but the owner, the people given access to the place, its steward key and the oracle's admins. The place page then drops its devices, and the node leaves the map, the globe, the home page, /triage and the open data other sites show. [#175](https://github.com/oncra/life/pull/175)
 
+### Back to the 10 Ah battery, and everything in the one box
+
+*Learning.* The 20 Ah battery became the standard on 12 October because it loses no listening where the panel gets half the sun. Where the panel sees the sky the 10 Ah does nearly as well: on ten measured winters at Schiphol a free panel kept it above 26 % with no morning lost, and node 1 has run on one since September. The difference is in shade: with half a free panel's harvest the 10 Ah loses 2 % of the winter mornings and up to 3 % of the core in the worst month, the 20 Ah none. Without any charge a full 10 Ah lasts about 9 days of winter hours, the 20 Ah about 19.
+
+*Change.* The kit's battery is the 10 Ah again, the same Green Cell CUBE node 1 runs on, now from reichelt (€61.85 with the dangerous-goods surcharge, in stock), and everything goes in the reichelt box; the 20 Ah stays in the list for a site in shade or under a crop. Its Faston terminals take 6.3 mm receptacles on the battery lead instead of ring terminals. The budget per node falls from about €826 to €797. Burying the battery below the frost line waits for a later prototype.
+
 ## 16 November 2026
 
 ### A bat's clip now comes as FLAC, and it would have been cut as a bird's
