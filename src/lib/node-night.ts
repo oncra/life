@@ -43,8 +43,10 @@ export function nightFor(d: NightRow, nodeRev: unknown): NightOut | undefined {
 }
 
 /** What the owner sets and everyone may read on the node dashboard: the settings, whether the node has them yet, the
- * next window as the oracle works it out from the place's centroid, and how the last one went as the node said. */
-export async function nightState(deviceId: string, now = Date.now()) {
+ * next window as the oracle works it out from the place's centroid, and how the last one went as the node said. A page
+ * gives `at`, the point its viewer sees (`sunPlace` in node.ts), since the window's start and end to the millisecond
+ * would give the centroid back. */
+export async function nightState(deviceId: string, now = Date.now(), at?: { centroidLat: number; centroidLon: number }) {
   const [d, beats] = await Promise.all([
     prisma.device.findUniqueOrThrow({ where: { id: deviceId }, select: { ...NIGHT_SELECT, place: { select: { centroidLat: true, centroidLon: true } } } }),
     // a few, not one: a heartbeat sent without the night fields (an older program on the way down) should not hide them
@@ -57,7 +59,7 @@ export async function nightState(deviceId: string, now = Date.now()) {
   const last: NightLast = metrics.map((b) => nightLastOf(b.m.nightLast)).find((l) => l !== null) ?? null;
   return {
     device: deviceId, settings: s, rev: d.nightRev, nodeRev, nodeHas: nodeRev === d.nightRev, heardAt: (withRev ?? metrics[0])?.ts.toISOString() ?? null,
-    last, ...nightPlan(now, d.place.centroidLat, d.place.centroidLon, s),
+    last, ...nightPlan(now, (at ?? d.place).centroidLat, (at ?? d.place).centroidLon, s),
   };
 }
 

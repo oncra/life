@@ -75,10 +75,6 @@ model Place {
   blurLat        Float?
   blurLon        Float?
   blurRadiusM    Int?
-  /// false while the place's node stands on someone's land: its dashboard, its status, the species it heard, their
-  /// clips and its dot on the maps are then only for those who may see the place exactly, and everyone else gets the
-  /// 404 a private place gives (src/lib/privacy.ts canSeeNode). Set by the place's owner on the node dashboard
-  nodePublic     Boolean  @default(true)
   context        Json?
   /// days the oracle keeps a clip's sound for this place: null for CLIP_KEEP_DAYS, 0 for as long as the place exists
   clipKeepDays   Int?

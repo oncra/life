@@ -8,21 +8,16 @@ export const dynamic = "force-dynamic";
 
 const NODE_DOT = { listening: "bg-accent sig-glow", asleep: "bg-white border border-[#7a7a72]", quiet: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
 
-/** The place of node 1 on its bench, which the Life Node section below links to. */
-const BENCH = "bench-tolhuisweg";
-
 /** The first node that ever reported and how it is doing (asleep between its listening windows is not quiet): one
- * tap from the top of the page instead of through the map. Only nodes whose dashboard is public (`nodeStates`), and
- * whether the bench node's is. */
-async function publicNodes() {
-  const states = await nodeStates().catch(() => []);
-  const first = states[0];
-  return { first: first ? { href: `/places/${first.slug}/node`, status: first.status } : null, bench: states.some((s) => s.slug === BENCH) };
+ * tap from the top of the page instead of through the map. */
+async function firstNode() {
+  const first = (await nodeStates().catch(() => []))[0];
+  return first ? { href: `/places/${first.slug}/node`, status: first.status } : null;
 }
 
 export default async function Home() {
   const [places, obs, devices] = await Promise.all([prisma.place.count(), prisma.satelliteObs.count(), prisma.device.count()]).catch(() => [0, 0, 0]);
-  const { first, bench } = await publicNodes();
+  const first = await firstNode();
   return (
     <div className="mx-auto max-w-6xl px-4">
       <section className="py-16 md:py-24 grid md:grid-cols-5 gap-10 items-start">
@@ -92,7 +87,7 @@ export default async function Home() {
             <p className="mt-3 text-sm text-muted leading-relaxed">{NODE_LEAD}</p>
             <p className="mt-3 text-sm text-muted leading-relaxed"><span className="font-medium text-foreground">Why that scales.</span> {NODE_SCALE}</p>
             <p className="mt-3 text-xs text-muted leading-relaxed">
-              The picture is an impression of the design, not a photograph. The first node runs on a bench in Amsterdam{bench ? <>: <Link className="underline" href={`/places/${BENCH}/node`}>what it hears</Link></> : null}.
+              The picture is an impression of the design, not a photograph. The first node runs on a bench in Amsterdam: <Link className="underline" href="/places/bench-tolhuisweg/node">what it hears</Link>.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/node" className="px-4 py-2 rounded-md bg-accent text-white text-sm font-medium">Build it yourself, step by step →</Link>

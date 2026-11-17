@@ -91,16 +91,6 @@ export async function canView(place: Pick<Place, "id" | "public">, req?: Request
   return place.public || canSeeExact(place, req);
 }
 
-/** Whether a viewer may see this place's node: its dashboard, its status, the species it heard, their clips, its
- * devices' last posts. Public unless the place keeps its node to itself (`nodePublic` false, while the node stands on
- * someone's land); then only for those who may see the place exactly, and everyone else gets the 404 a private place
- * gives. This is apart from `public`: a private place's node may be public, a public place's node private. Lists made
- * for everyone (the map's and the globe's signals, the open data at /api/v1/heard, the home page) leave such a place
- * out for every viewer, its owner too, as the public map draws a hidden location as a circle for its owner too. */
-export async function canSeeNode(place: Pick<Place, "id" | "nodePublic">, req?: Request) {
-  return place.nodePublic || canSeeExact(place, req);
-}
-
 /** The place as the public may see it: when the location is hidden, the boundary becomes the circle, the centroid
  * its centre, and the stored soil context loses its coordinates. Area and land use stay. */
 export function publicPlace<P extends Place>(p: P, exact: boolean): P & { approximate: boolean; approximateRadiusM: number | null } {
@@ -121,14 +111,7 @@ export function publicPlace<P extends Place>(p: P, exact: boolean): P & { approx
   };
 }
 
-/** A device's own state: when it was last heard, its last heartbeat, its alarm window. It is node data, so it goes
- * with the node dashboard. */
-const DEVICE_STATE = ["lastSeenAt", "lastHeartbeatAt", "maintenanceFrom", "maintenanceUntil"] as const;
-
-/** Device positions are dropped for viewers who may not see the place exactly (`hide`), and the device's own state for
- * viewers who may not see the place's node (`hideState`, see `canSeeNode`). */
-export function publicDevice<D extends { lat?: number | null; lon?: number | null }>(d: D, hide: boolean, hideState = false): D {
-  const out = hide ? { ...d, lat: null, lon: null } : d;
-  if (!hideState) return out;
-  return { ...out, ...Object.fromEntries(DEVICE_STATE.filter((k) => k in out).map((k) => [k, null])) };
+/** Device positions are dropped for viewers who may not see the place exactly. */
+export function publicDevice<D extends { lat?: number | null; lon?: number | null }>(d: D, hide: boolean): D {
+  return hide ? { ...d, lat: null, lon: null } : d;
 }

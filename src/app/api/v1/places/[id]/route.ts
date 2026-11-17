@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { authenticate, canManagePlace, json, unauthorized } from "@/lib/auth";
 import { findPlace } from "@/lib/places";
 import { verdict, type ReadingOut } from "@/lib/readings";
-import { canSeeExact, canView, publicDevice, publicPlace, setLocationHidden } from "@/lib/privacy";
+import { canManage, canSeeExact, canView, publicDevice, publicPlace, setLocationHidden } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -22,20 +22,23 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const periods = [...new Set(readings.map((r) => r.period))].sort().reverse();
   const latest = readings.filter((r) => r.period === periods[0]);
   const list: ReadingOut[] = latest.map((r) => ({ dimension: r.dimension, direction: r.direction, confidence: r.confidence, maturity: r.maturity, evidence: (r.evidence as Record<string, unknown>) ?? {} }));
-  // when the devices last posted is node data: gone for a viewer who may not see the place's node (canSeeNode)
-  return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact, !place.nodePublic && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
+  return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
 }
 
-const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional(), nodePublic: z.boolean().optional(), clipKeepDays: z.number().int().min(0).max(3650).nullable().optional() });
+const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional(), clipKeepDays: z.number().int().min(0).max(3650).nullable().optional() });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const place = await findPlace(id);
   if (!place) return json({ error: "not found" }, 404);
   const p = await authenticate(req);
-  if (!canManagePlace(p, place.id)) return unauthorized();
+  const byKey = canManagePlace(p, place.id);
+  // signed in, whoever may run the place's node (canManage: its owner, owner access, an ADMIN_EMAILS address) may show
+  // or hide its exact location, the switch on the node dashboard; everything else takes a managing key
+  if (!byKey && !(await canManage(place))) return unauthorized();
   const parsed = Patch.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "invalid body", issues: parsed.error.issues }, 400);
+  if (!byKey && Object.keys(parsed.data).some((k) => k !== "locationHidden")) return json({ error: "signed in, only locationHidden; the rest takes the place's steward key" }, 403);
   // how long the oracle keeps a place's clips is the oracle's disk, not the place's: admin only
   if (parsed.data.clipKeepDays !== undefined && p?.kind !== "admin" && !(p?.kind === "key" && p.role === "ADMIN")) return json({ error: "clipKeepDays takes the admin key" }, 403);
   const { locationHidden, blurRadiusM, ...rest } = parsed.data;

@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { canManage, canSeeExact, canSeeNode, publicPlace } from "@/lib/privacy";
+import { canManage, canSeeExact, DEFAULT_BLUR_M, publicPlace } from "@/lib/privacy";
 import { clipMonths, visitState } from "@/lib/node-visit";
 import { nightState } from "@/lib/node-night";
 import { configState } from "@/lib/node-config";
 import { mdLabel, nightLastText, spanText } from "@/lib/night";
 import OwnerPanel from "@/components/node/OwnerPanel";
-import PublicSwitch from "@/components/node/PublicSwitch";
-import { asRange, heardClips, lastHeard, nodeData, nodeSignals, nodeStatus, RANGES, signalPoint } from "@/lib/node";
+import LocationSwitch from "@/components/node/LocationSwitch";
+import { asRange, heardClips, lastHeard, nodeData, nodeSignals, nodeStatus, RANGES, signalPoint, sunPlace } from "@/lib/node";
 import LastHeard from "@/components/node/LastHeard";
 import NodeStatus from "@/components/node/NodeStatus";
 import type { StatusState } from "@/lib/node-status";
@@ -25,20 +25,18 @@ import HeartbeatStrip from "@/components/node/HeartbeatStrip";
 import DawnChorus from "@/components/node/DawnChorus";
 export const dynamic = "force-dynamic";
 
-// The node dashboard is public (decided 11 October 2026), also for a private place: it shows what the box measured and
-// how it is doing, never where it stands. The map point goes through `signalPoint`, which blurs it for everyone who may
-// not see the place exactly, and the cell id in the heartbeat is never shown. A place can keep its node to itself
-// (decided 12 October 2026: public only while the node is not at a private field site; Place.nodePublic, switched in
-// the owner's panel): then the page is only for those who may see the place exactly, and everyone else gets the 404 a
-// private place gives (`canSeeNode`).
+// The node dashboard is public for every place (decided 11 October 2026), also for a private one: it shows what the
+// box measured and how it is doing, never where it stands. The map point goes through `signalPoint`, which blurs it
+// for everyone who may not see the place exactly, what is worked out from the sun is reckoned for that point
+// (`sunPlace`), and the cell id in the heartbeat is never shown. A node's data stays public (17 November 2026: sharing
+// it is the point); what its owner can keep back, from the first owner's panel, is the place's exact location.
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ range?: string | string[]; index?: string | string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const p = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] }, select: { id: true, name: true, nodePublic: true } });
-  // the title of a page someone may not see would give the place's name away
-  return { title: p && (await canSeeNode(p)) ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: the life index, soil, sound, battery and heartbeats." };
+  const p = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] }, select: { name: true } });
+  return { title: p ? `Life Node at ${p.name}` : "Life Node", description: "What the node measured and how it was doing, over time: the life index, soil, sound, battery and heartbeats." };
 }
 
 const STATUS_BG = { live: "bg-accent", asleep: "bg-white border border-[#7a7a72]", stale: "bg-amber-500", silent: "bg-[#7a7a72]" } as const;
@@ -54,8 +52,11 @@ export default async function NodePage({ params, searchParams }: Props) {
   const range = asRange(sp.range);
   const indexRange = asIndexRange(sp.index);
   const stored = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
-  if (!stored || !(await canSeeNode(stored))) notFound();
-  const [exact, data, owner] = await Promise.all([canSeeExact(stored), nodeData(stored, range), canManage(stored)]);
+  if (!stored) notFound();
+  const [exact, owner] = await Promise.all([canSeeExact(stored), canManage(stored)]);
+  // the night bands, the status panel's windows and the night window are reckoned for the point this viewer sees
+  const sun = sunPlace(stored, exact);
+  const data = await nodeData(sun, range);
   if (!data) notFound();
   // the owner's panel: visit WiFi, alarm window, clips and the meadow-bird window, for each Life Node (the sound device
   // that sends heartbeats); the meadow-bird window, when it is on, shows to everyone
@@ -63,7 +64,7 @@ export default async function NodePage({ params, searchParams }: Props) {
   const [panels, months, nightStates, configs] = await Promise.all([
     owner ? Promise.all(nodes.map((n) => visitState(n.id))) : [],
     owner ? clipMonths(stored.id) : [],
-    Promise.all(nodes.map((n) => nightState(n.id, data.now))),
+    Promise.all(nodes.map((n) => nightState(n.id, data.now, sun))),
     owner ? Promise.all(nodes.map((n) => configState(n.id))) : [],
   ]);
   const [index, heard, clips, panel] = await Promise.all([
@@ -71,12 +72,14 @@ export default async function NodePage({ params, searchParams }: Props) {
     // the clips on /triage are open to every visitor; judging them takes a sign-in
     prisma.clip.count({ where: { device: { placeId: stored.id } } }),
     // how it is doing now: live on WiFi or a cable, its last readings on 4G, asleep between its windows
-    nodeStatus(stored, data.now),
+    nodeStatus(sun, data.now),
   ]);
   // a tap on a bird in the row plays its newest clip
   const birdClips = await heardClips(stored.id, heard.map((h) => h.key));
   const place = publicPlace(stored, exact);
   const point = signalPoint(stored, exact);
+  // the owner's switch for the place's exact location (Place.locationHidden), in the first owner's panel
+  const location = { hidden: stored.locationHidden, isPublic: stored.public, radiusM: stored.blurRadiusM ?? DEFAULT_BLUR_M };
   const status = panel ? TITLE_DOT[panel.state] : signalStatus(data.last.heardAt, data.now);
   const { last } = data;
   const lastSpecies = data.species.reduce<(typeof data.species)[number] | null>((a, s) => (!a || s.last > a.last ? s : a), null);
@@ -130,13 +133,13 @@ export default async function NodePage({ params, searchParams }: Props) {
         </p>
       ))}
 
-      {panels.map((p, i) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} config={configs.find((c) => c.device === p.device)} months={months} zone={data.zone} nodePublic={i === 0 ? stored.nodePublic : undefined} />)}
+      {panels.map((p, i) => <OwnerPanel key={p.device} place={stored.slug} state={p} night={nightStates.find((n) => n.device === p.device)} config={configs.find((c) => c.device === p.device)} months={months} zone={data.zone} location={i === 0 ? location : undefined} />)}
       {owner && panels.length === 0 && (
-        // a place with devices but no Life Node among them (a soil probe alone) still has the switch for this page
+        // a place with devices but no Life Node among them (a soil probe alone) still has the location switch
         <section className="mt-6 rounded-lg border border-accent/40 bg-white p-4">
           <h2 className="text-lg font-semibold">For the owner</h2>
           <p className="text-sm text-muted max-w-3xl">Only you see this.</p>
-          <PublicSwitch place={stored.slug} initial={stored.nodePublic} />
+          <LocationSwitch place={stored.slug} {...location} />
         </section>
       )}
 
