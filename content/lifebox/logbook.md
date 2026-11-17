@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 17 November 2026
+
+### A node on someone's land keeps its page to itself
+
+*Learning.* Since 11 October every node's dashboard has been open to anyone with the link, also on a private place. It never says where the node stands, and on a bench in Amsterdam that was enough. On someone's land it is not. The page says when the node was "woken by the button" and is awake "for a visit", so it tells a stranger when someone is at the box; it names the birds the node heard and when, and plays their clips. Whoever knows whose land it is can read from it when people are there and what lives there. On 12 October we decided that a node's dashboard may be public only while the box is not at a private field site, and node 1 moves to one soon.
+
+*Change.* Every place now has a switch, "Who sees this page", in the owner's panel on the node dashboard. It is on by default, so nothing changed for any place. Turned off, the page, its status, the birds the node heard and their clips answer "not found", as a private place does, to everyone but the owner, the people given access to the place, its steward key and the oracle's admins. The place page then drops its devices, and the node leaves the map, the globe, the home page, /triage and the open data other sites show. [#175](https://github.com/oncra/life/pull/175)
+
 ## 16 November 2026
 
 ### A bat's clip now comes as FLAC, and it would have been cut as a bird's
