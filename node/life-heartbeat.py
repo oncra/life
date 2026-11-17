@@ -44,7 +44,8 @@ Environment:
     LIFE_CLIPS_DIR      default /data/life-clips; its status.json says how many clips wait on the node (`clipsWaiting`)
                         and which batches a laptop took at a visit (`clipsHanded`)
     LIFE_STATE          default /var/lib/life-node; its window.json says which window the node woke for (`window`), or,
-                        outside one, what it does about it (`offWindow`: stop, visit, alarm or kept); its mics.json
+                        outside one, what it does about it (`offWindow`: stop, visit, alarm, kept or hold, the
+                        last with `hold` {since, checks, boardC, why, retryAt}); its mics.json
                         is the microphones' check of the day (life-mic levels), sent as `mics` with the first post after
                         it has changed: about 300 bytes a few times on a check day, once a week on a standard node
     LIFE_CONFIG_BIN     default /usr/local/bin/life-config: the settings the node took from the oracle over the air
@@ -478,6 +479,9 @@ def listening():
         out["window"] = d.get("window")
         if d.get("offWindow"):
             out["offWindow"] = d["offWindow"]
+        if isinstance(d.get("hold"), dict):   # off after a guard stop until the box is warm (life-window's hold)
+            out["hold"] = {k: v for k, v in d["hold"].items()
+                           if k in ("since", "checks", "boardC", "why", "retryAt") and isinstance(v, (str, int, float))}
     except Exception:  # noqa: BLE001 - no schedule (desk) or no decision yet
         pass
     try:

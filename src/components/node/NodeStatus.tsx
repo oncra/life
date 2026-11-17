@@ -24,7 +24,7 @@ const WAKE: Record<string, string> = {
   alarm: "woken by its schedule", button: "woken by the button", "power-connected": "started when the power came on",
   "voltage-restored": "started when the battery recovered", "low-voltage": "stopped by its battery guard", "over-temp": "acted on heat", "under-temp": "acted on cold",
 };
-const OFF: Record<string, string> = { visit: "for a visit", kept: "kept awake", alarm: "for its alarm", stop: "about to sleep" };
+const OFF: Record<string, string> = { visit: "for a visit", kept: "kept awake", alarm: "for its alarm", stop: "about to sleep", hold: "waiting for warmth" };
 const CHARGE: Record<string, string> = { off: "not charging", bulk: "charging", absorption: "topping up", float: "full, floating", equalize: "equalising", fault: "charger fault", starting: "starting" };
 const VIA: Record<string, string> = { wifi: "WiFi", lan: "a cable", "4g": "4G" };
 
@@ -84,7 +84,15 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
     case "awake": line = <>Outside its listening windows{s.offWindow && OFF[s.offWindow] ? `, ${OFF[s.offWindow]}` : ""} · {lastPost}</>; break;
     case "on": line = <>{lastPost.replace(/^l/, "L")}</>; break;
     case "asleep": line = <>Asleep since {s.postAt ? clock(s.postAt) : "its last post"}{s.next?.kind === "wake" ? `, wakes ${when(s.next.at)} for its ${winName(s.next.name)}` : ""}</>; break;
-    case "saving": line = <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery; it starts again once the panel has lifted it above 13.2 V</>; break;
+    case "saving": {
+      const h = s.hold, again = h?.retryAt != null ? ` It looks again ${when(h.retryAt)}.` : "";
+      line = h?.why === "cold"
+        ? <>Waiting for warmth{h.since != null ? ` since ${when(h.since).replace(/^at /, "")}` : ""}: at its last look the box read {h.boardC != null ? `${h.boardC.toFixed(1)} °C` : "too cold"}, too cold for the battery to take a charge.{again}</>
+        : h
+          ? <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery. It stays off until its box is warm enough for the battery to charge.{again}</>
+          : <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery; it starts again once the panel has lifted it above 13.2 V</>;
+      break;
+    }
     case "quiet": {
       const wakes = s.next?.kind === "wake" ? `wakes ${when(s.next.at)} for its ${winName(s.next.name)}` : "";
       line = s.window?.end != null && s.window.end < now
@@ -114,7 +122,8 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
   const tiles: ReactNode[] = [];
   if (p.v !== null || p.piW !== null) tiles.push(
     <Tile key="power" icon={ICON.battery} label="Power" value={p.v !== null ? p.v.toFixed(2) : `${p.piW!.toFixed(1)}`} unit={p.v !== null ? "V" : "W drawn"}
-      // at the battery's own terminals: under 12.8 V its last tenth is left, at 12.6 V the node switches itself off
+      // at the battery's own terminals: under 12.8 V its last tenth is left, under 12.6 V it is nearly empty (the node's
+      // guard stops it at 12.1 V at the Witty Pi, about 12.2 V here)
       tone={p.src === "mppt" && p.v !== null ? (p.v < 12.6 ? "text-[#ff8a7a]" : p.v < 12.8 ? "text-[#f0b429]" : undefined) : undefined}
       sub={[p.src === "usb" ? "USB supply, on the desk" : p.src === "mppt" ? "battery, at the charge controller" : p.src === "wittypi" ? "battery, read at the Witty Pi" : "", p.v !== null && p.piW !== null ? `draws ${p.piW.toFixed(1)} W` : ""].filter(Boolean).join(" · ")}>
       {s.spark.v.length >= 2 ? <Spark pts={s.spark.v} minSpan={0.3} /> : <Spark pts={s.spark.piW} minSpan={0.5} />}
@@ -164,7 +173,7 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
     s.upSince !== null ? (
       <Tile key="run" icon={ICON.clock} label="Running" value={spanLabel(now - s.upSince)} unit="up" sub={`${s.wake && WAKE[s.wake] ? WAKE[s.wake] : "started"} ${when(s.upSince)}`} />
     ) : s.postAt && (s.state === "asleep" || s.state === "saving") ? (
-      <Tile key="run" icon={ICON.clock} label="Asleep" value={spanLabel(now - s.postAt)} sub={`since ${when(s.postAt).replace(/^at /, "")}${s.state === "saving" ? ", stopped by its battery guard" : ""}`} />
+      <Tile key="run" icon={ICON.clock} label="Asleep" value={spanLabel(now - s.postAt)} sub={`since ${when(s.postAt).replace(/^at /, "")}${s.state === "saving" ? (s.hold ? ", waiting for warmth" : ", stopped by its battery guard") : ""}`} />
     ) : s.postAt ? (
       <Tile key="run" icon={ICON.clock} label="Last post" value={spanLabel(now - s.postAt)} unit="ago" sub={`${dayLabel(s.postAt, z)} ${clock(s.postAt)}`} />
     ) : null,

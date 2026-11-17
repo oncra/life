@@ -1,10 +1,10 @@
 """Tests for node/image/life-window.py: what a boot outside the listening windows is for, the visit a button press
-(or the visit contact's magnet) starts, and the owner's night window.
+(or the visit contact's magnet) starts, the owner's night window, and the hold after a guard stop.
 
     python3 -B -m unittest discover -s node/tests -v
 
 Standard library only. The day's windows are given (life-schedule-wpi needs astral); systemctl, systemd-run,
-life-guard and GNU date are fakes on PATH that write down what they were asked.
+life-guard, journalctl and GNU date are fakes on PATH that write down what they were asked.
 """
 import importlib.machinery
 import importlib.util
@@ -32,6 +32,17 @@ NIGHT_ON = {"rev": 3, "on": True, "startMin": 60, "lenMin": 60, "from": "03-25",
 MAY_NEXT = "2026-05-16T02:59:42+00:00"
 
 
+# 17 November at Amsterdam: sunrise 07:58 and sunset 16:42 local (06:58 and 15:42 UTC); the next start is the winter
+# window's, from civil dawn the next morning
+SUN = {"rise": "2026-11-17T06:58:00+00:00", "set": "2026-11-17T15:42:00+00:00"}
+NOV_NEXT = "2026-11-18T06:20:00+00:00"
+WINTER = {"name": "winter", "start": "2026-11-17T06:19:00+00:00", "end": "2026-11-17T08:19:00+00:00"}
+
+
+def nov(now, active=None, nxt=NOV_NEXT, sun=SUN):
+    return {"date": "2026-11-17", "now": now, "windows": [WINTER], "active": active, "next": nxt, "sun": sun}
+
+
 def may(active, now, windows=(DAWN, DUSK, NIGHT_W), **night):
     return {"date": "2026-05-15", "now": now, "windows": list(windows), "active": active, "next": MAY_NEXT,
             "night": {**NIGHT_ON, **night}}
@@ -48,6 +59,8 @@ if name == "date":
     print("03 06 12 00")
 if name == "systemctl" and "list-units" in sys.argv and os.path.exists(os.path.join(os.environ["FAKE_LOG"], "visits")):
     print(open(os.path.join(os.environ["FAKE_LOG"], "visits")).read())
+if name == "journalctl" and os.path.exists(os.path.join(os.environ["FAKE_LOG"], "journal")):
+    print(open(os.path.join(os.environ["FAKE_LOG"], "journal")).read())
 '''
 
 
@@ -59,13 +72,14 @@ class Window(unittest.TestCase):
         self.state.mkdir()
         bin_ = self.dir / "bin"
         bin_.mkdir()
-        for name in ("systemctl", "systemd-run", "life-guard", "date"):
+        for name in ("systemctl", "systemd-run", "life-guard", "date", "journalctl"):
             (bin_ / name).write_text(FAKE.format(py=sys.executable))
             (bin_ / name).chmod(0o755)
         self.old = dict(os.environ)
         os.environ.update({"PATH": f"{bin_}:{os.environ['PATH']}", "FAKE_LOG": str(self.dir), "LIFE_STATE": str(self.state),
                            "SCHEDULE": "season", "WITTYPI_BUS": "", "LIFE_VISIT": "1", "GUARD": "0"})
-        os.environ.pop("VISIT_MAX_MIN", None)
+        for k in ("VISIT_MAX_MIN", "LIFE_BOARD_C", "LIFE_OFF_S", "HOLD_MIN_C", "HOLD_RETRY_MIN"):
+            os.environ.pop(k, None)
 
     def tearDown(self):
         os.environ.clear()
@@ -164,8 +178,8 @@ class Window(unittest.TestCase):
         self.assertEqual(self.decision()["offWindow"], "kept")
         self.assertFalse(self.visit_started())
 
-    def test_a_battery_back_wake_still_goes_back_to_sleep(self):
-        self.window().check(["--wake", "voltage-restored"])
+    def test_a_battery_back_wake_in_a_warm_box_still_goes_back_to_sleep(self):
+        self.window(LIFE_OFF_S="36000", LIFE_BOARD_C="14").check(["--wake", "voltage-restored"])   # off all night, warm
         self.assertEqual(self.decision()["offWindow"], "stop")
         self.assertEqual(len(self.log("systemd-run")), 1)
         self.assertTrue(self.log("systemd-run")[0].endswith("/usr/local/sbin/life-window stop"))   # no maintenance exception
@@ -383,6 +397,165 @@ class Window(unittest.TestCase):
         self.assertNotIn("poweroff", self.log("systemctl"))
         self.window(may(None, "2026-05-15T20:40:00+00:00"), SCHEDULE="bench").arm([])
         self.assertEqual(self.log("systemctl").count("stop life-window-night.timer"), 3)   # bench: arm does nothing at all
+
+
+    # the hold after a guard stop
+
+    def held(self) -> dict | None:
+        p = self.state / "hold.json"
+        return json.loads(p.read_text()) if p.exists() else None
+
+    def hold_file(self, posted="2026-11-17T10:00:00+00:00", checks=1):
+        (self.state / "hold.json").write_text(json.dumps({"since": "2026-11-17T10:00:00+00:00", "checks": checks, "boardC": 30.0,
+                                                          "why": "stopped", "retryAt": "2026-11-17T10:30:00+00:00", "postedAt": posted}))
+
+    def test_back_after_a_guard_stop_the_node_goes_off_for_a_first_look(self):
+        # the board is warm from the Pi that ran until the guard stopped it two minutes ago: it says nothing yet
+        self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_OFF_S="120", LIFE_BOARD_C="31.5").check(["--wake", "voltage-restored"])
+        d, h = self.decision(), self.held()
+        self.assertEqual((d["offWindow"], d["window"], d["hold"]["why"], d["hold"]["retryAt"]), ("hold", None, "stopped", "2026-11-17T10:30:00+00:00"))
+        self.assertEqual((h["checks"], h["since"], h["postedAt"]), (1, "2026-11-17T10:00:00+00:00", "2026-11-17T10:00:00+00:00"))
+        self.assertIn("poweroff", self.log("systemctl"))
+        self.assertNotIn("mask --runtime life-flush.service", self.log("systemctl"))   # the page hears of it
+        self.assertEqual(self.log("systemd-run"), [])
+        self.assertFalse(self.visit_started())
+
+    def test_a_cold_look_holds_on_without_a_post(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T10:30:00+00:00"), LIFE_OFF_S="1790", LIFE_BOARD_C="2.5").check(["--wake", "alarm"])
+        h = self.held()
+        self.assertEqual((h["checks"], h["why"], h["boardC"], h["since"], h["retryAt"]), (2, "cold", 2.5, "2026-11-17T10:00:00+00:00", "2026-11-17T11:00:00+00:00"))
+        self.assertEqual(h["postedAt"], "2026-11-17T10:00:00+00:00")
+        self.assertEqual(self.log("systemctl"), ["mask --runtime life-flush.service", "poweroff"])
+
+    def test_a_held_node_posts_at_a_look_every_three_hours(self):
+        self.hold_file(posted="2026-11-17T07:20:00+00:00", checks=6)
+        self.window(nov("2026-11-17T10:30:00+00:00"), LIFE_OFF_S="1790", LIFE_BOARD_C="1.0").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["postedAt"], "2026-11-17T10:30:00+00:00")
+        self.assertEqual(self.log("systemctl"), ["poweroff"])
+
+    def test_a_cold_box_after_a_long_stop_holds_at_once(self):
+        self.window(nov("2026-11-17T09:10:00+00:00"), LIFE_OFF_S="50000", LIFE_BOARD_C="0.5").check(["--wake", "voltage-restored"])
+        self.assertEqual((self.held()["why"], self.decision()["offWindow"]), ("cold", "hold"))
+        self.assertIn("poweroff", self.log("systemctl"))
+
+    def test_a_warm_look_ends_the_hold_and_the_node_carries_on(self):
+        self.hold_file(checks=4)
+        self.window(nov("2026-11-17T12:00:00+00:00"), LIFE_OFF_S="1800", LIFE_BOARD_C="7.5").check(["--wake", "alarm"])
+        self.assertIsNone(self.held())
+        self.assertEqual(self.decision()["offWindow"], "stop")      # outside its window: posts, then off until the next
+        self.assertTrue(self.log("systemd-run")[0].endswith("/usr/local/sbin/life-window stop"))
+        self.assertNotIn("poweroff", self.log("systemctl"))
+
+    def test_a_warm_look_in_a_window_listens(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T07:00:00+00:00", active=WINTER), LIFE_OFF_S="1800", LIFE_BOARD_C="6").check(["--wake", "alarm"])
+        self.assertIsNone(self.held())
+        self.assertEqual(self.decision()["window"], "winter")
+        self.assertEqual(self.log("systemctl"), [])
+
+    def test_a_cold_look_in_a_window_does_not_listen(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T07:00:00+00:00", active=WINTER), LIFE_OFF_S="1800", LIFE_BOARD_C="-1.5").check(["--wake", "alarm"])
+        self.assertEqual((self.decision()["offWindow"], self.decision()["window"]), ("hold", None))
+        self.assertIn("poweroff", self.log("systemctl"))
+
+    def test_the_looks_are_by_day(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T15:30:00+00:00"), LIFE_OFF_S="1800", LIFE_BOARD_C="3").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["retryAt"], NOV_NEXT)           # 16:00 would be after sunset: the next window
+        self.hold_file()
+        self.window(nov("2026-11-17T05:00:00+00:00", nxt="2026-11-17T07:30:00+00:00"), LIFE_OFF_S="1800", LIFE_BOARD_C="3").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["retryAt"], "2026-11-17T06:58:00+00:00")   # before sunrise: at sunrise
+        self.hold_file()
+        self.window(nov("2026-11-17T10:30:00+00:00", nxt="2026-11-17T10:45:00+00:00"), LIFE_OFF_S="1800", LIFE_BOARD_C="3").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["retryAt"], "2026-11-17T10:45:00+00:00")   # never after the next window's start
+        self.hold_file()
+        self.window(nov("2026-11-17T10:30:00+00:00", sun=None), LIFE_OFF_S="1800", LIFE_BOARD_C="3").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["retryAt"], "2026-11-17T11:00:00+00:00")   # no sun times: every half hour
+
+    def test_the_look_follows_the_setting(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T10:30:00+00:00"), LIFE_OFF_S="3600", LIFE_BOARD_C="3", HOLD_RETRY_MIN="60").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["retryAt"], "2026-11-17T11:30:00+00:00")
+        for v, want in (("2", 600), ("999", 10800), ("ten", 1800)):
+            mod = self.window(HOLD_RETRY_MIN=v)
+            self.assertEqual(mod.HOLD_RETRY_S, want, v)
+            self.assertLessEqual(mod.COOL_S, mod.HOLD_RETRY_S * 0.8)
+        self.assertEqual(self.window(HOLD_MIN_C="8").HOLD_C, 8.0)
+
+    def test_the_owners_minimum_ends_the_hold(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T12:00:00+00:00"), LIFE_OFF_S="1800", LIFE_BOARD_C="6", HOLD_MIN_C="8").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["why"], "cold")
+
+    def test_without_a_board_reading_a_hold_ends(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T12:00:00+00:00"), LIFE_OFF_S="1800").check(["--wake", "alarm"])   # no Witty Pi to read
+        self.assertIsNone(self.held())
+
+    def test_the_first_look_reads_the_board_when_the_journal_says_nothing(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T10:30:00+00:00"), LIFE_BOARD_C="2").check(["--wake", "alarm"])
+        self.assertEqual(self.held()["why"], "cold")
+        self.window(nov("2026-11-17T12:30:00+00:00"), LIFE_BOARD_C="9").check(["--wake", "alarm"])
+        self.assertIsNone(self.held())
+
+    def test_without_the_journal_a_guard_stop_waits_one_look(self):
+        self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_BOARD_C="12").check(["--wake", "voltage-restored"])
+        self.assertEqual(self.held()["why"], "stopped")
+
+    def test_the_time_off_comes_from_the_journal(self):
+        import time
+        mod = self.window()
+        last = time.time() - mod.uptime_s() - 1800
+        (self.dir / "journal").write_text(json.dumps({"__REALTIME_TIMESTAMP": str(int(last * 1e6)), "MESSAGE": "Power down"}))
+        self.assertAlmostEqual(mod.off_s(), 1800, delta=5)
+        self.assertEqual(self.log("journalctl"), ["-b -1 -n 1 -o json --no-pager -q"])
+
+    def test_a_button_press_in_a_hold_is_a_visit_and_the_backstop_keeps_the_hold(self):
+        self.hold_file()
+        self.window(nov("2026-11-17T10:40:00+00:00"), LIFE_OFF_S="600", LIFE_BOARD_C="2").check(["--wake", "button"])
+        self.assertEqual(self.decision()["offWindow"], "visit")
+        self.assertTrue(self.visit_started())
+        out = io.StringIO()
+        sys.stdout, old = out, sys.stdout
+        try:
+            self.window(nov("2026-11-17T07:30:00+00:00", active=WINTER)).stop(["--unless-maintenance", "--dry-run"])
+        finally:
+            sys.stdout = old
+        said = out.getvalue()
+        self.assertIn("i2cset -y 1 0x08 19 255 && i2cset -y 1 0x08 22 255", said)   # held: off inside a window too, guard off
+        self.assertIn("systemctl poweroff", said)
+
+    def test_a_maintenance_window_lets_a_node_back_from_a_guard_stop_stay_on(self):
+        self.maintenance(timedelta(hours=-1), timedelta(hours=3))
+        self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_OFF_S="120", LIFE_BOARD_C="1").check(["--wake", "voltage-restored"])
+        self.assertIsNone(self.held())
+        self.assertNotEqual(self.decision()["offWindow"], "hold")
+
+    def test_power_back_by_hand_is_no_hold(self):
+        for wake in ("button", "reboot", "usb-5v"):
+            self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_OFF_S="120", LIFE_BOARD_C="1").check(["--wake", wake])
+            self.assertIsNone(self.held(), wake)
+        self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_OFF_S="120", LIFE_BOARD_C="1").check(["--wake", "power-connected"])
+        self.assertIsNone(self.held())      # a battery connected by hand, or the controller's load back: as before
+
+    def test_off_outside_a_hold_keeps_the_guard(self):
+        out = io.StringIO()
+        sys.stdout, old = out, sys.stdout
+        try:
+            self.window(nov("2026-11-17T10:00:00+00:00")).stop(["--dry-run"])
+        finally:
+            sys.stdout = old
+        self.assertNotIn("i2cset", out.getvalue())
+        self.assertIn(f"set_startup_time 03 06 12 00", out.getvalue())
+
+    def test_a_dry_hold_only_says(self):
+        self.window(nov("2026-11-17T10:00:00+00:00"), LIFE_OFF_S="120", LIFE_BOARD_C="20").check(["--wake", "voltage-restored", "--dry-run"])
+        self.assertIsNone(self.held())
+        self.assertFalse((self.state / "window.json").exists())
+        self.assertEqual(self.log("systemctl"), [])
 
 
 if __name__ == "__main__":

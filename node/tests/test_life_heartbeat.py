@@ -98,6 +98,10 @@ class Night(unittest.TestCase):
         self.assertEqual((m["window"], m["offWindow"]), (None, "stop"))
         (self.state / "window.json").write_text(json.dumps({"window": "night"}))
         self.assertEqual(self.metrics()["window"], "night")
+        hold = {"since": "2026-11-17T10:00:00+00:00", "checks": 2, "boardC": 2.5, "why": "cold", "retryAt": "2026-11-17T11:00:00+00:00"}
+        (self.state / "window.json").write_text(json.dumps({"window": None, "offWindow": "hold", "hold": {**hold, "postedAt": "x", "deep": {}}}))
+        m = self.metrics()
+        self.assertEqual((m["offWindow"], m["hold"]), ("hold", hold))   # what the page needs, nothing of the node's own
 
 
 class Heat(unittest.TestCase):

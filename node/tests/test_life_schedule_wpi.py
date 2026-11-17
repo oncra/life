@@ -141,6 +141,16 @@ class Night(unittest.TestCase):
         self.assertTrue(info["night"]["on"])
         self.assertIn("BEGIN\t2026-06-21", mod.script(self.local(mod, "2026-06-22T01:30")))
 
+    def test_the_windows_carry_todays_sun_for_the_holds_looks(self):
+        mod = self.sched()
+        for at, day in (("2026-11-17T12:00", date(2026, 11, 17)), ("2026-11-18T03:00", date(2026, 11, 18))):
+            info = mod.window_info(self.local(mod, at))
+            rise, down = (datetime.fromisoformat(info["sun"][k]) for k in ("rise", "set"))
+            self.assertEqual(rise.astimezone(mod.TZ).date(), day)          # the local day of now, not the window's day
+            self.assertEqual(info["sun"]["rise"], mod.at(mod.sunrise, day, 8).isoformat(timespec="seconds"))
+            self.assertTrue(timedelta(hours=8) < down - rise < timedelta(hours=9), at)   # mid-November at Amsterdam
+        self.assertEqual(mod.window_info(self.local(mod, "2026-11-18T03:00"))["date"], "2026-11-17")
+
     def test_the_states_run_exactly_to_the_next_first_window_when_the_clocks_change(self):
         mod = self.sched({**ON, "from": "03-01", "to": "10-31", "startMin": 150, "lenMin": 120})
         for d in (date(2026, 3, 28), date(2026, 3, 29), date(2026, 10, 24), date(2026, 10, 25)):

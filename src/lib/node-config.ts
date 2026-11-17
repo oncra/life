@@ -131,7 +131,7 @@ export function nextConfig(current: unknown, body: z.infer<typeof ConfigBody>): 
     env[k] = n.value;
   }
   if (env.WITTYPI_LOW_V !== undefined || env.WITTYPI_RECOVERY_V !== undefined) {
-    const low = Number(env.WITTYPI_LOW_V ?? 12.6), rec = Number(env.WITTYPI_RECOVERY_V ?? 13.2);
+    const low = Number(env.WITTYPI_LOW_V ?? 12.1), rec = Number(env.WITTYPI_RECOVERY_V ?? 13.2);
     if (rec < low + 0.3 - 1e-9) return { ok: false, why: `the battery guard starts again at ${rec} V, which must be at least 0.3 V above its stop at ${low} V` };
   }
   return { ok: true, config: { env } };
