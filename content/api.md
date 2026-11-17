@@ -28,11 +28,15 @@ Reading public places needs no key.
 | `GET /places/{id}/satellite[?format=csv]` | NDVI observations |
 | `GET /places/{id}/carbon` | yearly net ecosystem carbon balance as a low/central/high range, and what is issuable at the lower bound ([method](carbon.md)) |
 | `GET /places/{id}/readings` | all readings, all periods |
-| `GET /places/{id}/devices` | devices and last-seen |
+| `GET /places/{id}/devices` | devices and last-seen (last-seen only where the place's node is public to you, below) |
 | `GET /places/{id}/node` | the Life Node dashboard as data: heartbeats, soil and box series, species counts (`?range=` 24h, 7d, 30d or all) |
 | `GET /places/{id}/node/status` | how the node is doing now: live while it is on WiFi or a cable, its last readings on 4G, asleep between its windows; operator and signal strength, never the cell |
+| `GET /heard` | the species the nodes heard last, with pictures and names, for other sites to show (CORS open) |
+| `GET /nodes` | every node as a signal for the map, its point blurred where the place hides its location or is private |
 | `GET /places/{id}/visits` | visits |
 | `GET /api/health` | counts and time |
+
+A node's dashboard is public, also on a private place, unless the place keeps its node to itself (`nodePublic` false, while the node stands on someone's land). Then the two `node` calls answer 404 to whoever may not see the place exactly, as a private place does, and the node is left out of `/heard` and `/nodes`.
 
 Example:
 
@@ -45,7 +49,8 @@ curl -s https://life.oncra.org/api/v1/places/horaholm-oncra-hor-l-001-hornhuizen
 | Call | Who | Does |
 | --- | --- | --- |
 | `POST /places` | steward, admin | register a place; returns a one-time steward key; queues the satellite backfill |
-| `PATCH /places/{id}` | steward of that place, admin | update name, description, land use, visibility |
+| `PATCH /places/{id}` | steward of that place, admin | update name, description, land use, visibility (`public`, `locationHidden`, `nodePublic`) |
+| `PUT /places/{id}/node/public` | steward of that place, admin, the place's owner signed in | `{public}`: whether the node dashboard is public; the switch in the owner's panel |
 | `DELETE /places/{id}` | admin | delete |
 | `POST /places/{id}/devices` | steward, admin | register a device; returns a one-time device token |
 | `POST /places/{id}/readings` | steward, verifier, admin | recompute now |

@@ -11,9 +11,11 @@ const num = (s: string | null) => (s !== null && s.trim() !== "" && Number.isFin
 
 /** The species the nodes heard last, one per species whatever name it came under, newest first, each with its cut-out
  * picture, its credits and its common names in other languages, plus whether each node is listening now. Public like
- * the node dashboard, for every place: it says what was heard and when, never where. `?place=` narrows it to one
- * place (slug or id); `?min=` is the lowest confidence, 0.7 by default, the threshold the diversity reading counts
- * from; `?images=only` leaves out species whose picture the worker has not made yet. */
+ * the node dashboard: it says what was heard and when, never where, and only from the places whose node is public
+ * (Place.nodePublic). The same answer for every viewer, signed in or not, since any site may show it. `?place=`
+ * narrows it to one place (slug or id), and a place that keeps its node to itself is not found here; `?min=` is the
+ * lowest confidence, 0.7 by default, the threshold the diversity reading counts from; `?images=only` leaves out
+ * species whose picture the worker has not made yet. */
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   const limit = Math.max(1, Math.min(20, Math.round(num(q.get("limit")) ?? 6)));
@@ -22,11 +24,11 @@ export async function GET(req: Request) {
   const placeParam = q.get("place");
   if (placeParam) {
     const p = await findPlace(placeParam);
-    if (!p) return json({ error: "not found" }, 404, HEADERS);
+    if (!p || !p.nodePublic) return json({ error: "not found" }, 404, HEADERS);
     placeId = p.id;
   }
   const now = Date.now();
-  const [items, nodes] = await Promise.all([heard({ placeId, limit, minConfidence: min, withImage: q.get("images") === "only" }), nodeStates(now, placeId)]);
+  const [items, nodes] = await Promise.all([heard({ placeId, limit, minConfidence: min, withImage: q.get("images") === "only", publicOnly: true }), nodeStates(now, placeId)]);
   const slugs = new Map(nodes.map((n) => [n.placeId, n.slug]));
   const missing = [...new Set(items.map((i) => i.placeId).filter((id) => !slugs.has(id)))];
   if (missing.length) for (const p of await prisma.place.findMany({ where: { id: { in: missing } }, select: { id: true, slug: true } })) slugs.set(p.id, p.slug);
