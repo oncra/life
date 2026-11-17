@@ -5,14 +5,16 @@ import type { NightState } from "@/lib/node-night";
 import type { ConfigState } from "@/lib/node-config";
 import NightWindow from "./NightWindow";
 import NodeSettings from "./NodeSettings";
+import PublicSwitch from "./PublicSwitch";
 
-// The owner's corner of the node dashboard. It opens with the visit, the way the clips leave a node in a field: the
-// phone's hotspot (set once), what to do at the box, and the visit as it happens, from the node's posts and the clips
-// arriving; the laptop app is the way without phone signal. Then the alarm window, the clips, on the node and on the
-// oracle, the meadow-bird window (NightWindow) and the settings over 4G (NodeSettings). Shown only to whoever may run
-// the node (src/lib/privacy.ts canManage); the API checks again.
+// The owner's corner of the node dashboard. It opens with who sees the dashboard (PublicSwitch, a place's switch, so in
+// the first panel only), then the visit, the way the clips leave a node in a field: the phone's hotspot (set once),
+// what to do at the box, and the visit as it happens, from the node's posts and the clips arriving; the laptop app is
+// the way without phone signal. Then the alarm window, the clips, on the node and on the oracle, the meadow-bird window
+// (NightWindow) and the settings over 4G (NodeSettings). Shown only to whoever may run the node (src/lib/privacy.ts
+// canManage); the API checks again.
 
-type Props = { place: string; state: VisitState; night?: NightState; config?: ConfigState; months: { month: string; n: number }[]; zone: string };
+type Props = { place: string; state: VisitState; night?: NightState; config?: ConfigState; months: { month: string; n: number }[]; zone: string; nodePublic?: boolean };
 
 /** The newest Life Clips app for each kind of laptop (src/app/download/life-clips/[os]/route.ts). */
 const APP = "/download/life-clips";
@@ -67,7 +69,7 @@ const TONE: Record<Line["tone"], string> = {
   warn: "border-red-300 bg-red-50",
 };
 
-export default function OwnerPanel({ place, state: initial, night, config, months, zone }: Props) {
+export default function OwnerPanel({ place, state: initial, night, config, months, zone, nodePublic }: Props) {
   const [s, setS] = useState(initial);
   const [ssid, setSsid] = useState(initial.ssid);
   const [psk, setPsk] = useState(initial.psk);
@@ -136,6 +138,7 @@ export default function OwnerPanel({ place, state: initial, night, config, month
     <section className="mt-6 rounded-lg border border-accent/40 bg-white p-4">
       <h2 className="text-lg font-semibold">For the owner</h2>
       <p className="text-sm text-muted max-w-3xl">Only you see this.</p>
+      {nodePublic !== undefined && <PublicSwitch place={place} initial={nodePublic} />}
       {msg && <div className={`mt-3 rounded border p-2 text-sm ${msg.ok ? "border-accent bg-green-50" : "border-red-300 bg-red-50"}`}>{msg.text}</div>}
 
       <div className="mt-4 max-w-3xl text-sm">

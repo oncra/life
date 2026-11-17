@@ -22,10 +22,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const periods = [...new Set(readings.map((r) => r.period))].sort().reverse();
   const latest = readings.filter((r) => r.period === periods[0]);
   const list: ReadingOut[] = latest.map((r) => ({ dimension: r.dimension, direction: r.direction, confidence: r.confidence, maturity: r.maturity, evidence: (r.evidence as Record<string, unknown>) ?? {} }));
-  return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
+  // when the devices last posted is node data: gone for a viewer who may not see the place's node (canSeeNode)
+  return json({ place: publicPlace(place, exact), devices: devices.map((d) => publicDevice(d, place.locationHidden && !exact, !place.nodePublic && !exact)), readings: latest, period: periods[0] ?? null, verdict: list.length === 7 ? verdict(list) : { verdict: "insufficient", reason: "not yet computed" }, satellite: sat, jobs, visits });
 }
 
-const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional(), clipKeepDays: z.number().int().min(0).max(3650).nullable().optional() });
+const Patch = z.object({ name: z.string().min(2).max(120).optional(), description: z.string().max(4000).optional(), biome: z.string().max(80).optional(), landUse: z.string().max(80).optional(), stewardName: z.string().max(120).optional(), stewardContact: z.string().max(200).optional(), public: z.boolean().optional(), locationHidden: z.boolean().optional(), blurRadiusM: z.number().int().min(200).max(20_000).optional(), nodePublic: z.boolean().optional(), clipKeepDays: z.number().int().min(0).max(3650).nullable().optional() });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
