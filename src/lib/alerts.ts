@@ -206,7 +206,10 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
     const d = await placeOf(deviceId);
     const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
     // the node dashboard, not the place page: it is public also for a private place, so the link opens for
-    // whoever reads the line, signed in or not (a private place page answers 404 to a reader without a session)
+    // whoever reads the line, signed in or not (a private place page answers 404 to a reader without a session).
+    // A place that keeps its node to itself (Place.nodePublic false) answers 404 there too; the line still goes, as
+    // the alerts do, because it goes to the steward's own ticker or channel, not to the public
+    // (CHECKIN_WEBHOOK_URL, set by the oracle's operator)
     await line(`Life node: ${d.place.name}`, checkinText(hb), `${site}/places/${d.place.slug}/node`, `life-checkin-${deviceId}-${ts.getTime()}`, "close");
   }
   return {

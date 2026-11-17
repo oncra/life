@@ -3,14 +3,17 @@ import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { prisma } from "@/lib/db";
 import { clipPath } from "@/lib/clips";
+import { canSeeNode } from "@/lib/privacy";
 export const dynamic = "force-dynamic";
 
-// A clip's sound for the triage page, with byte ranges: Safari on a phone will not play audio without them. Open to
-// every visitor, as the page is (2026-11-02); judging a clip still needs mayHear.
+// A clip's sound for the triage page and the birds on a node dashboard, with byte ranges: Safari on a phone will not
+// play audio without them. Open to every visitor, as the page is (2026-11-02), except the clips of a place that keeps
+// its node to itself, which only those who may see the place exactly hear (canSeeNode); judging a clip still needs
+// mayHear.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const clip = await prisma.clip.findUnique({ where: { id }, select: { deviceId: true, file: true, mime: true } });
-  if (!clip) return new Response("not found", { status: 404 });
+  const clip = await prisma.clip.findUnique({ where: { id }, select: { deviceId: true, file: true, mime: true, device: { select: { place: { select: { id: true, nodePublic: true } } } } } });
+  if (!clip || !(await canSeeNode(clip.device.place, req))) return new Response("not found", { status: 404 });
   if (!clip.file) return new Response("this clip's sound has been deleted", { status: 410 });
   const file = clipPath(clip.file);
   let size: number;
