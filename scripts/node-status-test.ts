@@ -75,6 +75,14 @@ s = statusFrom(base({ beats: [beat(now - 2 * H, "shutdown", { wake: "low-voltage
 assert.equal(s.state, "saving");
 assert.equal(s.next, null);
 assert.deepEqual([s.power.v, s.power.src], [12.55, "wittypi"]);
+assert.equal(s.hold, null);
+// after the guard stop it waits for warmth: the shutdown post of a look says so, with its reading and its next look
+s = statusFrom(base({ beats: [beat(now - H, "shutdown", { wake: "alarm", window: null, offWindow: "hold", hold: { since: "2026-11-17T10:00:00Z", checks: 3, boardC: 2.5, why: "cold", retryAt: new Date(now - H / 2).toISOString() } })] }));
+assert.equal(s.state, "saving");
+assert.deepEqual(s.hold, { since: Date.parse("2026-11-17T10:00:00Z"), boardC: 2.5, why: "cold", retryAt: now - H / 2 });
+// a hold rides only with its offWindow
+s = statusFrom(base({ beats: [beat(now - H, "shutdown", { wake: "alarm", offWindow: "stop", hold: { why: "cold" } })] }));
+assert.deepEqual([s.state, s.hold], ["asleep", null]);
 // the charge controller's battery wins over the Witty Pi's input
 s = statusFrom(base({ beats: [beat(now - H, "hourly", { battV: 13.31, vinV: 13.1, pvW: 21, charge: "bulk", yieldTodayWh: 140 })] }));
 assert.deepEqual(s.power, { v: 13.31, src: "mppt", piW: null, pvW: 21, charge: "bulk", yieldWh: 140 });

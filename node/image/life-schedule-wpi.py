@@ -38,8 +38,8 @@ datetimes that share a ZoneInfo subtract as wall-clock times, which would put th
 
     life-schedule-wpi [--now 2026-06-21T23:30]               the Witty Pi script
     life-schedule-wpi --windows [--now 2026-06-21T06:00]     the day's windows as JSON, the one --now falls in, the
-                                                             start of the next one and the night window's settings
-                                                             (life-window uses it)
+                                                             start of the next one, the night window's settings and
+                                                             today's sunrise and sunset (life-window uses it)
 
     life-schedule-wpi --check RULES.json                     whether a node takes these rules, and what they give
                                                              here on the longest and the shortest day
@@ -323,8 +323,11 @@ def window_info(now: datetime) -> dict:
     nxt = next(w["start"] for w in ws + windows(d + timedelta(days=1)) if w["start"] - EARLY > now)
     iso = lambda t: t.isoformat(timespec="seconds")  # noqa: E731
     out = lambda w: {"name": w["name"], "start": iso(w["start"]), "end": iso(w["end"])}  # noqa: E731
+    day = now.astimezone(TZ).date()   # sunrise and sunset of today, for life-window's hold: its looks are by day
+    sun = {"rise": iso(at(sunrise, day, 8)), "set": iso(at(sunset, day, 17))}
     return {"date": d.isoformat(), "now": iso(now), "windows": [out(w) for w in ws],
-            "active": None if active is None else out(active), "next": iso(nxt), "night": night_config(), "rules": SOURCE}
+            "active": None if active is None else out(active), "next": iso(nxt), "night": night_config(), "rules": SOURCE,
+            "sun": sun}
 
 
 def check(path: str) -> int:

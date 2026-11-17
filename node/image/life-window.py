@@ -31,6 +31,19 @@ or a visit keeps it on all the same, and a battery that cannot be read lets it l
 still guards the cells), as does a node on a 5 V supply, whose input reads under 6 V and has no battery to spare. Each night's outcome is written to night-last.json and rides on the heartbeat (`nightLast`),
 with the rev of the settings the node has (`nightRev`), so the owner's page shows how the night went.
 
+After a guard stop the node waits for warmth (hold()). In frost the battery's BMS blocks the charge, and the sun on
+the panel then lifts the charge controller's terminal over the recovery level within seconds of the Pi going off: on
+7 November 2026 node 1 was started 29 times in two hours, 28 runs ended by the guard (kit/bench-log.csv, row 2.4). So
+a boot the board made because the battery came back (`voltage-restored`) powers the node off again at once, with the
+board's guard off and its next start HOLD_RETRY_MIN (30) minutes on by day, or the next window's start after sunset.
+At that start the board's own sensor, which reads the Pi's warmth while it runs and the air in the box once the node
+has been off COOL_S, decides: under HOLD_MIN_C (5 °C) the node goes off again for the next look, from there on it
+carries on as after any wake. The guard is armed again at every boot (life-wittypi) and is off only while the node
+is: with it on, the board skips a start that comes while its input reads under the stop level, and that start comes
+round again only a month later. A look posts on its way down only when the last post is three hours old; a button
+press is a visit as always, and a maintenance window keeps the node on. The hold is in hold.json and on the heartbeat
+(`offWindow` hold, `hold` {since, checks, boardC, why, retryAt}).
+
     life-window check [--dry-run] [--now 2026-08-15T13:00] [--wake voltage-restored]
     life-window stop [--unless-maintenance]
                             the timer's job: unless a window has begun (or, with the flag, a maintenance window is
@@ -47,7 +60,9 @@ with the rev of the settings the node has (`nightRev`), so the owner's page show
 
 env: SCHEDULE (only 'season' acts), OFFWINDOW_GRACE_MIN (default 10), WITTYPI_BUS (default 1),
      LIFE_STATE (default /data/life-node), LIFE_VISIT, VISIT_MAX_MIN (default 30), GUARD,
-     LIFE_NIGHT_VIN (tests: pretend the battery reads this), LIFE_SCHEDULE_CMD (default /usr/local/sbin/life-schedule)
+     HOLD_MIN_C (default 5), HOLD_RETRY_MIN (default 30, 10 to 180),
+     LIFE_NIGHT_VIN (tests: pretend the battery reads this), LIFE_BOARD_C and LIFE_OFF_S (tests: the board's
+     temperature, and how long the node was off before this boot), LIFE_SCHEDULE_CMD (default /usr/local/sbin/life-schedule)
 """
 import json
 import os
@@ -68,6 +83,20 @@ VISIT = os.environ.get("LIFE_VISIT", "0").strip() == "1"
 _max = float(os.environ.get("VISIT_MAX_MIN") or 30)
 VISIT_S = min(_max if _max > 0 else 30, 60) * 60   # as life-visit reads it
 ALARM_S = 40 * 60   # an alarm wake: life-guard's half hour of reports, ten minutes to spare, then off
+
+
+def fenv(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name) or default)
+    except ValueError:
+        return default
+
+
+HOLD = STATE / "hold.json"   # after a guard stop: off until the box is warm (hold())
+HOLD_C = fenv("HOLD_MIN_C", 5.0)                                           # the board's reading that ends a hold
+HOLD_RETRY_S = int(min(max(fenv("HOLD_RETRY_MIN", 30.0), 10.0), 180.0) * 60)   # a look this often by day
+COOL_S = min(25 * 60, int(HOLD_RETRY_S * 0.8))   # off this long, the Witty Pi's sensor reads the air in the box
+POST_EVERY_S = 3 * 3600   # as life-sound.timer: a held node posts at a look at most this often
 # the Witty Pi's reason for its latest action (register 11), as life-heartbeat names them
 WAKE = {1: "alarm", 2: "alarm", 3: "button", 4: "low-voltage", 5: "voltage-restored", 6: "over-temp", 7: "under-temp",
         8: "alarm", 9: "usb-5v", 10: "power-connected", 11: "reboot", 12: "guaranteed-wake"}
@@ -228,6 +257,122 @@ def gate(info: dict, dry: bool) -> None:
     power_off(info, dry)
 
 
+def board_c() -> float | None:
+    """The Witty Pi's own temperature sensor (register 50, as life-heartbeat reads it). It sits right above the
+    processor: while the Pi runs it reads the Pi, after the node has been off COOL_S the air in the box."""
+    if os.environ.get("LIFE_BOARD_C"):
+        return float(os.environ["LIFE_BOARD_C"])
+    bus = os.environ.get("WITTYPI_BUS", "1").strip()
+    if not bus:
+        return None
+    try:
+        out = subprocess.run(["i2cget", "-y", bus, "0x08", "50", "w"], capture_output=True, text=True, check=True, timeout=5)
+        w = int(out.stdout.strip(), 16)
+        raw = (((w & 0xFF) << 8) | ((w & 0xFF00) >> 8)) >> 5
+        if raw == 0x7FF:   # 0xffff: no reading
+            return None
+        return round(((raw & 0x3FF) - 1024 if raw >= 0x400 else raw) * 0.125, 1)
+    except Exception as e:  # noqa: BLE001 - no reading: a hold cannot tell, so it does not hold on a guess
+        log(f"no board temperature ({e})")
+        return None
+
+
+def off_s() -> float | None:
+    """How long the node was off before this boot: from the last entry its last boot left in the journal (kept on
+    /data) to the start of this one."""
+    if os.environ.get("LIFE_OFF_S"):
+        return float(os.environ["LIFE_OFF_S"])
+    try:
+        out = subprocess.run(["journalctl", "-b", "-1", "-n", "1", "-o", "json", "--no-pager", "-q"],
+                             capture_output=True, text=True, timeout=60)
+        last = int(json.loads(out.stdout.strip().splitlines()[-1])["__REALTIME_TIMESTAMP"]) / 1e6
+    except Exception as e:  # noqa: BLE001
+        log(f"no last boot in the journal ({e})")
+        return None
+    return max(datetime.now(timezone.utc).timestamp() - uptime_s() - last, 0.0)
+
+
+def read_hold() -> dict | None:
+    try:
+        h = json.loads(HOLD.read_text())
+    except (OSError, ValueError):
+        return None
+    return h if isinstance(h, dict) else None
+
+
+def write_hold(h: dict | None, dry: bool) -> None:
+    if dry:
+        print(json.dumps({"hold": h}))
+        return
+    if h is None:
+        HOLD.unlink(missing_ok=True)
+        return
+    STATE.mkdir(parents=True, exist_ok=True)
+    tmp = HOLD.with_suffix(".tmp")
+    tmp.write_text(json.dumps(h) + "\n")
+    tmp.replace(HOLD)
+
+
+def retry_at(info: dict) -> datetime:
+    """A held node's next look: HOLD_RETRY_S on while the sun can warm the box, at sunrise before it, and after sunset
+    the next window's start. Never after the next window's start, which is at least ten minutes away."""
+    now = datetime.fromisoformat(info["now"]) if info.get("now") else datetime.now(timezone.utc)
+    nxt = datetime.fromisoformat(info["next"])
+    t = now + timedelta(seconds=HOLD_RETRY_S)
+    try:
+        rise, down = (datetime.fromisoformat(info["sun"][k]) for k in ("rise", "set"))
+    except (KeyError, TypeError, ValueError):   # no sun times from the schedule: a look every HOLD_RETRY_S
+        return min(t, nxt)
+    if t < rise:
+        return min(rise, nxt)
+    return nxt if t > down else min(t, nxt)
+
+
+def hold(info: dict, wake: str | None, dry: bool) -> bool:
+    """After a guard stop: off until the box is warm, with a look every HOLD_RETRY_S by day (the module's docstring).
+    True when the node goes off again."""
+    h = read_hold()
+    if wake is None or wake in BY_HAND or (h is None and wake != "voltage-restored"):
+        return False
+    if maintenance():
+        log("back after a guard stop, with a maintenance window open: the node stays on")
+        return False
+    off, c = off_s(), board_c()
+    cooled = off >= COOL_S if off is not None else h is not None   # the first look after a hold reads, whatever
+    seen = "nothing" if c is None else f"{c:.1f} °C"
+    off_txt = "an unknown time" if off is None else f"{off / 60:.0f} min"
+    if cooled and (c is None or c >= HOLD_C):
+        if h is not None:
+            log(f"hold over after {h.get('checks', 0)} look(s): the board reads {seen} after {off_txt} off; carrying on")
+            write_hold(None, dry)
+        return False
+    now = info.get("now") or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    retry = retry_at(info)
+    posted = (h or {}).get("postedAt")
+    try:
+        post = posted is None or (datetime.fromisoformat(now) - datetime.fromisoformat(posted)).total_seconds() >= POST_EVERY_S
+    except (TypeError, ValueError):
+        post = True
+    h = {"since": (h or {}).get("since") or now, "checks": int((h or {}).get("checks") or 0) + 1, "boardC": c,
+         "offMin": None if off is None else round(off / 60), "why": "cold" if cooled else "stopped",
+         "retryAt": retry.isoformat(timespec="seconds"), "postedAt": now if post else posted}
+    write_hold(h, dry)
+    write({"date": info["date"], "window": None, "wake": wake, "next": info["next"], "offWindow": "hold",
+           "hold": {k: h[k] for k in ("since", "checks", "boardC", "why", "retryAt")}}, dry)
+    if cooled:
+        log(f"holding: the board reads {seen} after {off_txt} off, under {HOLD_C:g} °C; off until {h['retryAt']}")
+    else:
+        log(f"back after a guard stop ({wake}), off {off_txt}: off for a first look at {h['retryAt']}")
+    if not post:   # the page heard of the hold less than three hours ago: no post on the way down
+        cmd = ["systemctl", "mask", "--runtime", "life-flush.service"]
+        if dry:
+            print(f"would run: {' '.join(cmd)}")
+        else:
+            subprocess.run(cmd, capture_output=True)
+    power_off(info, dry)
+    return True
+
+
 def by_magnet(wake: str | None) -> bool:
     """Whether this boot is a visit: the button (the magnet presses it), with visits on and the guard quiet."""
     return VISIT and wake == "button" and not guard_alarm()
@@ -288,11 +433,13 @@ def check(args: list[str]) -> None:
             start_visit("life-visit@magnet.service", dry)
         return
     info = windows(now_arg)
+    wake = wake_of(args)
+    if hold(info, wake, dry):
+        return
     w = info["active"]
     if w is not None:
         log(f"{w['name']} window, {w['start']} to {w['end']}")
         rec = {"date": info["date"], "window": w["name"], "start": w["start"], "end": w["end"]}
-        wake = wake_of(args)
         if VISIT and by_magnet(wake):   # a node that was off inside its window: the visit ends with it at the latest
             log("woke by the button or the visit contact: a visit")
             write({**rec, "visit": True}, dry)
@@ -307,7 +454,6 @@ def check(args: list[str]) -> None:
         else:
             gate(info, dry)
         return
-    wake = wake_of(args)
     rec = {"date": info["date"], "window": None, "wake": wake, "next": info["next"]}
     if wake == "button" and os.environ.get("GUARD", "0").strip() == "simple" and guard_alarm():
         alarm(rec, dry)
@@ -332,7 +478,7 @@ def check(args: list[str]) -> None:
 def stop(args: list[str]) -> None:
     dry = "--dry-run" in args
     info = windows(args[args.index("--now") + 1] if "--now" in args else None)
-    if info["active"] is not None:
+    if info["active"] is not None and read_hold() is None:
         log(f"the {info['active']['name']} window has begun; staying on, the schedule ends it")
         return
     if "--unless-maintenance" in args and maintenance():
@@ -412,19 +558,26 @@ def arm(args: list[str]) -> None:
 
 
 def power_off(info: dict, dry: bool) -> None:
-    start = datetime.fromisoformat(info["next"])
+    held = read_hold() is not None
+    start = retry_at(info) if held else datetime.fromisoformat(info["next"])
     # the board reads its alarm as clock fields against its RTC, which keeps UTC (wittypi.service, life-schedule)
     fields = subprocess.run(["date", "-u", "-d", f"@{int(start.timestamp())}", "+%d %H %M %S"], capture_output=True, text=True,
                             check=True).stdout.split()
     cmd = f"cd /data/wittypi && . ./utilities.sh >/dev/null 2>&1 && set_startup_time {' '.join(fields)} && clear_shutdown_time"
-    log(f"next start {info['next']} (Witty Pi clock, UTC: {' '.join(fields)}), powering off")
+    # held: the guard off until the next boot arms it again (life-wittypi), so the look comes whatever the input reads
+    bus = os.environ.get("WITTYPI_BUS", "1").strip() or "1"
+    guard_off = f"i2cset -y {bus} 0x08 19 255 && i2cset -y {bus} 0x08 22 255"
+    log(f"next start {start.isoformat(timespec='seconds')} (Witty Pi clock, UTC: {' '.join(fields)})"
+        + (", the guard off until then" if held else "") + ", powering off")
     if dry:
-        print(f"would run: bash -c '{cmd}' && systemctl poweroff")
+        print(f"would run: bash -c '{cmd}'" + (f" && {guard_off}" if held else "") + " && systemctl poweroff")
         return
     if (Path("/data/wittypi") / "utilities.sh").exists():
         if subprocess.run(["bash", "-c", cmd]).returncode != 0:
             log("could not set the next start; staying on until the schedule ends the next window")
             return
+        if held and subprocess.run(["bash", "-c", guard_off]).returncode != 0:
+            log("could not switch the guard off: a look that comes while the input reads under its stop is skipped")
     subprocess.run(["systemctl", "poweroff"], check=False)
 
 
