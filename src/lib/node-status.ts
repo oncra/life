@@ -67,6 +67,10 @@ export type NodeStatusOut = {
    * windows or the night window give them; outside one, what it does */
   window: { name: string; start: number | null; end: number | null } | null;
   offWindow: string | null;
+  /** off after a guard stop until its box is warm (life-window's hold): since when, the board's reading at the last look
+   * (null for none, or the first look right after the stop, when the board still has the Pi's warmth), why ("stopped":
+   * just stopped; "cold": under the hold's minimum) and when it looks again */
+  hold: { since: number | null; boardC: number | null; why: string | null; retryAt: number | null } | null;
   /** why it last woke, as the Witty Pi says: alarm, button, power-connected, voltage-restored, ... */
   wake: string | null;
   /** when it booted: the time of the numbers less its uptime */
@@ -117,6 +121,12 @@ function windowsAround(t: number, lat: number, lon: number, zone: string) {
 }
 
 /** Everything the panel shows, from the input `nodeStatus` reads. */
+const isoMs = (v: unknown) => (typeof v === "string" && Number.isFinite(Date.parse(v)) ? Date.parse(v) : null);
+function holdOf(v: unknown): NodeStatusOut["hold"] {
+  const h = obj(v);
+  return h ? { since: isoMs(h.since), boardC: num(h.boardC), why: str(h.why), retryAt: isoMs(h.retryAt) } : null;
+}
+
 export function statusFrom(i: StatusInput): NodeStatusOut {
   const last = i.beats.length ? i.beats[i.beats.length - 1] : null;
   const live = i.live && i.now - i.live.at < LIVE_FRESH_S * 1000 ? i.live : null;
@@ -145,7 +155,7 @@ export function statusFrom(i: StatusInput): NodeStatusOut {
   let state: StatusState;
   if (live) state = "live";
   else if (!last && !i.seenAt) state = "never";
-  else if (last && last.event === "shutdown" && age < 36 * H) state = str(m?.wake) === "low-voltage" ? "saving" : "asleep";
+  else if (last && last.event === "shutdown" && age < 36 * H) state = str(m?.wake) === "low-voltage" || offWindow === "hold" ? "saving" : "asleep";
   // in a window it listens for the readings; up outside one (a visit, kept awake, an alarm) it is awake; a desk node
   // without a scheduler says neither and is simply on
   else if (age < (POST_EVERY_H + 1) * H) state = window ? (ended ? "quiet" : "listening") : offWindow ? "awake" : "on";
@@ -198,7 +208,7 @@ export function statusFrom(i: StatusInput): NodeStatusOut {
 
   return {
     now: i.now, zone: i.zone, state, source: live ? "live" : last ? "post" : null, liveEver: i.liveEver, at, postAt: last?.t ?? i.seenAt, via,
-    window, offWindow, wake: str(m?.wake),
+    window, offWindow, wake: str(m?.wake), hold: holdOf(offWindow === "hold" ? m?.hold : null),
     upSince: running && uptimeS !== null && at !== null ? at - uptimeS * 1000 : null,
     next,
     power: { v: batt?.v ?? vin, src: batt?.src ?? (vin !== null ? "usb" : null), piW: num(m?.piW), pvW: num(m?.pvW), charge: str(m?.charge), yieldWh: num(m?.yieldTodayWh) },

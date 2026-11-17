@@ -16,7 +16,7 @@ const POINTS: { title: string; icon: ReactNode; body: ReactNode }[] = [
   {
     title: "Its own power",
     icon: ICON.sun,
-    body: "A 40 W panel and a 20 Ah battery. A small scheduler wakes the box for its listening hours and puts it to sleep after. Below 12.6 V it shuts itself down cleanly, and it starts again once the sun has lifted the battery above 13.2 V.",
+    body: "A 40 W panel and a 20 Ah battery. A small scheduler wakes the box for its listening hours and puts it to sleep after. Below 12.1 V it shuts itself down cleanly, and it starts again once the sun has lifted the battery above 13.2 V, or in frost once its box is warm enough for the battery to take a charge.",
   },
   {
     title: "Its own 4G",

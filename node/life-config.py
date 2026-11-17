@@ -302,9 +302,9 @@ def check_guard(env: dict) -> None:
     if not any(k in env for k in GUARD):
         return
     base = base_env()
-    if fnum(base.get("WITTYPI_LOW_V", "12.6"), 12.6) == 0:
+    if fnum(base.get("WITTYPI_LOW_V", "12.1"), 12.1) == 0:
         raise ValueError("the battery guard is off at this node (WITTYPI_LOW_V=0, a mains adapter); only at the node can it go on again")
-    low = fnum(env.get("WITTYPI_LOW_V", base.get("WITTYPI_LOW_V")), 12.6)
+    low = fnum(env.get("WITTYPI_LOW_V", base.get("WITTYPI_LOW_V")), 12.1)
     rec = fnum(env.get("WITTYPI_RECOVERY_V", base.get("WITTYPI_RECOVERY_V")), 13.2)
     if rec < low + 0.3 - 1e-9:
         raise ValueError(f"the recovery level {rec:g} V must be at least 0.3 V above the stop at {low:g} V")
