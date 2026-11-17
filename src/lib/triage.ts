@@ -3,10 +3,8 @@ import { canSeeExact } from "./privacy";
 import type { TriageClip } from "@/components/Triage";
 
 // The devices whose clips /triage shows, and which of them the person looking may judge (signed in and allowed to see
-// the place exactly). A place that keeps its node to itself (Place.nodePublic false) shows its clips only to those who
-// may see it exactly, as its node dashboard does. Shared by the page, which lists species only, and /api/triage/clips,
-// which brings one species' clips when its row is opened: with thousands of clips, sending them all with the page made
-// it megabytes of HTML.
+// the place exactly). Shared by the page, which lists species only, and /api/triage/clips, which brings one species'
+// clips when its row is opened: with thousands of clips, sending them all with the page made it megabytes of HTML.
 
 /** The lowest detector score /triage shows by default, in percent. BirdNET's score is not a probability and its
  * meaning differs per species (Wood & Kahl 2024, J. Ornithol. 165:777); 0.5 is the usual starting point for
@@ -21,11 +19,10 @@ export function triageMin(raw: string | null | undefined): number {
   return Math.max(0, Math.min(100, Number.isFinite(n) ? n : TRIAGE_MIN_DEFAULT)) / 100;
 }
 export async function triageDevices(userId: string | null) {
-  const all = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
+  const devices = await prisma.device.findMany({ where: { clips: { some: {} } }, include: { place: true } });
   const judge = new Set(
-    userId ? (await Promise.all(all.map(async (d) => ((await canSeeExact(d.place)) ? d.id : null)))).filter((d) => d !== null) : [],
+    userId ? (await Promise.all(devices.map(async (d) => ((await canSeeExact(d.place)) ? d.id : null)))).filter((d) => d !== null) : [],
   );
-  const devices = all.filter((d) => d.place.nodePublic || judge.has(d.id));
   return { devices, judge };
 }
 

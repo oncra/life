@@ -24,9 +24,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const place = await findPlace(id);
   if (!place || !(await canView(place, req))) return json({ error: "not found" }, 404);
   const devices = await prisma.device.findMany({ where: { placeId: place.id }, select: { id: true, kind: true, model: true, serial: true, devEui: true, lat: true, lon: true, heightM: true, depthCm: true, installedAt: true, lastSeenAt: true, lastHeartbeatAt: true, maintenanceFrom: true, maintenanceUntil: true, notes: true } });
-  const exact = await canSeeExact(place, req);
-  // last seen, the last heartbeat and the alarm window are node data: gone for a viewer who may not see the place's node
-  return json({ place: place.slug, items: devices.map((d) => publicDevice(d, place.locationHidden && !exact, !place.nodePublic && !exact)) });
+  const hide = place.locationHidden && !(await canSeeExact(place, req));
+  return json({ place: place.slug, items: devices.map((d) => publicDevice(d, hide)) });
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {

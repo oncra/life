@@ -6,7 +6,7 @@ import LifeMap from "@/components/LifeMap";
 import NdviChart from "@/components/NdviChart";
 import { clearDays, growingSeasonMeans, productivityBasis, seasonSpan, verdict, type ReadingOut } from "@/lib/readings";
 import { carbonSeries, issuable } from "@/lib/carbon";
-import { canSeeExact, canSeeNode, canView, publicPlace } from "@/lib/privacy";
+import { canSeeExact, canView, publicPlace } from "@/lib/privacy";
 export const dynamic = "force-dynamic";
 
 const DIM_TEXT: Record<string, [string, string]> = {
@@ -25,9 +25,6 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const stored = await prisma.place.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
   if (!stored || !(await canView(stored))) notFound();
   const exact = await canSeeExact(stored);
-  // the devices' last posts, their alerts and the way to the node dashboard are node data: a place can keep its node
-  // to itself, also when the place itself is public
-  const node = await canSeeNode(stored);
   const place = publicPlace(stored, exact);
   const hidden = stored.locationHidden;
   const [sat, readings, devices, jobs, visits, soilRows, alerts] = await Promise.all([
@@ -92,7 +89,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
             <a className="underline" href={`/api/v1/places/${place.slug}`}>JSON</a>
             <a className="underline" href={`/api/v1/places/${place.slug}/satellite?format=csv`}>NDVI CSV</a>
             <a className="underline" href={`/api/v1/places/${place.slug}/readings`}>Readings JSON</a>
-            {devices.length > 0 && node && <Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>}
+            {devices.length > 0 && <Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>}
             <Link className="underline" href="/docs/guide-steward">Add a device</Link>
           </div>
         </div>
@@ -148,7 +145,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         </section>
       )}
 
-      {devices.length > 0 && node && (
+      {devices.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold">Devices</h2>
           <p className="text-sm text-muted"><Link className="underline" href={`/places/${place.slug}/node`}>Node dashboard</Link>: soil, sound, battery and heartbeats over time.</p>

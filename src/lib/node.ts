@@ -1,8 +1,7 @@
 // The node dashboard (/places/{slug}/node): what a Life Node measured and how it was doing, over time. Everything here
-// is read from the rows the node posted; nothing is modelled. The page is public unless its place keeps its node to
-// itself (Place.nodePublic; the callers ask `canSeeNode` in src/lib/privacy.ts), also for a private place, so nothing in
-// `NodeOut` says where the node stands: the map point comes from `signalPoint`, which blurs it for the public. The lists
-// made for everyone (`heard` with `publicOnly`, `nodeStates`, `nodeSignals`) leave a place that keeps its node out.
+// is read from the rows the node posted; nothing is modelled. The page is public for every place, so nothing in
+// `NodeOut` says where the node stands: the map point comes from `signalPoint`, which blurs it for the public, and the
+// times worked out from the sun are reckoned for that point (`sunPlace`).
 import type { Place } from "@/generated/prisma/client";
 import { prisma } from "./db";
 import { batteryOf } from "./battery";
@@ -265,20 +264,16 @@ export type HeardRow = {
   t: number; confidence: number; status: string | null; placeId: string;
   image: { id: string; width: number; height: number; author: string | null; license: string | null; licenseUrl: string | null; sourceUrl: string | null; title: string | null } | null;
 };
-/** `publicOnly` leaves out the places that keep their node to themselves (Place.nodePublic false): the open data at
- * /api/v1/heard is for everyone. */
-export async function heard(opts: { placeId?: string; limit?: number; minConfidence?: number; withImage?: boolean; publicOnly?: boolean } = {}): Promise<HeardRow[]> {
+export async function heard(opts: { placeId?: string; limit?: number; minConfidence?: number; withImage?: boolean } = {}): Promise<HeardRow[]> {
   const n = Math.max(1, Math.min(opts.limit ?? 5, 50));
   const placeId = opts.placeId ?? null;
-  const publicOnly = opts.publicOnly ?? false;
   // with pictures only, read further down the list: a species heard for the first time waits up to an hour for its own
   const rows = await prisma.$queryRaw<{ key: string; species: string; scientific: string | null; ts: Date; confidence: number; placeId: string }[]>`
     select key, species, scientific, ts, confidence, "placeId" from (
       select distinct on (coalesce(d.scientific, d.species)) coalesce(d.scientific, d.species) as key,
         d.species, d.scientific, d.ts, d.confidence, v."placeId"
-      from "SoundDetection" d join "Device" v on v.id = d."deviceId" join "Place" p on p.id = v."placeId"
+      from "SoundDetection" d join "Device" v on v.id = d."deviceId"
       where not d.test and (${placeId}::text is null or v."placeId" = ${placeId}::text) and d.confidence >= ${opts.minConfidence ?? 0}
-        and (not ${publicOnly}::boolean or p."nodePublic")
       order by coalesce(d.scientific, d.species), d.ts desc) x
     order by ts desc limit ${opts.withImage ? 200 : n}`;
   if (rows.length === 0) return [];
@@ -336,12 +331,11 @@ export async function heardClips(placeId: string, keys: string[]): Promise<Recor
 
 /** Whether a node is listening, for a page that shows what it hears: `asleep` after a planned shutdown (the field
  * schedule switches it off part of the day to spare the battery), `listening` while it posts in its rhythm, `quiet`
- * when a post is late, `silent` when the SILENT alert would be open. For everyone (the home page, the open data), so
- * only the places whose node is public. */
+ * when a post is late, `silent` when the SILENT alert would be open. */
 export type NodeState = { placeId: string; slug: string; status: "listening" | "asleep" | "quiet" | "silent"; heardAt: number | null; lastEvent: string | null };
 export async function nodeStates(now = Date.now(), placeId?: string): Promise<NodeState[]> {
   const places = await prisma.place.findMany({
-    where: { nodePublic: true, ...(placeId ? { id: placeId } : {}), devices: { some: { OR: [{ lastHeartbeatAt: { not: null } }, { lastSeenAt: { not: null } }] } } },
+    where: { ...(placeId ? { id: placeId } : {}), devices: { some: { OR: [{ lastHeartbeatAt: { not: null } }, { lastSeenAt: { not: null } }] } } },
     select: { id: true, slug: true, devices: { select: { id: true, lastHeartbeatAt: true, lastSeenAt: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -407,11 +401,19 @@ export function signalPoint(p: Pick<Place, "public" | "locationHidden" | "blurLa
   return { lat: p.centroidLat, lon: p.centroidLon, radiusM: null };
 }
 
-/** One signal per place that has a device which has reported: the pulsing dots on the map. Public: blurred points, and
- * only the places whose node is public; a node dashboard adds its own place's signal itself. */
+/** The place with its centroid moved to the point a viewer sees (`signalPoint`), for what the dashboard works out from
+ * the sun: the night bands, the listening windows in the status panel, the night window. sun.ts gives sunrise and
+ * sunset to the millisecond, and with its equation, which is open like the rest of this code, two of them give back
+ * the point they were worked out for. Reckoned from the blurred centre, they are seconds from the node's own. */
+export function sunPlace<P extends Pick<Place, "public" | "locationHidden" | "blurLat" | "blurLon" | "blurRadiusM" | "centroidLat" | "centroidLon">>(p: P, exact: boolean): P {
+  const pt = signalPoint(p, exact);
+  return { ...p, centroidLat: pt.lat, centroidLon: pt.lon };
+}
+
+/** One signal per place that has a device which has reported: the pulsing dots on the map. Public: blurred points. */
 export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
   const places = await prisma.place.findMany({
-    where: { nodePublic: true, devices: { some: { OR: [{ lastHeartbeatAt: { not: null } }, { lastSeenAt: { not: null } }] } } },
+    where: { devices: { some: { OR: [{ lastHeartbeatAt: { not: null } }, { lastSeenAt: { not: null } }] } } },
     include: { devices: { select: { id: true, kind: true, lastHeartbeatAt: true, lastSeenAt: true } } },
     orderBy: { createdAt: "asc" },
   });

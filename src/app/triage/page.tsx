@@ -16,9 +16,8 @@ export const metadata: Metadata = {
 };
 
 // Clips from a node on the bench, grouped by species. Everyone may listen (Sven, 2026-11-02: read-only for every
-// visitor), except to the clips of a place that keeps its node to itself, which only those who may see it exactly hear
-// (triageDevices); judging a clip takes a sign-in and the right to see its place exactly, as before (mayHear in
-// lib/clips). The page shows no location: a clip says which node, never where it stands.
+// visitor); judging a clip takes a sign-in and the right to see its place exactly, as before (mayHear in lib/clips).
+// The page shows no location: a clip says which node, never where it stands.
 export default async function TriagePage({ searchParams }: { searchParams: Promise<{ min?: string }> }) {
   const min = triageMin((await searchParams).min);
   const pct = Math.round(min * 100);
