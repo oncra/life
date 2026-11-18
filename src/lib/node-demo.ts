@@ -41,14 +41,16 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     nodeStatus(sunPlace(place, exact), now),
     heard({ placeId: place.id, limit: 40 }),
     prisma.soundDetection.findMany({
-      where: { device: { placeId: place.id } }, orderBy: { ts: "desc" }, take: 14,
+      where: { device: { placeId: place.id } }, orderBy: { ts: "desc" }, take: 30,
       select: { id: true, ts: true, species: true, scientific: true, confidence: true, test: true },
     }),
     on ? prisma.device.findMany({ where: { placeId: place.id, kind: "SOUND" }, select: { live: true } }) : [],
   ]);
+  // what BirdNET also names that is not a species (Engine, Siren, Dog, Human vocal...) has no binomial: not on the board
+  const living = (key: string) => /\s/.test(key.trim());
   const birds: Record<string, DemoBird> = {};
   for (const h of species) birds[h.key] = { key: h.key, species: h.species, scientific: h.scientific, names: h.names, image: h.image };
-  const feed = dets.map((d) => {
+  const feed = dets.filter((d) => living(d.scientific ?? d.species)).map((d) => {
     const key = d.scientific ?? d.species;
     // a species heard only in tests is not in `heard()`: its own row names it
     if (!birds[key]) birds[key] = { key, species: d.species, scientific: d.scientific, names: null, image: null };
@@ -65,8 +67,8 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     place: { slug: place.slug, name: place.name },
     demo: { on, until: on ? place.demoUntil!.getTime() : null },
     status,
-    heard: species.slice(0, 6).map((h) => ({ key: h.key, species: h.species, scientific: h.scientific, names: h.names, image: h.image, t: h.t, confidence: h.confidence })),
-    feed, birds, pos,
+    heard: species.filter((h) => living(h.key)).slice(0, 6).map((h) => ({ key: h.key, species: h.species, scientific: h.scientific, names: h.names, image: h.image, t: h.t, confidence: h.confidence })),
+    feed: feed.slice(0, 14), birds, pos,
     home: signalPoint(place, exact),
   };
 }

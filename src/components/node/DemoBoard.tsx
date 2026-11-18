@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type * as LType from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ago, fmtTime, wall } from "@/lib/clock";
+import { fmtTime, wall } from "@/lib/clock";
 import type { DemoBird, DemoOut } from "@/lib/node-demo";
 
 /** The node's demo board: the bird it heard last, large, the ones before it, every detection as it comes in, how the node
@@ -43,6 +43,19 @@ const clock = (t: number, zone: string) => {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(w.h)}:${p(w.mi)}:${p(w.s)}`;
 };
+/** How long ago, to the second while it is fresh: on a demo board a bird is heard seconds ago, not "just now". */
+function ago(t: number, now: number, lang: Lang): string {
+  const nl = lang === "nl";
+  const s = Math.max(0, Math.round((now - t) / 1000));
+  if (s < 10) return nl ? "zojuist" : "just now";
+  if (s < 60) return nl ? `${s} s geleden` : `${s} s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return nl ? `${m} min geleden` : `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 48) return nl ? `${h} uur geleden` : `${h} h ago`;
+  const days = Math.round(h / 24);
+  return nl ? `${days} dagen geleden` : `${days} days ago`;
+}
 function span(ms: number, lang: Lang): string {
   const m = Math.max(0, Math.round(ms / 60e3));
   if (m < 60) return `${m} min`;
@@ -113,7 +126,7 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
   const others = d.heard.filter((h) => h.key !== top?.key).slice(0, 5);
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-[#0b1510] text-[#eef3ea]" style={{ backgroundImage: "radial-gradient(ellipse at 30% 0%, rgba(47,107,58,0.35), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(30,70,90,0.25), transparent 55%)" }}>
+    <div className="fixed inset-0 z-[1100] overflow-y-auto bg-[#0b1510] text-[#eef3ea]" style={{ backgroundImage: "radial-gradient(ellipse at 30% 0%, rgba(47,107,58,0.35), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(30,70,90,0.25), transparent 55%)" }}>
       <div className="mx-auto max-w-[1500px] px-4 sm:px-8 py-5 min-h-full flex flex-col">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -158,7 +171,7 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                     <h1 className="text-4xl sm:text-6xl font-semibold leading-[1.02] tracking-tight">{name(topBird, lang)}</h1>
                     {topBird.scientific && <div className="mt-2 text-lg italic text-[#9fb5a3]">{topBird.scientific}</div>}
                     <div className="mt-6 flex items-center gap-3 text-sm">
-                      <span className="rounded-full bg-[#5ee08a]/15 text-[#7ff0a4] px-3 py-1 font-medium">{ago(top.t, now)}</span>
+                      <span className="rounded-full bg-[#5ee08a]/15 text-[#7ff0a4] px-3 py-1 font-medium">{ago(top.t, now, lang)}</span>
                       <span className="text-[#c9d6cb]">{pct(top.confidence)} {t.sure}</span>
                       {top.test && <span className="rounded-full border border-amber-300/50 text-amber-200 px-2 py-0.5 text-xs">{t.test}</span>}
                     </div>
@@ -183,7 +196,7 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                         ) : <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center text-2xl">{name(h, lang).slice(0, 1)}</div>}
                       </div>
                       <figcaption className="mt-2 text-sm font-medium leading-tight">{name(h, lang)}</figcaption>
-                      <div className="text-[11px] text-[#9fb5a3] mt-0.5">{ago(h.t, now)}</div>
+                      <div className="text-[11px] text-[#9fb5a3] mt-0.5">{ago(h.t, now, lang)}</div>
                     </figure>
                   ))}
                 </div>
