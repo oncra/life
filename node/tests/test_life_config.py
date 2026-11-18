@@ -190,7 +190,7 @@ class Guard(Base):
         self.assertTrue(self.log("life-wittypi"))
 
     def test_a_stop_above_the_input_now_is_refused(self):
-        out = self.apply({"config": {"rev": REV1, "env": {"WITTYPI_LOW_V": 12.9}}}, FAKE_VIN="12.85")
+        out = self.apply({"config": {"rev": REV1, "env": {"WITTYPI_LOW_V": 12.9, "WITTYPI_RECOVERY_V": 13.3}}}, FAKE_VIN="12.85")
         self.assertIn("would switch it off at once", out)
         self.assertEqual(self.env.read_text(), BASE_ENV)
         self.assertFalse(self.log("life-wittypi"))
@@ -206,9 +206,9 @@ class Guard(Base):
         self.assertNotIn(self.cfg().BEGIN, self.env.read_text())
 
     def test_nothing_moves_while_the_node_shuts_down(self):
-        out = self.apply({"config": {"rev": REV1, "env": {"WITTYPI_LOW_V": 12.8}}}, FAKE_VIN="13.2", FAKE_STOPPING="1")
+        out = self.apply({"config": {"rev": REV1, "env": {"WITTYPI_LOW_V": 12.8, "WITTYPI_RECOVERY_V": 13.2}}}, FAKE_VIN="13.2", FAKE_STOPPING="1")
         self.assertIn("shutting down", out)
-        self.assertEqual(self.block(), {"WITTYPI_LOW_V": "12.8"})
+        self.assertEqual(self.block(), {"WITTYPI_LOW_V": "12.8", "WITTYPI_RECOVERY_V": "13.2"})
         self.assertFalse(self.log("life-wittypi"))
 
 
@@ -232,7 +232,7 @@ class Trial(Base):
         self.apply({"config": {"rev": REV1, "env": {"LIFE_CLIPS_SECONDS": 5}}})
         self.apply({"ok": True}, LIFE_BOOT_ID="boot-2")      # confirmed: the last good settings
         os.environ["LIFE_BOOT_ID"] = "boot-3"
-        self.apply({"config": {"rev": REV2, "env": {"LIFE_CLIPS_SECONDS": 9, "WITTYPI_LOW_V": 12.8}}}, FAKE_VIN="13.2")
+        self.apply({"config": {"rev": REV2, "env": {"LIFE_CLIPS_SECONDS": 9, "WITTYPI_LOW_V": 12.8, "WITTYPI_RECOVERY_V": 13.2}}}, FAKE_VIN="13.2")
         for n, b in enumerate(("boot-4", "boot-5", "boot-6"), 1):
             out = self.boot(b)
             self.assertIn(f"wake {n} since they came", out)

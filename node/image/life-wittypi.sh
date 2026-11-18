@@ -39,7 +39,7 @@ fi
 # tenths of a volt, 255 = off); they are written only when they change. WITTYPI_LOW_V=0 switches the guard off, for a
 # node on a mains adapter, whose 12 V would sit below the low level; the recovery level then goes off with it, because
 # on its own it switches the Pi on whenever the input is above it, so the node could never sleep.
-lowv=${WITTYPI_LOW_V:-12.1}; recv=${WITTYPI_RECOVERY_V:-13.2}
+lowv=${WITTYPI_LOW_V:-12.1}; recv=${WITTYPI_RECOVERY_V:-13.0}
 tenths() { awk -v v="$1" 'BEGIN { if (v + 0 == 0) print 255; else if (v >= 2 && v <= 25) printf "%d\n", v * 10 + 0.5; else print "bad" }'; }
 lo=$(tenths "$lowv"); re=$(tenths "$recv")
 [ "$lo" = 255 ] && re=255

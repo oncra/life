@@ -90,7 +90,7 @@ export default function NodeStatus({ initial, src }: { initial: NodeStatusOut; s
         ? <>Waiting for warmth{h.since != null ? ` since ${when(h.since).replace(/^at /, "")}` : ""}: at its last look the box read {h.boardC != null ? `${h.boardC.toFixed(1)} °C` : "too cold"}, too cold for the battery to take a charge.{again}</>
         : h
           ? <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery. It stays off until its box is warm enough for the battery to charge.{again}</>
-          : <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery; it starts again once the panel has lifted it above 13.2 V</>;
+          : <>Switched itself off {s.postAt ? when(s.postAt) : ""} to keep the battery; it starts again once the panel has lifted it above 13.0 V</>;
       break;
     }
     case "quiet": {

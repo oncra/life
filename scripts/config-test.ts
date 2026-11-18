@@ -64,7 +64,7 @@ check("names are one each", /same name/.test(rulesProblem([...METHOD_RULES, { ..
 check("eight rules at most", /1 to 8/.test(rulesProblem([...METHOD_RULES, ...Array.from({ length: 6 }, (_, i) => ({ ...more, name: `n${i}`, min: 15 }))]) ?? ""));
 
 // saves
-const saved = nextConfig(null, { env: { LIFE_CLIPS_ALL_FROM: 0.6, WITTYPI_LOW_V: "12.8" } });
+const saved = nextConfig(null, { env: { LIFE_CLIPS_ALL_FROM: 0.6, WITTYPI_LOW_V: "12.8", WITTYPI_RECOVERY_V: "13.2" } });
 check("a save keeps the settings, as the node writes them", saved.ok && saved.config.env.LIFE_CLIPS_ALL_FROM === "0.6" && saved.config.env.WITTYPI_LOW_V === "12.8", saved);
 const cleared = saved.ok ? nextConfig(saved.config, { env: { LIFE_CLIPS_ALL_FROM: null } }) : null;
 check("null gives a setting back to the node, the others stay", !!cleared?.ok && cleared.config.env.LIFE_CLIPS_ALL_FROM === undefined && cleared.config.env.WITTYPI_LOW_V === "12.8", cleared);
