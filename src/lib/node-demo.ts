@@ -12,6 +12,8 @@ import { locateCell, type CellPos } from "@/lib/cell-locate";
 export const DEMO_MAX_H = 6;
 /** a live post's position counts this long: the node posts every twenty seconds while live */
 const POS_FRESH_MS = 10 * 60e3;
+/** on 4G a heartbeat comes with the sound post, three minutes after boot and then every three hours (life-sound.timer) */
+const CELL_FRESH_MS = 190 * 60e3;
 
 export type DemoBird = Pick<HeardRow, "key" | "species" | "scientific" | "names" | "image">;
 export type DemoOut = {
@@ -67,7 +69,7 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     for (const d of devices) {
       const c = d.cell as (Parameters<typeof locateCell>[0] & { seenAt?: string }) | null;
       const seen = c?.seenAt ? Date.parse(c.seenAt) : 0;
-      if (!c || !(now - seen <= POS_FRESH_MS)) continue;
+      if (!c || !(now - seen <= CELL_FRESH_MS)) continue;
       const p = await locateCell(c, now);
       if (p && (!pos || seen > pos.at)) pos = { ...p, at: seen, operator: status?.link.operator ?? null };
     }
