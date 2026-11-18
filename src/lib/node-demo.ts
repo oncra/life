@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { DISPLAY_ZONE } from "@/lib/clock";
 import { heard, nodeStatus, signalPoint, sunPlace, type HeardRow } from "@/lib/node";
 import type { NodeStatusOut } from "@/lib/node-status";
-import type { CellPos } from "@/lib/cell-locate";
+import { locateCell, type CellPos } from "@/lib/cell-locate";
 
 /** A node's demo page (/places/{slug}/demo): the birds as they come in, how the node is doing, and while the place's
  * demo is on (Place.demoUntil) where it is now, from the 4G mast it hears. Polled every few seconds by the page. Public
@@ -44,7 +44,7 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
       where: { device: { placeId: place.id } }, orderBy: { ts: "desc" }, take: 30,
       select: { id: true, ts: true, species: true, scientific: true, confidence: true, test: true },
     }),
-    on ? prisma.device.findMany({ where: { placeId: place.id, kind: "SOUND" }, select: { live: true } }) : [],
+    on ? prisma.device.findMany({ where: { placeId: place.id, kind: "SOUND" }, select: { live: true, cell: true } }) : [],
   ]);
   // what BirdNET also names that is not a species (Engine, Siren, Dog, Human vocal...) has no binomial: not on the board
   const living = (key: string) => /\s/.test(key.trim());
@@ -61,6 +61,16 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     const live = d.live as { pos?: CellPos; cell?: { plmn?: string } | null; metrics?: Record<string, unknown> } | null;
     const p = live?.pos;
     if (p && typeof p.lat === "number" && now - p.at <= POS_FRESH_MS && (!pos || p.at > pos.at)) pos = { ...p, operator: status?.link.operator ?? null };
+  }
+  // on 4G the node sends no live posts, but each heartbeat carries the cell it is on (Device.cell): place that one
+  if (!pos) {
+    for (const d of devices) {
+      const c = d.cell as (Parameters<typeof locateCell>[0] & { seenAt?: string }) | null;
+      const seen = c?.seenAt ? Date.parse(c.seenAt) : 0;
+      if (!c || !(now - seen <= POS_FRESH_MS)) continue;
+      const p = await locateCell(c, now);
+      if (p && (!pos || seen > pos.at)) pos = { ...p, at: seen, operator: status?.link.operator ?? null };
+    }
   }
   return {
     now, zone: DISPLAY_ZONE,
