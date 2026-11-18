@@ -120,3 +120,13 @@ main { overflow-x: clip; }
 @keyframes sound-bar { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
 .sound-bar { animation: sound-bar 0.9s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .sound-bar { animation: none; } }
+
+/* The node's demo board (/places/{slug}/demo): a new bird comes in, a ring goes out from it, the node's pin breathes,
+   and the map tiles are darkened to sit on the board. */
+@keyframes demo-in { 0% { opacity: 0; transform: translateY(14px) scale(0.97); } 100% { opacity: 1; transform: none; } }
+.demo-in { animation: demo-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes demo-ring { 0% { transform: translateX(-50%) scale(0.3); opacity: 0.9; } 100% { transform: translateX(-50%) scale(2.6); opacity: 0; } }
+.demo-ring { animation: demo-ring 1.6s ease-out 3; }
+.demo-pin { display: block; width: 18px; height: 18px; border-radius: 9999px; background: #5ee08a; border: 3px solid #0b1510; animation: live-glow 2s ease-out infinite; }
+.demo-tiles { filter: brightness(0.62) invert(1) contrast(2.6) hue-rotate(180deg) saturate(0.35) brightness(0.72); }
+@media (prefers-reduced-motion: reduce) { .demo-in, .demo-ring, .demo-pin { animation: none; } }
