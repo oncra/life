@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 18 November 2026
+
+### The node starts again at 13.0 V instead of 13.2 V
+
+*Learning.* After the guard stops the node at 12.1 V, the battery springs back once the load is off, to about 12.6 to 12.9 V. The level at which the node starts again has to sit clear above that, or the spring-back alone switches it on. 13.2 V was more margin than that needs. In sun the panel lifts the battery past both 13.0 and 13.2 V within minutes, so the difference does not show there; under a grey winter sky, with a few hundred milliamps of charge, the climb from 13.0 to 13.2 V takes an hour or more, about half to one amp-hour, and all that time the node stays off. In frost it makes no difference either, because then the box's temperature decides.
+
+*Change.* The node starts again above 13.0 V, a few tenths above the spring-back and still well clear of it. Node 1 has it over the air; every new node has it from the start. The low-battery alert closes at the same level.
+
 ## 17 November 2026
 
 ### Sharing the data is the point; only where the node stands is kept back
