@@ -24,7 +24,8 @@ Environment (the units' own, from /etc/life-node.env and /data/life-node/env):
     LIFE_DEVICE_TOKEN, LIFE_API   as for life-heartbeat
     LIFE_LIVE                     0 to never post live (default 1)
     LIFE_LIVE_EVERY_S             seconds between posts (default 20; the oracle's answer `every` wins, 10 at least)
-    LIFE_LIVE_PUSH_S              seconds between pushes of the detections while live (default 120; 0 for none)
+    LIFE_LIVE_PUSH_S              seconds between pushes of the detections while live (default 120; 0 for none; the
+                                  oracle's answer `push` wins during a demo of the node's place, 10 at least)
     LIFE_HEARTBEAT_BIN, LIFE_CLIPS_BIN, LIFE_PUSH_BIN
                                   default /usr/local/bin/life-heartbeat, life-clips and life-push
 """
@@ -97,7 +98,7 @@ class Live:
     """One loop of posts; `tick` does one round and says how long to wait for the next."""
 
     def __init__(self, every: int, push_every: int):
-        self.every, self.push_every = every, push_every
+        self.every, self.push_every, self.push_default = every, push_every, push_every
         self.oracle, self.said, self.noise, self.last_push = None, None, None, 0.0
 
     def say(self, what: str, err: bool = False):
@@ -132,7 +133,12 @@ class Live:
             self.every = max(10, int(answer.get("every") or self.every))
         except (TypeError, ValueError):
             pass
-        self.say(f"posting live over {dev} every {self.every} s")
+        # during a demo of its place the oracle asks for the birds more often; without it the node's own rhythm again
+        try:
+            self.push_every = max(10, int(answer["push"])) if answer.get("push") else self.push_default
+        except (TypeError, ValueError, AttributeError):
+            self.push_every = self.push_default
+        self.say(f"posting live over {dev} every {self.every} s, the detections every {self.push_every} s")
         if self.push_every and time.monotonic() - self.last_push >= self.push_every and CLIPS.way_out() == dev:
             self.last_push = time.monotonic()
             said = push()

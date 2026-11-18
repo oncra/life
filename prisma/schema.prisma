@@ -72,6 +72,9 @@ model Place {
   /// true: the public sees a circle of blurRadiusM around (blurLat, blurLon) instead of the boundary; the exact
   /// geometry, centroid and device positions are shown only to the place's owner, its steward key and admins
   locationHidden Boolean  @default(false)
+  /// a demo of the node until then (null: none): the demo page shows where the node is now from its 4G cell, and the
+  /// node sends its detections every twenty seconds while live. Set by a manager on /places/{slug}/demo
+  demoUntil      DateTime?
   blurLat        Float?
   blurLon        Float?
   blurRadiusM    Int?
