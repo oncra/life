@@ -52,8 +52,11 @@ for t in ed25519 rsa; do
 done
 chmod 600 $DATA/ssh/ssh_host_*_key
 
-# 5. bench WiFi, if the env names one and no connection exists yet (the field node has no WiFi to join)
-if [ -n "${WIFI_SSID:-}" ] && [ ! -f "$DATA/nm-connections/bench-wifi.nmconnection" ]; then
+# 5. bench WiFi, if the env names one (the field node has no WiFi to join): written when there is none yet, and again
+# when the env names another WiFi or password than the card holds. Node 2's card had a profile from 15 September with
+# the office name and no password, and a new env's password never reached it.
+BW=$DATA/nm-connections/bench-wifi.nmconnection
+if [ -n "${WIFI_SSID:-}" ] && { [ ! -f "$BW" ] || ! grep -qxF "ssid=$WIFI_SSID" "$BW" || ! grep -qxF "psk=${WIFI_PSK:-}" "$BW"; }; then
   cat > "$DATA/nm-connections/bench-wifi.nmconnection" <<NM
 [connection]
 id=bench-wifi
