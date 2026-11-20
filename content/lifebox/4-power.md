@@ -25,10 +25,11 @@ In the field there is no socket. The panel charges the battery, the blue Victron
 7. Open the app, with Bluetooth on, next to the controller. It finds the controller by itself and then asks for a **PIN code**. That code is on a **sticker on the side of the controller**. Older controllers have no sticker; their code is 000000.
 8. In the app, choose the **LiFePO4** battery preset. In VictronConnect it is called **Smart Lithium (LiFePO4)**, under settings (the gear wheel), **Battery preset**.
 9. Still under **Battery settings**, set **Max charge current** to **5 A**. The 10 Ah battery takes at most 6 A of continuous charge (the 20 Ah takes 7 A), and the controller can push 10 A. A 40 W panel never gets near that limit, but a 100 W panel in June can, so set it on every node, whatever panel it has.
+10. Under **Load output**, choose **Always on**. The Witty Pi hangs on that output and guards the battery itself: below 12.1 V it shuts the Pi down cleanly, and once the panel lifts the battery above 13.0 V it starts it again. The controller's default, **BatteryLife**, kept node 1 dark for days in October 2026: after cutting the output at low voltage it waits for a good charge before switching it back on, which a small panel in autumn does not give, and without power the Witty Pi cannot start the node either. With the output always on, the battery's own protection (its BMS) is the last guard below the Witty Pi.
 
 The probes keep their power from the Pi's USB port, so they are off whenever the Pi sleeps. Never connect them to the controller.
 
-> **Check.** In the Victron app the battery shows a voltage above 12.8 V and, with the panel at the window, a small charging current. Tap the Witty Pi's button: the box starts.
+> **Check.** In the Victron app the battery shows a voltage above 12.8 V and, with the panel at the window, a small charging current, and the load output is on. Tap the Witty Pi's button: the box starts.
 
 ## Let it run a day on its own
 

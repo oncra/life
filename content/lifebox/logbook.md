@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 20 November 2026
 
+### The charge controller's load output stays on
+
+*Learning.* The guide set the charge controller's battery preset and charge current, and said nothing about its load output, the two terminals the Witty Pi hangs on. Left at Victron's default, BatteryLife, that output let node 1's battery run down into its own BMS on 12 October, and once the battery was charged again it kept the output off for days: after a cut at low voltage it waits for a good charge, and the 40 W panel in October never gave one. Without power the Witty Pi could not start the node, so its own guard never got a turn. On 19 October node 1's output went to **Always on**, and since then the Witty Pi alone decides: below 12.1 V the node shuts down cleanly, above 13.0 V it starts again. The battery's BMS stays as the last guard below it.
+
+*Change.* The guide's power step now sets **Load output** to **Always on**, after the battery preset and the charge current. Node 1 has run that way since 19 October; node 2 is the first node set up with it from the guide.
+
 ### The charge controller now caps the charge at 5 A
 
 *Change.* The Victron 75/10 can push 10 A into the battery, and nothing in the guide limited it. The 10 Ah battery is rated for 6 A of continuous charge in its datasheet, the 20 Ah for 7 A. Node 1's 40 W panel gives under 3 A, so it never mattered there, but a 100 W panel in summer gives about 7 A. The guide's power step now sets **Max charge current** to 5 A on every node. [#184](https://github.com/oncra/life/pull/184)
