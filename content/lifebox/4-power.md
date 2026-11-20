@@ -24,6 +24,7 @@ In the field there is no socket. The panel charges the battery, the blue Victron
 
 7. Open the app, with Bluetooth on, next to the controller. It finds the controller by itself and then asks for a **PIN code**. That code is on a **sticker on the side of the controller**. Older controllers have no sticker; their code is 000000.
 8. In the app, choose the **LiFePO4** battery preset. In VictronConnect it is called **Smart Lithium (LiFePO4)**, under settings (the gear wheel), **Battery preset**.
+9. Still under **Battery settings**, set **Max charge current** to **5 A**. The 10 Ah battery takes at most 6 A of continuous charge (the 20 Ah takes 7 A), and the controller can push 10 A. A 40 W panel never gets near that limit, but a 100 W panel in June can, so set it on every node, whatever panel it has.
 
 The probes keep their power from the Pi's USB port, so they are off whenever the Pi sleeps. Never connect them to the controller.
 
