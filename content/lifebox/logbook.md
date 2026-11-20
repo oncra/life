@@ -7,6 +7,12 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 20 November 2026
+
+### The charge controller now caps the charge at 5 A
+
+*Change.* The Victron 75/10 can push 10 A into the battery, and nothing in the guide limited it. The 10 Ah battery is rated for 6 A of continuous charge in its datasheet, the 20 Ah for 7 A. Node 1's 40 W panel gives under 3 A, so it never mattered there, but a 100 W panel in summer gives about 7 A. The guide's power step now sets **Max charge current** to 5 A on every node.
+
 ## 18 November 2026
 
 ### The node starts again at 13.0 V instead of 13.2 V
