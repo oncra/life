@@ -38,17 +38,19 @@ install -m 0755 "$HERE/image/life-firstboot.sh" /usr/local/sbin/life-firstboot
 install -m 0755 "$HERE/image/life-schedule.sh" /usr/local/sbin/life-schedule
 install -m 0755 "$HERE/image/life-schedule-wpi.py" /usr/local/sbin/life-schedule-wpi
 install -m 0755 "$HERE/image/life-window.py" /usr/local/sbin/life-window
-life-schedule-wpi --now 2026-06-21T05:00 | grep -q "^ON" || { echo "life-schedule-wpi does not run"; exit 1; }
-LIFE_STATE=/tmp/life-config-check life-config status --json | grep -q '"rev": null' || { echo "life-config does not run"; exit 1; }; rm -rf /tmp/life-config-check
+# The checks below let grep read the whole output (no -q): with -q grep stops at the match, a line the program
+# writes after it meets a closed pipe, and under pipefail the check fails (the image build of 20 November 2026)
+life-schedule-wpi --now 2026-06-21T05:00 | grep "^ON" >/dev/null || { echo "life-schedule-wpi does not run"; exit 1; }
+LIFE_STATE=/tmp/life-config-check life-config status --json | grep '"rev": null' >/dev/null || { echo "life-config does not run"; exit 1; }; rm -rf /tmp/life-config-check
 # outside the windows a start by the board's schedule posts and goes off; one because the battery came back goes off
 # at once and waits for a warm box (the frost hold, 17 November 2026)
-SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake alarm | grep -q '"offWindow": "stop"' || { echo "life-window does not run"; exit 1; }
-SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake voltage-restored | grep -q '"offWindow": "hold"' || { echo "life-window does not hold after a guard stop"; exit 1; }
-SCHEDULE=season LIFE_STATE=/tmp LIFE_VISIT=1 life-window check --dry-run --now 2026-08-15T13:00 --wake button | grep -q '"offWindow": "visit"' || { echo "life-window does not start a visit"; exit 1; }
-echo '{"night": {"rev": 1, "on": true}}' | SCHEDULE=none LIFE_STATE=/tmp/life-night-check life-window apply >/dev/null && LIFE_STATE=/tmp/life-night-check life-schedule-wpi --windows --now 2026-05-15T23:00 | grep -q '"name": "night"' || { echo "the night window does not run"; exit 1; }; rm -rf /tmp/life-night-check
-LIFE_CLIPS_DIR=/tmp/life-clips-check BIRDNET_DIR=/tmp/life-clips-check life-clips status --json | grep -q '"waiting": 0' || { echo "life-clips does not run"; exit 1; }; rm -rf /tmp/life-clips-check
-LIFE_STATE=/tmp/life-visit-check VISIT_RUN=/tmp/life-visit-check life-visit status --json | grep -q '"hotspot": "hotspot"' || { echo "life-visit does not run"; exit 1; }; rm -rf /tmp/life-visit-check
-LIFE_BATS_PROC=/tmp/life-mic-check LIFE_BATS_SYS=/tmp/life-mic-check BIRDNET_DIR=/tmp/life-mic-check life-mic status --json | grep -q '"plugged": false' || { echo "life-mic does not run"; exit 1; }
+SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake alarm | grep '"offWindow": "stop"' >/dev/null || { echo "life-window does not run"; exit 1; }
+SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake voltage-restored | grep '"offWindow": "hold"' >/dev/null || { echo "life-window does not hold after a guard stop"; exit 1; }
+SCHEDULE=season LIFE_STATE=/tmp LIFE_VISIT=1 life-window check --dry-run --now 2026-08-15T13:00 --wake button | grep '"offWindow": "visit"' >/dev/null || { echo "life-window does not start a visit"; exit 1; }
+echo '{"night": {"rev": 1, "on": true}}' | SCHEDULE=none LIFE_STATE=/tmp/life-night-check life-window apply >/dev/null && LIFE_STATE=/tmp/life-night-check life-schedule-wpi --windows --now 2026-05-15T23:00 | grep '"name": "night"' >/dev/null || { echo "the night window does not run"; exit 1; }; rm -rf /tmp/life-night-check
+LIFE_CLIPS_DIR=/tmp/life-clips-check BIRDNET_DIR=/tmp/life-clips-check life-clips status --json | grep '"waiting": 0' >/dev/null || { echo "life-clips does not run"; exit 1; }; rm -rf /tmp/life-clips-check
+LIFE_STATE=/tmp/life-visit-check VISIT_RUN=/tmp/life-visit-check life-visit status --json | grep '"hotspot": "hotspot"' >/dev/null || { echo "life-visit does not run"; exit 1; }; rm -rf /tmp/life-visit-check
+LIFE_BATS_PROC=/tmp/life-mic-check LIFE_BATS_SYS=/tmp/life-mic-check BIRDNET_DIR=/tmp/life-mic-check life-mic status --json | grep '"plugged": false' >/dev/null || { echo "life-mic does not run"; exit 1; }
 # the AudioMoth's own tool (Open Acoustic Devices, MIT): life-mic sets the AudioMoth USB Microphone to 192 kHz
 # with it. Built from the pinned 1.0.2 source; the compiler stays, since taking it out again with autoremove could
 # take other packages the image came with.
