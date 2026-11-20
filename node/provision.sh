@@ -40,7 +40,10 @@ install -m 0755 "$HERE/image/life-schedule-wpi.py" /usr/local/sbin/life-schedule
 install -m 0755 "$HERE/image/life-window.py" /usr/local/sbin/life-window
 life-schedule-wpi --now 2026-06-21T05:00 | grep -q "^ON" || { echo "life-schedule-wpi does not run"; exit 1; }
 LIFE_STATE=/tmp/life-config-check life-config status --json | grep -q '"rev": null' || { echo "life-config does not run"; exit 1; }; rm -rf /tmp/life-config-check
-SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake voltage-restored | grep -q '"offWindow": "stop"' || { echo "life-window does not run"; exit 1; }
+# outside the windows a start by the board's schedule posts and goes off; one because the battery came back goes off
+# at once and waits for a warm box (the frost hold, 17 November 2026)
+SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake alarm | grep -q '"offWindow": "stop"' || { echo "life-window does not run"; exit 1; }
+SCHEDULE=season LIFE_STATE=/tmp life-window check --dry-run --now 2026-08-15T13:00 --wake voltage-restored | grep -q '"offWindow": "hold"' || { echo "life-window does not hold after a guard stop"; exit 1; }
 SCHEDULE=season LIFE_STATE=/tmp LIFE_VISIT=1 life-window check --dry-run --now 2026-08-15T13:00 --wake button | grep -q '"offWindow": "visit"' || { echo "life-window does not start a visit"; exit 1; }
 echo '{"night": {"rev": 1, "on": true}}' | SCHEDULE=none LIFE_STATE=/tmp/life-night-check life-window apply >/dev/null && LIFE_STATE=/tmp/life-night-check life-schedule-wpi --windows --now 2026-05-15T23:00 | grep -q '"name": "night"' || { echo "the night window does not run"; exit 1; }; rm -rf /tmp/life-night-check
 LIFE_CLIPS_DIR=/tmp/life-clips-check BIRDNET_DIR=/tmp/life-clips-check life-clips status --json | grep -q '"waiting": 0' || { echo "life-clips does not run"; exit 1; }; rm -rf /tmp/life-clips-check

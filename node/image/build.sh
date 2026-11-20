@@ -37,7 +37,7 @@ cp -r "$NODE"/. "$R/tmp/stage/node/"; mkdir -p "$R/tmp/stage/clients"; cp "$REPO
 cp /usr/bin/qemu-aarch64-static "$R/usr/bin/"; cp -L /etc/resolv.conf "$R/etc/resolv.conf.build"
 mount -t proc proc "$R/proc"; mount --rbind /sys "$R/sys"; mount --make-rslave "$R/sys"; mount --rbind /dev "$R/dev"; mount --make-rslave "$R/dev"
 echo ">> installing inside the arm64 root"
-chroot "$R" /bin/bash -c 'mv /etc/resolv.conf /etc/resolv.conf.orig; cp /etc/resolv.conf.build /etc/resolv.conf; apt-get update -qq; LIFE_USER_PASSWORD="$0" bash /tmp/stage/node/provision.sh /tmp/stage/bng /tmp/stage/witty; mv /etc/resolv.conf.orig /etc/resolv.conf; rm /etc/resolv.conf.build; apt-get clean' "$LIFE_USER_PASSWORD"
+chroot "$R" /bin/bash -c 'mv /etc/resolv.conf /etc/resolv.conf.orig; cp /etc/resolv.conf.build /etc/resolv.conf; apt-get update -qq; LIFE_USER_PASSWORD="$0" bash /tmp/stage/node/provision.sh /tmp/stage/bng /tmp/stage/witty; rc=$?; mv /etc/resolv.conf.orig /etc/resolv.conf; rm /etc/resolv.conf.build; apt-get clean; exit $rc' "$LIFE_USER_PASSWORD"
 # BirdNET-Go: a first run writes its default config and fetches the model; then clip saving goes off
 chroot "$R" /bin/bash -c 'bash /tmp/stage/node/image/birdnet-go-firstrun.sh'
 # optional second classifier: PERCH_REGION=central-europe adds Google Perch v2 (Apache-2.0) beside BirdNET
