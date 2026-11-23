@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "./db";
+import { NOT_SPECIES, SPECIES_RE } from "./species-name";
 
 const UA = "LifeOracle/0.1 (https://life.oncra.org; life@oncra.org)";
 const MODEL_URL = "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx";
@@ -238,10 +239,13 @@ export async function makeSpeciesImage(species: string, scientific: string | nul
 export async function speciesImageSweep(log: (s: string) => void = () => {}, limit = 40): Promise<number> {
   const todo = await prisma.$queryRaw<{ species: string; scientific: string | null }[]>`
     select t.species, max(t.scientific) as scientific from (
-      select d.species, max(d.scientific) as scientific, max(d.ts) as ts from "SoundDetection" d where not d.test group by d.species
+      select d.species, max(d.scientific) as scientific, max(d.ts) as ts from "SoundDetection" d
+      where not d.test and coalesce(d.scientific, d.species) ~ ${SPECIES_RE} and coalesce(d.scientific, d.species) <> all(${NOT_SPECIES}::text[])
+      group by d.species
       union all
       select coalesce(c.species, c.scientific), c.scientific, max(c.ts) from "Clip" c
       where not exists (select 1 from "SpeciesImage" j where j.scientific = c.scientific and j.status <> 'failed')
+        and c.scientific ~ ${SPECIES_RE} and c.scientific <> all(${NOT_SPECIES}::text[])
       group by coalesce(c.species, c.scientific), c.scientific
     ) t
     left join "SpeciesImage" i on i.species = t.species

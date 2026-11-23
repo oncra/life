@@ -7,6 +7,14 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 23 November 2026
+
+### A dog is not a species
+
+*Learning.* BirdNET does not only name animals. It also has classes for sounds, such as Engine, Dog, Siren and Fireworks, and BirdNET-Go hands them on as detections like any bird, with the class name where the Latin name goes. Between 9 and 23 November node 1 heard Engine 36 times, Dog 5 times, and Siren and Fireworks once each, at a score of 0.7 or more. The oracle counted each as a species: in the species of the day and the week, the diversity reading, the life index and the open feed. On 23 November the open feed that the climatecleanup.org home page reads listed a dog, with a photo of a dog, among its four newest species.
+
+*Change.* A species is now a Latin binomial, a genus with a capital and an epithet in lower case, and everything that counts or lists species uses that one rule. The sound classes stay in the data as sound heard and count nowhere, and the oracle no longer looks for pictures of them. Every species node 1 has heard so far passes the rule. ([#190](https://github.com/oncra/life/pull/190))
+
 ## 20 November 2026
 
 ### The charge controller's load output stays on

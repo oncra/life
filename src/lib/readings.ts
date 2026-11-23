@@ -5,6 +5,7 @@
  */
 import type { Dimension, Direction } from "@/generated/prisma/client";
 import { SOIL_WATER } from "./soilwater";
+import { isSpecies } from "./species-name";
 
 export const DIMENSIONS: Dimension[] = ["PRODUCTIVITY", "DIVERSITY", "STRUCTURE", "RENEWAL", "CYCLING", "RESILIENCE", "AUTONOMY"];
 
@@ -154,8 +155,9 @@ export function resilience(points: SatPoint[], lat: number): ReadingOut {
 export function diversity(dets: DetPoint[], currentYear: number): ReadingOut {
   if (dets.length === 0) return { dimension: "DIVERSITY", direction: "UNKNOWN", confidence: 0, maturity: 0, evidence: { note: "no sound stream yet: install a recorder and deliver detections" } };
   const byYear = new Map<number, Set<string>>();
-  // a species is its scientific name: the same bird can arrive under its common and its scientific name
-  for (const d of dets) if (d.confidence >= 0.7) byYear.set(d.ts.getUTCFullYear(), (byYear.get(d.ts.getUTCFullYear()) ?? new Set()).add(d.scientific ?? d.species));
+  // a species is its scientific name: the same bird can arrive under its common and its scientific name; a sound class
+  // (Engine, Dog) is no species (src/lib/species-name.ts)
+  for (const d of dets) if (d.confidence >= 0.7 && isSpecies(d.scientific ?? d.species)) byYear.set(d.ts.getUTCFullYear(), (byYear.get(d.ts.getUTCFullYear()) ?? new Set()).add(d.scientific ?? d.species));
   const years = [...byYear.keys()].sort();
   if (years.length < 2) return { dimension: "DIVERSITY", direction: "UNKNOWN", confidence: 0.1, maturity: 0, evidence: { note: "one year of detections; need a second year to read a direction", richness: Object.fromEntries([...byYear].map(([y, s]) => [y, s.size])) } };
   const last = byYear.get(years[years.length - 1])!.size, prev = byYear.get(years[years.length - 2])!.size;

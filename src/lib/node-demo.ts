@@ -4,6 +4,7 @@ import { DISPLAY_ZONE } from "@/lib/clock";
 import { heard, nodeStatus, signalPoint, sunPlace, type HeardRow } from "@/lib/node";
 import type { NodeStatusOut } from "@/lib/node-status";
 import { locateCell, type CellPos } from "@/lib/cell-locate";
+import { isSpecies } from "@/lib/species-name";
 
 /** A node's demo page (/places/{slug}/demo): the birds as they come in, how the node is doing, and while the place's
  * demo is on (Place.demoUntil) where it is now, from the 4G mast it hears. Polled every few seconds by the page. Public
@@ -48,8 +49,8 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     }),
     on ? prisma.device.findMany({ where: { placeId: place.id, kind: "SOUND" }, select: { live: true, cell: true } }) : [],
   ]);
-  // what BirdNET also names that is not a species (Engine, Siren, Dog, Human vocal...) has no binomial: not on the board
-  const living = (key: string) => /\s/.test(key.trim());
+  // what BirdNET also names that is not a species (Engine, Siren, Dog, Human vocal...) is not on the board
+  const living = isSpecies;
   const birds: Record<string, DemoBird> = {};
   for (const h of species) birds[h.key] = { key: h.key, species: h.species, scientific: h.scientific, names: h.names, image: h.image };
   const feed = dets.filter((d) => living(d.scientific ?? d.species)).map((d) => {

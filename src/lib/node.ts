@@ -10,6 +10,7 @@ import { DISPLAY_ZONE, dayLabel, dayStart, dayStarts } from "./clock";
 import { nights } from "./sun";
 import { nextNight } from "./night";
 import { NIGHT_SELECT, settingsOf } from "./node-night";
+import { NOT_SPECIES, SPECIES_RE, isSpecies } from "./species-name";
 import { POST_EVERY_H, type NodeSignal } from "./node-signal";
 import { liveOf, OPERATORS, statusFrom, type LiveRow, type NodeStatusOut } from "./node-status";
 import { TRIAGE_MIN_DEFAULT } from "./triage";
@@ -226,8 +227,10 @@ export async function nodeStatus(place: Pick<Place, "id" | "centroidLat" | "cent
       from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${dayAgo}::timestamptz at time zone 'UTC'
       group by 1` : [],
     soundIds.length ? prisma.$queryRaw<{ today: number; week: number; dets: number }[]>`
-      select (count(distinct coalesce(scientific, species)) filter (where ts >= ${today}::timestamptz at time zone 'UTC'))::int as today,
-        count(distinct coalesce(scientific, species))::int as week,
+      select (count(distinct coalesce(scientific, species)) filter (where ts >= ${today}::timestamptz at time zone 'UTC'
+          and coalesce(scientific, species) ~ ${SPECIES_RE} and coalesce(scientific, species) <> all(${NOT_SPECIES}::text[])))::int as today,
+        (count(distinct coalesce(scientific, species)) filter (where coalesce(scientific, species) ~ ${SPECIES_RE}
+          and coalesce(scientific, species) <> all(${NOT_SPECIES}::text[])))::int as week,
         (count(*) filter (where ts >= ${today}::timestamptz at time zone 'UTC'))::int as dets
       from "SoundDetection" where "deviceId" = any(${soundIds}::text[]) and not test and ts >= ${weekAgo}::timestamptz at time zone 'UTC'` : [],
     // the first bird of the "Last heard here" row, by the name the row gives it (a detector may send only the Latin)
@@ -274,6 +277,7 @@ export async function heard(opts: { placeId?: string; limit?: number; minConfide
         d.species, d.scientific, d.ts, d.confidence, v."placeId"
       from "SoundDetection" d join "Device" v on v.id = d."deviceId"
       where not d.test and (${placeId}::text is null or v."placeId" = ${placeId}::text) and d.confidence >= ${opts.minConfidence ?? 0}
+        and coalesce(d.scientific, d.species) ~ ${SPECIES_RE} and coalesce(d.scientific, d.species) <> all(${NOT_SPECIES}::text[])
       order by coalesce(d.scientific, d.species), d.ts desc) x
     order by ts desc limit ${opts.withImage ? 200 : n}`;
   if (rows.length === 0) return [];
@@ -359,6 +363,7 @@ async function speciesTable(ids: string[], zone: string, now: number): Promise<S
       (count(*) filter (where ts >= ${iso(now - 7 * 864e5)}::timestamptz at time zone 'UTC'))::int as week,
       count(*)::int as total, max(confidence)::float as conf, max(ts) as last
     from "SoundDetection" where "deviceId" = any(${ids}::text[]) and not test
+      and coalesce(scientific, species) ~ ${SPECIES_RE} and coalesce(scientific, species) <> all(${NOT_SPECIES}::text[])
     group by coalesce(scientific, species) order by week desc, total desc, last desc limit 80`;
   return rows.map((r) => ({ ...r, last: r.last.getTime() }));
 }
@@ -421,7 +426,9 @@ export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
   for (const p of places) {
     const sound = p.devices.filter((d) => d.kind === "SOUND").map((d) => d.id);
     const [det, week] = await Promise.all([
-      sound.length ? prisma.soundDetection.findFirst({ where: { deviceId: { in: sound }, test: false }, orderBy: { ts: "desc" }, select: { ts: true, species: true } }) : null,
+      // the newest detection that is a species: a sound class (Engine, Dog) is not the last bird heard
+      sound.length ? prisma.soundDetection.findMany({ where: { deviceId: { in: sound }, test: false }, orderBy: { ts: "desc" }, take: 50, select: { ts: true, species: true, scientific: true } })
+        .then((rows) => rows.find((r) => isSpecies(r.scientific ?? r.species)) ?? null) : null,
       sound.length ? prisma.soundDetection.groupBy({ by: ["species", "scientific"], where: { deviceId: { in: sound }, test: false, ts: { gte: new Date(now - 7 * 864e5) } } }) : [],
     ]);
     const pt = signalPoint(p, false);
@@ -430,7 +437,7 @@ export async function nodeSignals(now = Date.now()): Promise<NodeSignal[]> {
     out.push({
       slug: p.slug, name: p.name, lat: pt.lat, lon: pt.lon, radiusM: pt.radiusM,
       heardAt: seen ? new Date(seen).toISOString() : null, heartbeatAt: hb ? new Date(hb).toISOString() : null,
-      lastSpecies: det?.species ?? null, lastSpeciesAt: det?.ts.toISOString() ?? null, speciesWeek: new Set(week.map((w) => w.scientific ?? w.species)).size, href: `/places/${p.slug}/node`,
+      lastSpecies: det?.species ?? null, lastSpeciesAt: det?.ts.toISOString() ?? null, speciesWeek: new Set(week.map((w) => w.scientific ?? w.species).filter(isSpecies)).size, href: `/places/${p.slug}/node`,
     });
   }
   return out;
