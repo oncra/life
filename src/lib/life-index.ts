@@ -8,6 +8,7 @@ import { clearDays, soilActivity, verdict, type Verdict } from "./readings";
 import { moistureOptimum } from "./context";
 import { DISPLAY_ZONE, dayStart } from "./clock";
 import { coreWindowArrays } from "./listening";
+import { NOT_SPECIES, SPECIES_RE } from "./species-name";
 
 export type IndexRange = "30d" | "1y" | "archive";
 export const INDEX_RANGES: { key: IndexRange; label: string }[] = [
@@ -82,7 +83,8 @@ export async function lifeIndexData(place: Pick<Place, "id" | "centroidLat" | "c
     soundIds.length
       ? prisma.$queryRaw<{ day: string; detections: number; species: number }[]>`
         select to_char((ts at time zone 'UTC') at time zone ${zone}, 'YYYY-MM-DD') as day, count(*)::int as detections,
-          (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7 and (
+          (count(distinct coalesce(scientific, species)) filter (where confidence >= 0.7
+            and coalesce(scientific, species) ~ ${SPECIES_RE} and coalesce(scientific, species) <> all(${NOT_SPECIES}::text[]) and (
             (ts >= (w.s1[k.i] at time zone 'UTC') and ts < (w.e1[k.i] at time zone 'UTC')) or
             (ts >= (w.s2[k.i] at time zone 'UTC') and ts < (w.e2[k.i] at time zone 'UTC')) or
             (ts >= (w.s2[k.i - 1] at time zone 'UTC') and ts < (w.e2[k.i - 1] at time zone 'UTC')))))::int as species

@@ -1,6 +1,7 @@
 /** Checks for the satellite season values (src/lib/readings.ts, content/spec.md 2.1 and 3.1): npm run readings:test. No database. */
 import assert from "node:assert/strict";
-import { clearDays, growingSeasonMeans, productivity, productivityBasis, seasonSpan, type SatPoint } from "../src/lib/readings";
+import { clearDays, diversity, growingSeasonMeans, productivity, productivityBasis, seasonSpan, type SatPoint } from "../src/lib/readings";
+import { isSpecies } from "../src/lib/species-name";
 
 const at = (iso: string) => new Date(`${iso}T10:56:00Z`);   // a Sentinel-2 pass over the Netherlands
 const near = (a: number, b: number, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps, `${a} is not ${b}`);
@@ -65,3 +66,18 @@ assert.deepEqual(productivityBasis(level(2026, 0.7, ["05-01", "06-01", "07-01"])
 assert.equal(productivity([...spring(2023, 1), ...spring(2024, 1)], LAT, now).direction, "UNKNOWN");
 
 console.log("readings: ok");
+
+// a sound class is no species (src/lib/species-name.ts): BirdNET's Engine, Dog, Siren and Fireworks, and the phrases
+// that look like a binomial, count nowhere; every species heard on node 1 so far passes
+for (const n of ["Engine", "Dog", "Siren", "Fireworks", "Gun", "Noise", "Environmental", "Human vocal", "Human whistle", "Human non-vocal", "Power tools", "", null])
+  assert.equal(isSpecies(n), false, `${n} is a sound class`);
+for (const n of ["Pica pica", "Erithacus rubecula", "Porzana porzana", "Lithobates catesbeianus", "Thinornis dubius", " Corvus corone ", "Motacilla alba yarrellii"])
+  assert.equal(isSpecies(n), true, `${n} is a species`);
+// and the diversity reading counts the magpie, not the engine
+const heardAt = new Date("2026-11-22T07:40:00Z");
+assert.deepEqual((diversity([
+  { ts: heardAt, species: "Engine", scientific: "Engine", confidence: 0.97 },
+  { ts: heardAt, species: "Eurasian Magpie", scientific: "Pica pica", confidence: 0.9 },
+  { ts: heardAt, species: "Pica pica", scientific: "Pica pica", confidence: 0.8 },
+], 2026).evidence as { richness: Record<string, number> }).richness, { 2026: 1 });
+
