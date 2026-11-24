@@ -50,6 +50,59 @@ class Mics(unittest.TestCase):
         self.assertEqual(self.beat("hourly")["day"], "2026-11-08")
 
 
+class Mic(unittest.TestCase):
+    """`mic`: the bird microphone as life-mic status sees it, sent when it changed and once a day."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.state = Path(self.tmp.name)
+        self.status = self.state / "status.json"
+        self.bin = self.state / "life-mic"
+        self.bin.write_text(f"#!{sys.executable}\nimport sys\nprint(open({str(self.status)!r}).read())\n")
+        self.bin.chmod(0o755)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def beat(self, mic_bin=None):
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("LIFE_", "MODEM_", "WITTYPI_", "VEDIRECT_"))}
+        env.update({"LIFE_STATE": str(self.state), "MODEM_HOST": "", "WITTYPI_BUS": "", "VEDIRECT_PORT": "none",
+                    "LIFE_QUEUE": str(self.state / "queue.jsonl"), "LIFE_CLIPS_DIR": str(self.state / "clips"),
+                    "LIFE_MIC_BIN": str(mic_bin or self.bin)})
+        r = subprocess.run([sys.executable, "-B", str(HB), "--json"], env=env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout)["metrics"].get("mic")
+
+    def set(self, **st):
+        self.status.write_text(json.dumps({"mode": "audiomoth", "plugged": True, "switchOff": False, "card": 2, **st}))
+
+    def test_no_life_mic_no_field(self):
+        self.assertIsNone(self.beat(self.state / "absent"))
+
+    def test_sent_when_it_changes(self):
+        self.set()
+        self.assertEqual(self.beat(), "audiomoth/ok")
+        self.assertIsNone(self.beat())                      # the same state again the same day: the SIM pays per byte
+        self.set(plugged=False, card=None)
+        self.assertEqual(self.beat(), "audiomoth/unplugged")
+        self.set(switchOff=True, plugged=False, card=None)
+        self.assertEqual(self.beat(), "audiomoth/switch")
+        self.set(card=None)
+        self.assertEqual(self.beat(), "audiomoth/nocard")
+        self.set(mode="i2s", plugged=False, card=None)
+        self.assertEqual(self.beat(), "i2s/unplugged")
+
+    def test_once_a_day_even_when_nothing_changed(self):
+        self.set()
+        self.assertEqual(self.beat(), "audiomoth/ok")
+        (self.state / "mic-sent").write_text("audiomoth/ok 2026-11-23")   # yesterday's
+        self.assertEqual(self.beat(), "audiomoth/ok")
+
+    def test_a_broken_status_holds_nothing_back(self):
+        self.status.write_text("not json")
+        self.assertIsNone(self.beat())
+
+
 APPLY = "/usr/local/bin/life-guard apply;/usr/local/bin/life-visit apply;/usr/local/bin/life-clips apply;/usr/local/sbin/life-window apply"
 
 
