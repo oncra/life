@@ -69,7 +69,7 @@ console.log("readings: ok");
 
 // a sound class is no species (src/lib/species-name.ts): BirdNET's Engine, Dog, Siren and Fireworks, and the phrases
 // that look like a binomial, count nowhere; every species heard on node 1 so far passes
-for (const n of ["Engine", "Dog", "Siren", "Fireworks", "Gun", "Noise", "Environmental", "Human vocal", "Human whistle", "Human non-vocal", "Power tools", "", null])
+for (const n of ["Engine", "Dog", "Siren", "Fireworks", "Gun", "Noise", "Environmental", "Human vocal", "Human whistle", "Human non-vocal", "Power tools", "Motor vehicle", "Power tool", "Vehicle horn", "", null])
   assert.equal(isSpecies(n), false, `${n} is a sound class`);
 for (const n of ["Pica pica", "Erithacus rubecula", "Porzana porzana", "Lithobates catesbeianus", "Thinornis dubius", " Corvus corone ", "Motacilla alba yarrellii"])
   assert.equal(isSpecies(n), true, `${n} is a species`);
