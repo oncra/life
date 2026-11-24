@@ -9,6 +9,10 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 24 November 2026
 
+### Three models on one microphone, without a new image
+
+*Change.* BirdNET-Go 20261122 brought BirdNET+ V3.0, BirdNET's new model and the first one free for commercial use (Apache-2.0), and withdrew the small int8 build of Perch the image took, because it disagreed with the full model too often on real audio and scored too high. A running node on its cable or WiFi can now get BirdNET-Go 20261122 with BirdNET+ V3.0 and Perch at full precision beside BirdNET v2.4, all three on the bird microphone, from one script (`node/apply-models.sh`); the models come from BirdNET-Go's own gallery, which checks every file, and on the 4G stick the script refuses. The image build takes the full-precision Perch from now on, and image v8, built on 20 November with the int8 one, will not be released as it is. Node 2 at the Tolhuistuin, with a cable, is the first to get it, as soon as it can be reached. ([#193](https://github.com/oncra/life/pull/193))
+
 ### The AudioMoth fell out, and the node said nothing
 
 *Learning.* Without its AudioMoth, the node does what it was built to do: it takes the birds to the I2S microphone and listens on. On 18 November node 1 stopped finding the AudioMoth when it started, and from then on every bird came from the I2S microphone, which is about 20 dB quieter and whose noise BirdNET names a Spotted Crake. Five days later a Spotted Crake was on the climatecleanup.org home page and nobody had known, because nothing on the heartbeat said which microphone listened.
