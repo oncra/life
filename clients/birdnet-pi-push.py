@@ -35,7 +35,7 @@ Environment:
 Everything a run posts goes over one connection. On a SIM the TLS handshake is most of what a post costs
 (about 6.5 kB against 1 to 3 kB of payload), so sound, heartbeat and soil share one.
 """
-import fcntl, http.client, json, os, shlex, sqlite3, subprocess, sys, urllib.parse, urllib.request
+import fcntl, http.client, json, os, re, shlex, sqlite3, subprocess, sys, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,7 +47,7 @@ SOIL_QUEUE = os.environ.get("LIFE_SOIL_QUEUE")
 KEEP = {m.strip().lower() for m in os.environ.get("LIFE_KEEP_MODELS", "").split(",") if m.strip()}
 # the I2S microphone as the AudioMoth's witness (node/life-mic.py) is always test: its birds are the AudioMoth's twice
 TEST_SOURCES = {m.strip().lower() for m in os.environ.get("LIFE_TEST_SOURCES", "").split(",") if m.strip()} | {"i2s witness"}
-BAT_MODELS = {"battybirdnet", "bat"}
+BAT_MODELS = {"battybirdnet", "bat", "bsg-bat"}
 if not TOKEN:
     sys.exit("LIFE_DEVICE_TOKEN not set")
 
@@ -100,6 +100,24 @@ def post_soil():
                 print(f"soil post failed, kept in the queue: {e}", file=sys.stderr); left += [{"token": token, "row": r} for r in readings]
         queue.write_text("".join(json.dumps(x) + "\n" for x in left))
 
+def model_token(name: str | None, version: str | None = None) -> str:
+    """The detector field's name for one of BirdNET-Go's models (its ai_models row: a name and a version).
+
+    The first word of the name in lower case, a + spelled out and anything but letters, digits, - and _ left out, so the +
+    that joins models in "birdnet-go:birdnet+perch" stays the only one. BirdNET's major version is added unless it is 2:
+    BirdNET 2.4 stays "birdnet", as every detection before has it, and the V3.0 developer preview, which BirdNET-Go also
+    names BirdNET, is "birdnet3". BirdNET+ V3.0, the release, is "birdnetplus"; Perch v2 "perch"; the bat model
+    "battybirdnet"; BSG-BAT "bsg-bat". Without a version column the version is read from the name ("BirdNET V3.0")."""
+    words = (name or "").strip().split()
+    token = re.sub(r"[^a-z0-9_-]", "", (words[0] if words else "").lower().replace("+", "plus")) or "model"
+    if version is None:
+        version = next((w for w in words[1:] if re.match(r"^[vV]?\d", w)), None)
+    major = re.match(r"^\s*[vV]?(\d+)", version or "")
+    if token == "birdnet" and major and major.group(1) != "2":
+        token += major.group(1)
+    return token
+
+
 candidates = [os.environ.get("BIRDNET_DB"), str(Path.home() / "BirdNET-Pi/scripts/birds.db"), str(Path.home() / "BirdNET-Go/data/birdnet.db"), "/var/lib/birdnet-go/birdnet.db"]
 db = next((c for c in candidates if c and Path(c).exists()), None)
 if not db:
@@ -138,11 +156,16 @@ elif "detections" in tables and "labels" in tables and "label_id" in [c[1] for c
     # "birdnet-go:birdnet+perch", so the oracle can compare models without counting one bird twice.
     models, contrib = {}, {}
     if "ai_models" in tables:
-        models = {r[0]: r[1].lower().split()[0] for r in con.execute("select id, name from ai_models")}
+        has_version = "version" in [c[1] for c in con.execute("pragma table_info(ai_models)")]
+        models = {r[0]: model_token(r[1], r[2] if has_version else None)
+                  for r in con.execute(f"select id, name, {'version' if has_version else 'null'} from ai_models")}
     since_epoch = int(datetime.fromisoformat(since.replace("+00:00", "")[:19]).timestamp())
     if models and "detection_model_contributions" in tables:
-        for r in con.execute("""select c.detection_id, c.model_id from detection_model_contributions c join detections d on d.id = c.detection_id
-                                where d.detected_at > ?""", (since_epoch,)):
+        # BirdNET-Go also stores a row with no hits for every model that was listening on the source and heard nothing
+        # (doc/wiki/detection-pipeline.md): only a model with hits heard the bird
+        hits = " and c.hit_count > 0" if "hit_count" in [c[1] for c in con.execute("pragma table_info(detection_model_contributions)")] else ""
+        for r in con.execute(f"""select c.detection_id, c.model_id from detection_model_contributions c join detections d on d.id = c.detection_id
+                                where d.detected_at > ?{hits}""", (since_epoch,)):
             contrib.setdefault(r[0], set()).add(models.get(r[1], str(r[1])))
     # BirdNET-Go marks a detection `unlikely` when its own check finds no real ultrasonic call in the sound (bats: a
     # flat noise floor instead of pulses). Those stay on the node: on node 1's first evening indoors the bat model

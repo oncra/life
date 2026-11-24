@@ -7,7 +7,7 @@ export type TriageClip = {
   id: string;
   ts: string;
   confidence: number;
-  /** which model named it: "birdnet-go:birdnet", "birdnet-go:battybirdnet" (the bat model), ... */
+  /** which model named it: "birdnet-go:birdnet" (BirdNET v2.4), "birdnet-go:birdnetplus" (BirdNET+ V3.0), "birdnet-go:perch", "birdnet-go:battybirdnet" (the bat model), several joined by + */
   detector: string | null;
   source: string | null;
   fromS: number | null;
@@ -45,8 +45,17 @@ const VERDICTS = [
 
 const when = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const mic = (s: string | null) => (s === "Sound Card 1" ? "I2S microphone" : s ?? "microphone unknown");
-const MODEL: Record<string, string> = { "birdnet-go:birdnet": "BirdNET", "birdnet-go:battybirdnet": "bat model", "birdnet-go:perch_v2": "Perch" };
-const model = (d: string | null) => (d ? MODEL[d] ?? d.replace(/^birdnet-go:/, "") : "detector");
+// what each model's name in the detector field stands for (model_token in clients/birdnet-pi-push.py); a detection that
+// several models heard names them all with a + ("birdnet-go:birdnet+perch")
+const MODEL: Record<string, string> = {
+  birdnet: "BirdNET v2.4", birdnetplus: "BirdNET+ V3.0", birdnet3: "BirdNET V3.0 preview", perch: "Perch", perch_v2: "Perch",
+  battybirdnet: "bat model", bat: "bat model", "bsg-bat": "BSG-BAT",
+};
+const model = (d: string | null) => {
+  if (!d) return "detector";
+  const names = d.replace(/^birdnet-go:?/, "").split("@")[0];
+  return names ? names.split("+").map((m) => MODEL[m] ?? m).join(" + ") : "BirdNET-Go";
+};
 
 export function Triage({ species, judging, min }: { species: TriageSpecies[]; judging: boolean; /** lowest score shown, percent */ min: number }) {
   const [onlyOpen, setOnlyOpen] = useState(false);
