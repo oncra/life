@@ -7,6 +7,12 @@ The [build guide](index.md) tells you what to do. This page tells you why it say
 
 An entry is one of three kinds: a **learning** (something we now know), a **change** (something we did about it), or a **fun fact** (neither, but worth keeping).
 
+## 24 November 2026
+
+### Every model gets its own name
+
+*Change.* Each detection says which model heard it, from BirdNET-Go's list of models: the first word of the model's name. That held while the node ran BirdNET v2.4, Perch and the bat model. BirdNET+ V3.0, the new release, is called "BirdNET+" there, and its + would have run into the + that joins two models heard together ("birdnet+perch"); the V3.0 developer preview is called "BirdNET" with version 3.0, the same word as v2.4. Now the version counts too: v2.4 stays `birdnet`, BirdNET+ V3.0 is `birdnetplus`, the preview `birdnet3`, Perch `perch`. And of the models BirdNET-Go records behind a detection, only those that actually heard it are named: it also stores the ones that listened and heard nothing. ([#191](https://github.com/oncra/life/pull/191))
+
 ## 23 November 2026
 
 ### A dog is not a species
