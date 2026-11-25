@@ -9,7 +9,8 @@
 // English word, or a phrase that happens to look like a binomial, which the list below names.
 
 /** the multi-word sound classes that pass the binomial test */
-export const NOT_SPECIES = ["Human vocal", "Human whistle", "Human non-vocal", "Power tools"];
+/** BirdNET v2.4's, and BirdNET+ V3.0's (whose 16 sound classes include these three; checked on its Central Europe labels) */
+export const NOT_SPECIES = ["Human vocal", "Human whistle", "Human non-vocal", "Power tools", "Motor vehicle", "Power tool", "Vehicle horn"];
 
 /** the binomial test, as a Postgres regular expression too: `coalesce(scientific, species) ~ ${SPECIES_RE}` */
 export const SPECIES_RE = "^[A-Z][a-z]+ [a-z]";

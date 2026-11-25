@@ -3,22 +3,26 @@
 # detection says which model heard it. Run by build.sh when PERCH_REGION is set, after birdnet-go-firstrun.sh,
 # with the image's data partition mounted at $1 (the node sees it as /data).
 #
-# The build is the int8 ARM one cut to a region: for central-europe 873 classes (675 species plus 198 sound
-# events such as engines and voices), 46 MB, about 250 MB of RAM, which fits a Pi 4 with 2 GB beside BirdNET.
-# Files come from the HuggingFace repo BirdNET-Go's own model gallery uses, pinned by SHA-256.
+# The build is the full-precision one cut to a region, build 2: for central-europe 888 classes, 71 MB, about 250 MB of
+# RAM. Until BirdNET-Go 20261122 this took the int8 ARM build (46 MB); that release withdrew it from its gallery,
+# because it disagreed with the full model too often on real audio, and rescaled the regional builds, whose scores had
+# been too high (scaled against the region's species only). Files come from the HuggingFace repo BirdNET-Go's own model
+# gallery uses, pinned by SHA-256.
 # Licence: the Perch v2 weights are Apache-2.0 (Google), so unlike the BirdNET v2.4 model (CC BY-NC-SA 4.0)
 # they carry no non-commercial clause.
 set -euo pipefail
 DATA=${1:?data partition mount point}; REGION=${PERCH_REGION:?PERCH_REGION, e.g. central-europe}
 HF=${HF_ENDPOINT:-https://huggingface.co}/tphakala/Perch-v2-Models/resolve/main/regional/$REGION
-# region -> sha256 of the model and of the labels, from BirdNET-Go's model catalog (release 20260823)
+# region -> sha256 of the model and of the labels, from BirdNET-Go's model catalog (release 20261122, variant
+# no-dft-fp32-b2@<region> in internal/classifier/model_catalog_regional_gen.go)
 case $REGION in
-  central-europe) MODEL_SHA=a5b7da4d147679b3ef0f2cde39bc4cacabfa7a9c462fed7adac4935c8781813e; LABEL_SHA=ac7c30b45b85404bc67830e8341e53ea47ad0d899a30789454c072abc6828072 ;;
+  central-europe) MODEL_SHA=716be1e2762b40f2b24bd51c14715b5d888c7d5394679e1c22b12affbd0c0cd4; LABEL_SHA=f30fd8b4bd6ac3308f577e3435aacd0f62df8cd65390a6d79a2dd845726d7968 ;;
   *) echo "no pinned checksums for region $REGION; add them from internal/classifier/model_catalog_regional_gen.go"; exit 1 ;;
 esac
 DIR=$DATA/birdnet-go/models/perch_v2; mkdir -p "$DIR"
-MODEL=perch_v2_${REGION}_int8_arm.onnx; LABELS=perch_v2_${REGION}_labels.txt
-curl -fsSL -o "$DIR/$MODEL" "$HF/$MODEL"; curl -fsSL -o "$DIR/$LABELS" "$HF/$LABELS"
+# the names BirdNET-Go's gallery gives the files on disk, and the ones they have in the repo
+MODEL=perch_v2_${REGION}_no_dft_b2.onnx; LABELS=perch_v2_${REGION}_labels_b2.txt
+curl -fsSL -o "$DIR/$MODEL" "$HF/perch-v2-$REGION-no-dft-fp32-b2.onnx"; curl -fsSL -o "$DIR/$LABELS" "$HF/perch-v2-$REGION-labels-b2.txt"
 printf '%s  %s\n%s  %s\n' "$MODEL_SHA" "$DIR/$MODEL" "$LABEL_SHA" "$DIR/$LABELS" | sha256sum -c --quiet
 NODE_DIR=/data/birdnet-go/models/perch_v2
 python3 - "$DATA/birdnet-go/config.yaml" "$NODE_DIR/$MODEL" "$NODE_DIR/$LABELS" <<'PY'
