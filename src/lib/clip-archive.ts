@@ -6,7 +6,10 @@ import { prisma } from "./db";
 // more than a month, and keeping everything on the oracle's own disk costs about 18 times what a Storage Box does. So a
 // clip worth keeping is copied to the archive first, and the oracle deletes its sound only once that copy is made or the
 // clip was judged not worth keeping. Worth keeping (decided 12 November 2026):
-//   - every clip scored ARCHIVE_MIN_SCORE (0.5) or more: what a researcher would listen to;
+//   - every clip scored ARCHIVE_MIN_SCORE (0.5) or more: what a researcher would listen to; on a node whose owner keeps
+//     every clip from a lower score (its setting LIFE_CLIPS_ALL_FROM, for a study that wants all of them, such as the
+//     HVHL one), every clip from that score: the archive keeps what the node was set to keep in full (decided
+//     25 November 2026);
 //   - every clip someone has judged: the calibration set (these also stay on the oracle for good, see pruneClips);
 //   - below that, at most ARCHIVE_PER_BAND (5) per microphone, species, month and score band of 0.1, the first heard:
 //     enough to measure how often the detector is wrong at each score, without the bulk of the false alarms.
@@ -40,10 +43,13 @@ async function judged(mode: "pending" | "judge", before = new Date()): Promise<J
         row_number() OVER (
           PARTITION BY c."deviceId", coalesce(c.source, ''), c.scientific, date_trunc('month', c.ts), floor(c.confidence * 10)
           ORDER BY (c."archivedAt" IS NULL), c.ts, c.id) AS rn
-      FROM "Clip" c
+        , least(${ARCHIVE_MIN_SCORE}::float8, coalesce(
+            CASE WHEN d.config->'env'->>'LIFE_CLIPS_ALL_FROM' ~ '^[0-9]+([.][0-9]+)?$'
+                 THEN (d.config->'env'->>'LIFE_CLIPS_ALL_FROM')::float8 END, ${ARCHIVE_MIN_SCORE}::float8)) AS "allFrom"
+      FROM "Clip" c JOIN "Device" d ON d.id = c."deviceId"
       WHERE c.file IS NOT NULL OR c."archivedAt" IS NOT NULL
     )
-    SELECT id, file, (confidence >= ${ARCHIVE_MIN_SCORE} OR reviewed OR rn <= ${ARCHIVE_PER_BAND}) AS keep
+    SELECT id, file, (confidence >= "allFrom" - 1e-9 OR reviewed OR rn <= ${ARCHIVE_PER_BAND}) AS keep
     FROM ranked
     WHERE file IS NOT NULL AND "archivedAt" IS NULL
       AND (${mode} = 'pending' OR (NOT "archiveSkip" AND "createdAt" < (${utc(before)}::timestamptz AT TIME ZONE 'UTC')))`;

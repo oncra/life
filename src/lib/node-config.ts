@@ -22,7 +22,7 @@ export type NodeSetting = (Num | Enum) & { key: string; group: string; label: st
 export const NODE_SETTINGS: NodeSetting[] = [
   { key: "LIFE_MIN_CONFIDENCE", kind: "num", min: 0.5, max: 0.99, group: "Detections", label: "Lowest score sent", what: "Detections under it stay on the node. The readings count from 0.7, and nothing under 0.7 is sent anyway.", when: "post" },
   { key: "LIFE_KEEP_CLIPS", kind: "enum", options: ["0", "1"], group: "Clips", label: "Keep clips", what: "0 keeps no clips at all and deletes those on the node.", when: "wake" },
-  { key: "LIFE_CLIPS_ALL_FROM", kind: "num", min: 0.1, max: 1.01, group: "Clips", label: "Every clip from score", what: "Every clip from this score up is kept while the card has room; above 1 only the sample.", when: "run" },
+  { key: "LIFE_CLIPS_ALL_FROM", kind: "num", min: 0.1, max: 1.01, group: "Clips", label: "Every clip from score", what: "Every clip from this score up is kept while the card has room, and the research archive keeps them all too (0.1 keeps every clip, for a study); above 1 only the sample.", when: "run" },
   { key: "LIFE_CLIPS_PER_BAND", kind: "int", min: 0, max: 50, group: "Clips", label: "Sample per band", what: "Below that score, at most this many clips per species, month and band of 0.1.", when: "run" },
   { key: "LIFE_CLIPS_SECONDS", kind: "int", min: 3, max: 15, group: "Clips", label: "Clip length (s)", what: "Each kept clip is cut to this many seconds from the start of the detection.", when: "run" },
   { key: "LIFE_CLIPS_MIN_FREE_MB", kind: "int", min: 500, max: 20000, group: "Clips", label: "Room kept free (MB)", what: "With less free on the card only the sample still grows.", when: "run" },
