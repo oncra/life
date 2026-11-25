@@ -4,6 +4,7 @@
     python3 kit/winter-energy.py            # harvest per month, then windows lost per share of a free panel's harvest
     python3 kit/winter-energy.py 2026-10-30 # what a free panel would have given on one day
     python3 kit/winter-energy.py --skyline kit/bench-skyline.json --tilt 0   # the same behind a skyline, at one tilt
+    python3 kit/winter-energy.py --hours 8 --wp 100   # a research node's longer windows on the larger panel
 
 Radiation and temperature per hour come from KNMI (station 240, no key needed) and are kept in ~/.cache/life-winter
 once KNMI has published the whole period.
@@ -116,8 +117,9 @@ def civil_dawn(day):
     return None
 
 
-def winter(hours, share, tilt, ah, sky=None):
-    """Windows lost and the lowest charge over one winter, with the panel at this share of the harvest above."""
+def winter(hours, share, tilt, ah, sky=None, window=2):
+    """Windows lost and the lowest charge over one winter, with the panel at this share of the harvest above. A window
+    is `window` hours from civil dawn, each hour awake costing what an hour of the standard two does."""
     cap = ah * 12.8
     e, on, lost, total, low, rises = cap * 0.8, True, 0, 0, 1.0, {}
     awake = (DAY - FLOOR) / 2
@@ -127,7 +129,7 @@ def winter(hours, share, tilt, ah, sky=None):
             e = min(cap, e + panel_w(ghi, t, temp, tilt, sky) * share)
         on = False if e < cap * 0.15 else True if e >= cap * 0.35 else on
         rise = rises.setdefault(t.date(), civil_dawn(t.date()))
-        if rise <= t < rise + dt.timedelta(hours=2):
+        if rise <= t < rise + dt.timedelta(hours=window):
             total += 1
             if on:
                 e -= awake
@@ -135,7 +137,7 @@ def winter(hours, share, tilt, ah, sky=None):
                 lost += 1
         e = max(e, 0)
         low = min(low, e / cap)
-    return lost / 2, total / 2, low
+    return lost / window, total / window, low
 
 
 def option(args, name):
@@ -153,6 +155,10 @@ def main():
     sky = tuple(max(0.0, float(v)) for v in json.load(open(sky))) if sky else None
     tilt = option(args, "--tilt")
     tilts = (float(tilt),) if tilt else (30, 40)   # node 1's first bench spot, the design
+    window = float(option(args, "--hours") or 2)
+    global WP
+    wp = option(args, "--wp")
+    WP = (int(float(wp)) if float(wp).is_integer() else float(wp)) if wp else WP
     where = "behind the skyline" if sky else "free"
     if args:
         day = args[0].replace("-", "")
@@ -174,12 +180,12 @@ def main():
                 days.setdefault(t.month, {}).setdefault(t.date(), 0)
                 days[t.month][t.date()] += panel_w(g, t, c, b, sky)
         print(f"{where} {WP} W panel at {b:g} degrees, Wh/day: " + ", ".join(f"{names[m]} {sum(days[m].values()) / len(days[m]):.0f} (one day in twenty under {sorted(days[m].values())[len(days[m]) // 20]:.0f})" for m in (11, 12, 1, 2)))
-    print(f"a winter day of {DAY:.0f} Wh, {len(WINTERS)} winters, windows lost and the lowest charge, per share of that harvest:")
+    print(f"windows of {window:g} h, a winter day of {FLOOR + (DAY - FLOOR) / 2 * window:.0f} Wh, {len(WINTERS)} winters, windows lost and the lowest charge, per share of that harvest:")
     for b in tilts:
         for ah in (10, 20):
             cells = []
             for share in (1, 0.75, 0.5, 0.4, 0.3, 0.2):
-                r = [winter(h, share, b, ah, sky) for h in data.values()]
+                r = [winter(h, share, b, ah, sky, window) for h in data.values()]
                 cells.append(f"{share:.0%} {100 * sum(x[0] for x in r) / sum(x[1] for x in r):.1f}% ({min(x[2] for x in r):.0%})")
             print(f"  {b:g} degrees, {ah} Ah: " + "  ".join(cells))
 
