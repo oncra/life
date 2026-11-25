@@ -277,6 +277,22 @@ async function main() {
       const csv = readFileSync(path.join(dir, written[0]), "utf8").trim().split("\n");
       assert.equal(csv.length, 9, "a header and the eight archived clips of May");
       assert.ok(csv.some((l) => l.startsWith(`${high.id},`) && l.includes(`,${device.id}/a-high.m4a,`)), "the archive name stays after the oracle forgot the file");
+
+      // a study node, set to keep every clip from 0.1, has every clip archived, not the band sample
+      const study = await prisma.device.create({ data: { placeId: place.id, kind: "SOUND", model: "life-node-test", tokenHash: sha(`${TOKEN}-study`), config: { env: { LIFE_CLIPS_ALL_FROM: "0.1" } } } });
+      const sk = (ref: string, confidence: number, day: number) =>
+        prisma.clip.create({ data: { deviceId: study.id, detectionRef: ref, ts: new Date(`2026-05-${String(day).padStart(2, "0")}T05:00:00Z`), scientific: "Botaurus stellaris", confidence, source: "AudioMoth", file: `${study.id}/${ref}.m4a`, mime: "audio/mp4", sha256: sha(`study-${ref}`), createdAt: ago(10) } });
+      const all = [];
+      for (let k = 1; k <= 7; k++) all.push(await sk(`s-low${k}`, 0.12, k));
+      const under = await sk("s-under", 0.05, 9);   // under the node's own line: the band sample as everywhere
+      for (let k = 1; k <= 5; k++) await sk(`s-under${k}`, 0.06, 9 + k);
+      const studyPending = (await arch.archivePending()).filter((x) => x.startsWith(`${study.id}/s-low`));
+      assert.deepEqual(studyPending, all.map(f).sort(), "all seven clips from 0.1 are archived on a node that keeps every clip");
+      assert.ok((await arch.archivePending()).includes(f(under)), "below the node's line the first five of a band still go");
+      assert.ok(!(await arch.archivePending()).includes(`${study.id}/s-under5.m4a`), "and the sixth does not");
+      assert.equal((await prisma.clip.findMany({ where: { deviceId: study.id }, select: { id: true } })).length, 13);
+      await prisma.device.update({ where: { id: study.id }, data: { config: { env: { LIFE_CLIPS_ALL_FROM: "1.01" } } } });
+      assert.equal((await arch.archivePending()).filter((x) => x.startsWith(`${study.id}/s-low`)).length, 5, "a node that keeps only the sample gets the archive's own line, 0.5, and its band sample");
     } finally {
       delete process.env.CLIP_ARCHIVE;
       await prisma.user.delete({ where: { id: user.id } });
