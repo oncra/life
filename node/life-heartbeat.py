@@ -52,6 +52,9 @@ Environment:
                         (`cfgRev`, 8 characters on every post; on trial, refused or left out when so), and after a change
                         the settings it now runs (`settings`, once, about 400 bytes): the oracle sends new ones only when
                         the rev it hears is not its own
+    LIFE_MIC_BIN        default /usr/local/bin/life-mic: the bird microphone as life-mic sees it, `mic` = "<mode>/<state>"
+                        (state ok, unplugged, switch or nocard), about 25 bytes when it changed and once a day: in mode
+                        audiomoth or both anything but ok means the node took its birds to the I2S microphone
     VISIT_RUN           default /run/life-visit; its state.json says what a running visit does (`visitNow`: its phase,
                         since and until when, and the hotspot it looks for until when), so the owner's page can follow a
                         visit: about 100 bytes, only on the posts made during one
@@ -536,6 +539,39 @@ def config():
         return {}
 
 
+def mic():
+    """The bird microphone as life-mic sees it: "<mode>/<state>", the state ok, unplugged (not on USB), switch (on USB with
+    its switch on USB/OFF, where it is no microphone) or nocard (on USB, but ALSA made no sound card of it). In mode
+    audiomoth or both, a state other than ok means the node took its birds to the I2S microphone (life-mic's fallback),
+    which the oracle turns into a MIC alert. Node 1's AudioMoth fell out on 18 November 2026 and nobody knew for five
+    days, because nothing said so. Sent when it changed since the last post that carried it, and once a day."""
+    exe = os.environ.get("LIFE_MIC_BIN", "/usr/local/bin/life-mic")
+    if not Path(exe).exists():
+        return None
+    try:
+        st = json.loads(subprocess.run([exe, "status", "--json"], capture_output=True, text=True, timeout=20, check=True).stdout)
+    except Exception as e:  # noqa: BLE001 - a missing status must not hold the heartbeat back
+        print(f"mic: {e}", file=sys.stderr)
+        return None
+    if not isinstance(st, dict):
+        return None
+    state = ("switch" if st.get("switchOff") else "unplugged" if not st.get("plugged")
+             else "nocard" if st.get("card") is None else "ok")
+    now = f"{st.get('mode') or '?'}/{state}"
+    sent = Path(os.environ.get("LIFE_STATE", "/var/lib/life-node")) / "mic-sent"
+    mark = f"{now} {datetime.now(timezone.utc).date().isoformat()}"
+    try:
+        if sent.read_text().strip() == mark:
+            return None
+    except Exception:  # noqa: BLE001 - never sent yet
+        pass
+    try:
+        sent.write_text(mark)
+    except Exception:  # noqa: BLE001
+        pass
+    return now
+
+
 def guard():
     """What the alarm reports, when a board is fitted (GUARD=simple or GUARD=1); see life-guard.py."""
     if os.environ.get("GUARD", "0") not in ("1", "simple"):
@@ -553,6 +589,9 @@ def build(event):
     if m:
         hb["metrics"]["mics"] = m
     hb["metrics"].update(config())
+    mc = mic()
+    if mc:
+        hb["metrics"]["mic"] = mc
     hb["metrics"].update(heat(event))
     g = guard()
     if g and g.get("enabled"):

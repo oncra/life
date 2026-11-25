@@ -100,7 +100,24 @@ export function micVerdict(history: unknown[], today: MicDay): MicVerdict {
 }
 
 /** The line a steward reads, in the notification and on the place page. */
-export function micText(detail: { state?: string; mic?: string; db?: number; bands?: number[] } | null): string {
+/** The bird microphone as the node's heartbeat says life-mic sees it (`metrics.mic`, "<mode>/<state>", node/life-heartbeat.py):
+ * the state ok, unplugged, switch (on USB with its switch on USB/OFF, no microphone then) or nocard (on USB without a
+ * sound card). `fallback` when the mode wants the AudioMoth for the birds and the node took them to the I2S microphone. */
+export function micUsb(v: unknown): { mode: string; state: string; fallback: boolean } | null {
+  if (typeof v !== "string") return null;
+  const m = /^([a-z0-9]+)\/(ok|unplugged|switch|nocard)$/.exec(v.trim());
+  if (!m) return null;
+  return { mode: m[1], state: m[2], fallback: (m[1] === "audiomoth" || m[1] === "both") && m[2] !== "ok" };
+}
+
+const USB_TEXT: Record<string, string> = {
+  unplugged: "is not on USB. Check its plug, and that the cable is a data cable, not one for charging only.",
+  switch: "has its switch on USB/OFF, where it is no microphone. Move the switch to DEFAULT.",
+  nocard: "is on USB but gives no sound card. Unplug it and plug it in again, or try another cable.",
+};
+
+export function micText(detail: { state?: string; mic?: string; db?: number; bands?: number[]; src?: string } | null): string {
+  if (detail?.src === "usb") return `the AudioMoth ${USB_TEXT[detail.state ?? ""] ?? "does not work as a microphone."} Until then the node listens for birds on the I2S microphone.`;
   const name = MIC_NAMES[(detail?.mic as Mic) ?? "audiomoth"] ?? "a microphone";
   if (detail?.state === "missing") return `the ${name} gave no sound levels for a quarter of an hour while the other did. Check that it is plugged in.`;
   const bands = (detail?.bands ?? []).map((hz) => (hz >= 1000 ? `${hz / 1000} kHz` : `${hz} Hz`)).join(", ");

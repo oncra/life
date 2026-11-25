@@ -1,7 +1,7 @@
 import { prisma } from "./db";
 import type { AlertKind } from "@/generated/prisma/client";
 import { batteryOf, LOW_BATTERY_OK_V, LOW_BATTERY_V } from "./battery";
-import { micText, micVerdict, MIC_HISTORY_DAYS, type MicDay } from "./mics";
+import { micText, micUsb, micVerdict, MIC_HISTORY_DAYS, type MicDay } from "./mics";
 import { batchesReceived } from "./grant";
 import { visitFor } from "./node-visit";
 import { NIGHT_SELECT, nightFor } from "./node-night";
@@ -125,10 +125,15 @@ async function placeOf(deviceId: string) {
   return d;
 }
 
-/** Open an alert unless one of the same kind is already open on the device. Returns the alert, or null if one was open. */
+/** What an alert is about within its kind: `detail.src`. A MIC alert from the node's USB state ("usb") and one from
+ * the weekly sound-level check (no src) are two problems, and each opens and resolves on its own. */
+const srcOf = (detail: unknown) => ((detail as { src?: unknown } | null)?.src === "usb" ? "usb" : null);
+
+/** Open an alert unless one of the same kind and source is already open on the device. Returns the alert, or null if
+ * one was open. */
 export async function openAlert(deviceId: string, kind: AlertKind, detail: Record<string, unknown>) {
-  const open = await prisma.alert.findFirst({ where: { deviceId, kind, resolvedAt: null } });
-  if (open) return null;
+  const open = await prisma.alert.findMany({ where: { deviceId, kind, resolvedAt: null }, select: { detail: true } });
+  if (open.some((a) => srcOf(a.detail) === srcOf(detail))) return null;
   const alert = await prisma.alert.create({ data: { deviceId, kind, detail: detail as object } });
   const d = await placeOf(deviceId);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://life.oncra.org";
@@ -141,8 +146,13 @@ export async function openAlert(deviceId: string, kind: AlertKind, detail: Recor
   return alert;
 }
 
-export async function resolveAlerts(deviceId: string, kind: AlertKind, by: string) {
-  return prisma.alert.updateMany({ where: { deviceId, kind, resolvedAt: null }, data: { resolvedAt: new Date(), resolvedBy: by } });
+/** Resolve the open alerts of a kind; with `src` only those of that source ("usb", or null for the ones without). */
+export async function resolveAlerts(deviceId: string, kind: AlertKind, by: string, src?: "usb" | null) {
+  if (src === undefined) return prisma.alert.updateMany({ where: { deviceId, kind, resolvedAt: null }, data: { resolvedAt: new Date(), resolvedBy: by } });
+  const open = await prisma.alert.findMany({ where: { deviceId, kind, resolvedAt: null }, select: { id: true, detail: true } });
+  const ids = open.filter((a) => srcOf(a.detail) === src).map((a) => a.id);
+  if (!ids.length) return { count: 0 };
+  return prisma.alert.updateMany({ where: { id: { in: ids } }, data: { resolvedAt: new Date(), resolvedBy: by } });
 }
 
 export type HeartbeatIn = { ts?: string; event?: string; tamper?: { loop: string; state?: string }; cell?: Cell; metrics?: Record<string, unknown> };
@@ -196,7 +206,13 @@ export async function recordHeartbeat(deviceId: string, hb: HeartbeatIn) {
   if (guard || (batt && batt.v < LOW_BATTERY_V)) lowBattery = await openAlert(deviceId, "LOW_BATTERY", { v: batt?.v ?? null, src: batt?.src, charge: hb.metrics?.charge, pvW: hb.metrics?.pvW, event: hb.event, guard: guard || undefined, at: ts.toISOString() });
   else if (batt && batt.v >= LOW_BATTERY_OK_V) await resolveAlerts(deviceId, "LOW_BATTERY", "heartbeat");
   const mics = hb.metrics?.mics;
-  const mic = mics && typeof mics === "object" && !Array.isArray(mics) ? await checkMics(deviceId, mics as MicDay) : null;
+  const weekly = mics && typeof mics === "object" && !Array.isArray(mics) ? await checkMics(deviceId, mics as MicDay) : null;
+  // the AudioMoth fell out (unplugged, switch on USB/OFF, no sound card) and the node took its birds to the I2S microphone
+  const usb = micUsb(hb.metrics?.mic);
+  let fellOut = null;
+  if (usb?.fallback) fellOut = await openAlert(deviceId, "MIC", { src: "usb", mic: "audiomoth", state: usb.state, mode: usb.mode, at: ts.toISOString() });
+  else if (usb) await resolveAlerts(deviceId, "MIC", "heartbeat", "usb");
+  const mic = weekly ?? fellOut;
   const visit = await visitFor(deviceId, dev, hb.metrics?.visitRev);
   const night = nightFor(dev, hb.metrics?.nightRev);
   const config = configFor(dev, hb.metrics);
@@ -223,7 +239,7 @@ export async function checkMics(deviceId: string, today: MicDay) {
   const history = rows.map((r) => (r.metrics as Record<string, unknown> | null)?.mics).filter((m) => m != null);
   const v = micVerdict(history, today);
   if (v.state === "missing" || v.state === "drift") return openAlert(deviceId, "MIC", { ...v, day: today.day, n: today.n });
-  if (v.state === "ok") await resolveAlerts(deviceId, "MIC", "heartbeat");
+  if (v.state === "ok") await resolveAlerts(deviceId, "MIC", "heartbeat", null);
   return null;
 }
 

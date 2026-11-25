@@ -9,6 +9,12 @@ An entry is one of three kinds: a **learning** (something we now know), a **chan
 
 ## 24 November 2026
 
+### The AudioMoth fell out, and the node said nothing
+
+*Learning.* Without its AudioMoth, the node does what it was built to do: it takes the birds to the I2S microphone and listens on. On 18 November node 1 stopped finding the AudioMoth when it started, and from then on every bird came from the I2S microphone, which is about 20 dB quieter and whose noise BirdNET names a Spotted Crake. Five days later a Spotted Crake was on the climatecleanup.org home page and nobody had known, because nothing on the heartbeat said which microphone listened.
+
+*Change.* The heartbeat now says it, in about 25 bytes: the mode and the AudioMoth's state as the node sees it on its USB port (`ok`, `unplugged`, `switch` when it is plugged in with its switch on USB/OFF, `nocard` when it gives no sound card), each time it changes and once a day. When the mode wants the AudioMoth for the birds and the state is anything but `ok`, the oracle opens a microphone alert that says what to check, and closes it when the AudioMoth is back. ([#192](https://github.com/oncra/life/pull/192))
+
 ### Every model gets its own name
 
 *Change.* Each detection says which model heard it, from BirdNET-Go's list of models: the first word of the model's name. That held while the node ran BirdNET v2.4, Perch and the bat model. BirdNET+ V3.0, the new release, is called "BirdNET+" there, and its + would have run into the + that joins two models heard together ("birdnet+perch"); the V3.0 developer preview is called "BirdNET" with version 3.0, the same word as v2.4. Now the version counts too: v2.4 stays `birdnet`, BirdNET+ V3.0 is `birdnetplus`, the preview `birdnet3`, Perch `perch`. And of the models BirdNET-Go records behind a detection, only those that actually heard it are named: it also stores the ones that listened and heard nothing. ([#191](https://github.com/oncra/life/pull/191))

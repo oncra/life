@@ -1,6 +1,6 @@
 /** Checks for src/lib/mics.ts, the microphones' daily check: npm run mics:test */
 import assert from "node:assert/strict";
-import { byDay, micText, micVerdict, type MicDay } from "../src/lib/mics";
+import { byDay, micText, micUsb, micVerdict, type MicDay } from "../src/lib/mics";
 
 const bands = [250, 500, 1000, 2000, 4000, 8000, 12500];
 const day = (d: string, diff: number[], n = 40, extra: Partial<MicDay> = {}): MicDay => ({ day: d, n, bands, diff, ...extra });
@@ -44,3 +44,15 @@ assert.equal(micVerdict([...week, day("2026-11-07", moved({ 2000: -9, 4000: -9 }
 assert.match(micText({ state: "drift", mic: "audiomoth", db: 9, bands: [2000, 4000] }), /^the AudioMoth hears 9 dB less than usual next to the other microphone \(2 kHz, 4 kHz\)/);
 assert.match(micText({ state: "missing", mic: "i2s" }), /^the I2S microphone gave no sound levels/);
 console.log("mics: all checks pass");
+
+// the AudioMoth's USB state on the heartbeat (`metrics.mic`): a fallback to the I2S microphone opens its own MIC alert
+assert.deepEqual(micUsb("audiomoth/ok"), { mode: "audiomoth", state: "ok", fallback: false });
+assert.deepEqual(micUsb("audiomoth/unplugged"), { mode: "audiomoth", state: "unplugged", fallback: true });
+assert.equal(micUsb("both/switch")?.fallback, true);
+assert.equal(micUsb("both/nocard")?.fallback, true);
+assert.equal(micUsb("i2s/unplugged")?.fallback, false, "in mode i2s the birds are on the I2S microphone anyway");
+for (const bad of [null, undefined, 3, "", "audiomoth", "audiomoth/odd", { mode: "audiomoth" }]) assert.equal(micUsb(bad), null);
+assert.match(micText({ src: "usb", mic: "audiomoth", state: "switch" }), /switch on USB\/OFF.*DEFAULT.*I2S microphone/);
+assert.match(micText({ src: "usb", mic: "audiomoth", state: "unplugged" }), /not on USB.*data cable/);
+assert.match(micText({ src: "usb", state: "nocard" }), /no sound card/);
+assert.match(micText({ state: "missing", mic: "i2s" }), /quarter of an hour/, "the weekly check's words stay");
