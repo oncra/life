@@ -28,6 +28,7 @@ API=${BIRDNET_API:-http://127.0.0.1:8080/api/v2}
 CONFIG=${BIRDNET_CONFIG:-/data/birdnet-go/config.yaml}
 LOWER=/media/root-ro
 # BirdNET-Go's catalog ids and variants (internal/conf/consts.go, internal/classifier/model_catalog_regional_gen.go)
+GEO=birdnet-geomodel-v3
 PLUS=birdnet-plus-v3.0; PLUS_VARIANT=fp32-3.0.1-b2@central-europe
 PERCH=perch-v2; PERCH_VARIANT=no-dft-fp32-b2@central-europe
 # the sha256 of the documents an install agrees to (internal/classifier/model_catalog_documents_gen.go, 20261122):
@@ -37,6 +38,9 @@ AUP_GEO=acef17f7e6fc94463b2d9e4614d37f38448a332bbdb48e73a4a286941c492272
 # the ids models.enabled takes: v2.4, Perch v2, BirdNET+ V3.0 (and the bat model, kept when it is there)
 ENABLE="birdnet perch_v2 birdnet_plus_v3.0"
 
+bngver() {  # the running BirdNET-Go version from its own API (the program has no --version, and running it writes a config)
+  curl -fsS "${API:-http://127.0.0.1:8080/api/v2}/app/config" 2>/dev/null | python3 -c "import sys, json; print(json.load(sys.stdin).get(\"version\", \"unknown\"))" 2>/dev/null || echo unknown
+}
 say() { echo "apply-models: $*"; }
 run() { if [ $DRY = 1 ]; then echo "would: $*"; else "$@"; fi; }
 [ -n "$TARBALL" ] && [ -f "$TARBALL" ] || { echo "usage: sudo bash node/apply-models.sh birdnet-go-linux-arm64-$RELEASE.tar.gz --accept-birdnet-aup [--dry-run]"; exit 1; }
@@ -49,22 +53,28 @@ DEV=$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* dev \([^ ]*\).*/\1/p' |
 case $DEV in eth0|wlan0) say "way out: $DEV" ;; *) echo "the way out is ${DEV:-none}, not the cable or the WiFi: the models are about 200 MB, which the SIM must never carry; nothing changed"; exit 1 ;; esac
 command -v curl >/dev/null || { echo "curl is missing"; exit 1; }
 
+JAR=$(mktemp)   # the cookie jar: csrf() runs in a subshell, so the file must exist out here
+csrf() {  # BirdNET-Go refuses a POST without its CSRF token: the csrf cookie its web page sets, sent back as X-CSRF-Token
+  curl -sS -c "$JAR" -o /dev/null "${API%/api/v2}/" || return 1
+  awk '$6 == "csrf" {print $7}' "$JAR" | tail -1
+}
 api() {  # api METHOD PATH [JSON]: BirdNET-Go's API on the node's loopback; prints the body, fails on an HTTP error
-  local code body
+  local code body tok=""
   body=$(mktemp)
-  code=$(curl -sS -o "$body" -w '%{http_code}' -X "$1" -H 'content-type: application/json' ${3:+--data "$3"} "$API$2") || { rm -f "$body"; return 1; }
+  [ "$1" = GET ] || tok=$(csrf) || { rm -f "$body"; return 1; }
+  code=$(curl -sS -o "$body" -w '%{http_code}' -X "$1" -H 'content-type: application/json' -b "$JAR" ${tok:+-H "X-CSRF-Token: $tok"} ${3:+--data "$3"} "$API$2") || { rm -f "$body"; return 1; }
   cat "$body"; rm -f "$body"
   case $code in 2??) return 0 ;; 401|403) echo; echo "BirdNET-Go asks for a sign-in ($code) on $2: this node has security on; install the models from its web page" >&2; return 1 ;; *) echo; echo "HTTP $code on $1 $2" >&2; return 1 ;; esac
 }
 up() { for _ in $(seq 1 60); do curl -fsS -o /dev/null "$API/models/installed" 2>/dev/null && return 0; sleep 2; done; return 1; }
 
 # 1. the program
-WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
+WORK=$(mktemp -d); trap 'rm -rf "$WORK" "$JAR"' EXIT
 tar -xzf "$TARBALL" -C "$WORK"
 BIN=$(find "$WORK" -maxdepth 2 -type f -name birdnet-go | head -1)
 [ -n "$BIN" ] || { echo "no birdnet-go in $TARBALL"; exit 1; }
 LIBS=$(find "$WORK" -maxdepth 2 -type f -name 'lib*.so*')
-CUR=$(/usr/local/bin/birdnet-go --version 2>/dev/null | head -1 || true)
+CUR=$(bngver 2>/dev/null | head -1 || true)
 say "BirdNET-Go now: ${CUR:-unknown}; installing $RELEASE"
 STAMP=$(date +%Y%m%d-%H%M%S)
 run cp -a "$CONFIG" "$CONFIG.before-models-$STAMP"
@@ -72,7 +82,7 @@ ROOTS=(/)
 cleanup_lower() { if mountpoint -q "$LOWER"; then mount -o remount,ro "$LOWER" || echo "could not make $LOWER read-only again: reboot"; fi; }
 if mountpoint -q "$LOWER" && [ $DRY = 0 ]; then
   mount -o remount,rw "$LOWER"
-  trap 'cleanup_lower; rm -rf "$WORK"' EXIT
+  trap 'cleanup_lower; rm -rf "$WORK" "$JAR"' EXIT
   ROOTS+=("$LOWER")
 fi
 run systemctl stop birdnet-go.service
@@ -85,12 +95,27 @@ run ldconfig
 run systemctl start birdnet-go.service
 if [ $DRY = 1 ]; then say "dry run: the models would now be installed and enabled ($ENABLE)"; exit 0; fi
 up || { echo "BirdNET-Go $RELEASE did not answer within two minutes; see journalctl -u birdnet-go. The old program is birdnet-go.before-$RELEASE"; exit 1; }
-say "BirdNET-Go: $(/usr/local/bin/birdnet-go --version 2>/dev/null | head -1)"
+say "BirdNET-Go: $(bngver 2>/dev/null | head -1)"
 
 # 2. the models, from BirdNET-Go's gallery
-api POST "/models/install/$PLUS" "{\"variantId\":\"$PLUS_VARIANT\",\"acceptedDocuments\":[\"$AUP_PLUS\",\"$AUP_GEO\"]}" >/dev/null
-api POST "/models/install/$PERCH" "{\"variantId\":\"$PERCH_VARIANT\"}" >/dev/null
-say "installing $PLUS ($PLUS_VARIANT) and $PERCH ($PERCH_VARIANT)"
+# both depend on the Geomodel (the range filter), which has its own acceptable-use policy and goes in first: an
+# install agrees only to the documents of the model it names
+installed() { api GET "/models/catalog" 2>/dev/null | python3 -c 'import sys, json; print(any(m["id"] == sys.argv[1] and m.get("installed") for m in json.load(sys.stdin)["catalog"]))' "$1" 2>/dev/null; }
+if [ "$(installed $GEO)" != True ]; then
+  api POST "/models/install/$GEO" "{\"acceptedDocuments\":[\"$AUP_GEO\"]}" >/dev/null
+  say "installing $GEO"
+  for i in $(seq 1 60); do [ "$(installed $GEO)" = True ] && break; [ "$i" = 60 ] && { echo "$GEO was not installed within 10 minutes"; exit 1; }; sleep 10; done
+fi
+# one install at a time (BirdNET-Go answers 409 to a second while the first runs)
+if ! api GET /models/installed 2>/dev/null | grep -q "$PLUS_VARIANT"; then
+  api POST "/models/install/$PLUS" "{\"variantId\":\"$PLUS_VARIANT\",\"acceptedDocuments\":[\"$AUP_PLUS\"]}" >/dev/null || true
+  say "installing $PLUS ($PLUS_VARIANT)"
+  for i in $(seq 1 120); do api GET /models/installed 2>/dev/null | grep -q "$PLUS_VARIANT" && break; [ "$i" = 120 ] && { echo "$PLUS was not installed within 20 minutes"; exit 1; }; sleep 10; done
+fi
+if ! api GET /models/installed 2>/dev/null | grep -q "$PERCH_VARIANT"; then
+  api POST "/models/install/$PERCH" "{\"variantId\":\"$PERCH_VARIANT\"}" >/dev/null
+  say "installing $PERCH ($PERCH_VARIANT)"
+fi
 for i in $(seq 1 120); do
   inst=$(api GET /models/installed 2>/dev/null || true)
   if grep -q "$PLUS_VARIANT" <<<"$inst" && grep -q "$PERCH_VARIANT" <<<"$inst"; then say "both installed"; break; fi
