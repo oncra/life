@@ -19,6 +19,10 @@ const T = {
     where: "Where the node is now", fromMast: "from the 4G mast it hears", mastWait: "Waiting for the 4G mast to be placed…", hidden: "Its exact place stays private; this is the area it belongs to.",
     demoOn: "Demo on until", start: "Start demo (2 h)", stop: "End demo", test: "test", by: "Photos: Wikimedia Commons",
     wifi: "WiFi", lan: "cable", "4g": "4G", unknownMast: "The open mast database does not know this mast yet.",
+    liveVia: "Live via", notLive: "Not live", noNews: "No word from the node yet", lastUpdate: "last update", lastReport: "last report",
+    onSince: "on since", nextReport: "next report expected around", wifiSignal: "WiFi signal", via: "via",
+    lastHeard: "Last heard", listeningSince: "Listening since", noBirdYet: "no bird recognised yet. The first one appears here the moment it does.",
+    offline: "The node is not sending live now: on 4G it reports every few hours, on WiFi or a cable every 20 seconds.",
   },
   nl: {
     live: "Live", listening: "Luistert", awake: "Wakker", on: "Aan", asleep: "Slaapt", saving: "Spaart stroom", quiet: "Stil", silent: "Zwijgt", never: "Nog niets gehoord",
@@ -28,6 +32,10 @@ const T = {
     where: "Waar de node nu is", fromMast: "uit de 4G-mast die hij hoort", mastWait: "Wacht op de plek van de 4G-mast…", hidden: "De precieze plek blijft privé; dit is het gebied waar hij hoort.",
     demoOn: "Demo aan tot", start: "Start demo (2 uur)", stop: "Demo stoppen", test: "test", by: "Foto's: Wikimedia Commons",
     wifi: "wifi", lan: "kabel", "4g": "4G", unknownMast: "De open mastdatabase kent deze mast nog niet.",
+    liveVia: "Live via", notLive: "Niet live", noNews: "Nog niets van de node gehoord", lastUpdate: "laatste update", lastReport: "laatste bericht",
+    onSince: "aan sinds", nextReport: "volgend bericht rond", wifiSignal: "wifi-signaal", via: "via",
+    lastHeard: "Laatst gehoord", listeningSince: "Luistert sinds", noBirdYet: "nog geen vogel herkend. De eerste verschijnt hier zodra hij er een hoort.",
+    offline: "De node stuurt nu niet live: over 4G meldt hij zich om de paar uur, over wifi of een kabel elke 20 seconden.",
   },
 } as const;
 
@@ -124,6 +132,11 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
   const topBird = top ? d.birds[top.key] : undefined;
   const live = s && ["live", "listening", "awake", "on"].includes(s.state);
   const others = d.heard.filter((h) => h.key !== top?.key).slice(0, 5);
+  const isLive = s?.source === "live" && s.state === "live";
+  const hhmm = (ms: number) => clock(ms, d.zone).slice(0, 5);
+  // the bird on top is old news when it came before the node was switched on, or more than an hour ago: then the panel
+  // says the node is listening, and shows that bird smaller as the last one heard
+  const stale = !!top && ((s?.upSince != null && top.t < s.upSince) || now - top.t > 3600e3);
 
   return (
     <div className="fixed inset-0 z-[1100] overflow-y-auto bg-[#0b1510] text-[#eef3ea]" style={{ backgroundImage: "radial-gradient(ellipse at 30% 0%, rgba(47,107,58,0.35), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(30,70,90,0.25), transparent 55%)" }}>
@@ -152,12 +165,20 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
           </div>
         </header>
 
+        <ConnStrip s={s} now={now} lang={lang} isLive={isLive} hhmm={hhmm} />
+
         <main className="mt-6 grid flex-1 gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
           <section className="flex flex-col gap-6 min-w-0">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 sm:p-8 min-h-[420px] flex flex-col">
-              <div className="text-[11px] uppercase tracking-[0.25em] text-[#9fb5a3]">{t.now}</div>
+              <div className="text-[11px] uppercase tracking-[0.25em] text-[#9fb5a3]">{stale ? t.lastHeard : t.now}</div>
+              {stale && live && s?.upSince != null && (
+                <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#5ee08a]/25 bg-[#5ee08a]/[0.07] px-4 py-3 text-[#c9d6cb]">
+                  <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#5ee08a] live-glow" />
+                  <span><span className="font-semibold text-[#eef3ea]">{t.listeningSince} {hhmm(s.upSince)}</span>, {t.noBirdYet}</span>
+                </div>
+              )}
               {top && topBird ? (
-                <div key={top.id} className={`flex-1 grid sm:grid-cols-[1.2fr_1fr] items-end gap-6 ${fresh === top.id ? "demo-in" : ""}`}>
+                <div key={top.id} className={`flex-1 grid sm:grid-cols-[1.2fr_1fr] items-end gap-6 ${fresh === top.id ? "demo-in" : ""} ${stale ? "opacity-55 scale-[0.85] origin-bottom-left" : ""}`}>
                   <div className="relative h-[300px] sm:h-[360px] flex items-end justify-center">
                     {fresh === top.id && <span aria-hidden className="absolute bottom-6 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full border-2 border-[#5ee08a]/70 demo-ring" />}
                     {topBird.image ? (
@@ -171,7 +192,7 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                     <h1 className="text-4xl sm:text-6xl font-semibold leading-[1.02] tracking-tight">{name(topBird, lang)}</h1>
                     {topBird.scientific && <div className="mt-2 text-lg italic text-[#9fb5a3]">{topBird.scientific}</div>}
                     <div className="mt-6 flex items-center gap-3 text-sm">
-                      <span className="rounded-full bg-[#5ee08a]/15 text-[#7ff0a4] px-3 py-1 font-medium">{ago(top.t, now, lang)}</span>
+                      <span className={`rounded-full px-3 py-1 font-medium ${stale ? "bg-white/10 text-[#c9d6cb]" : "bg-[#5ee08a]/15 text-[#7ff0a4]"}`}>{ago(top.t, now, lang)}</span>
                       <span className="text-[#c9d6cb]">{pct(top.confidence)} {t.sure}</span>
                       {top.test && <span className="rounded-full border border-amber-300/50 text-amber-200 px-2 py-0.5 text-xs">{t.test}</span>}
                     </div>
@@ -259,6 +280,35 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
           <span>BirdNET · Raspberry Pi · {lang === "nl" ? "zonne-energie en 4G" : "solar power and 4G"}</span>
         </footer>
       </div>
+    </div>
+  );
+}
+
+/** One line that says plainly whether the node is connected: live and over what, how fresh the last word is, since when it
+ * is on; otherwise when it last reported and when the next report is due. */
+function ConnStrip({ s, now, lang, isLive, hhmm }: { s: DemoOut["status"]; now: number; lang: Lang; isLive: boolean; hhmm: (ms: number) => string }) {
+  const t = T[lang];
+  if (!s || s.at == null) {
+    return <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-[#c9d6cb]">{t.noNews}</div>;
+  }
+  const via = s.via ? t[s.via] : null;
+  const bits: string[] = [];
+  if (isLive) {
+    bits.push(`${t.lastUpdate} ${ago(s.at, now, lang)}`);
+    if (s.via === "wifi" && s.link.wifiDbm != null) bits.push(`${t.wifiSignal} ${s.link.wifiDbm} dBm`);
+    if (s.upSince != null) bits.push(`${t.onSince} ${hhmm(s.upSince)}`);
+  } else {
+    bits.push(`${t.lastReport} ${ago(s.postAt ?? s.at, now, lang)}${via ? ` ${t.via} ${via}` : ""}`);
+    if (s.next && s.next.at > now) bits.push(`${t.nextReport} ${hhmm(s.next.at)}`);
+  }
+  return (
+    <div className={`mt-5 rounded-2xl border px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 ${isLive ? "border-[#5ee08a]/35 bg-[#5ee08a]/[0.08]" : "border-amber-300/30 bg-amber-300/[0.06]"}`}>
+      <span className="flex items-center gap-2.5">
+        <span className={`inline-block h-3 w-3 rounded-full ${isLive ? "bg-[#5ee08a] live-glow" : "bg-amber-300/80"}`} />
+        <span className="text-lg font-semibold">{isLive ? `${t.liveVia} ${via ?? "?"}` : `${t.notLive} · ${t[s.state]}`}</span>
+      </span>
+      <span className="text-sm text-[#c9d6cb]">{bits.join(" · ")}</span>
+      {!isLive && <span className="basis-full text-xs text-[#9fb5a3]">{t.offline}</span>}
     </div>
   );
 }
