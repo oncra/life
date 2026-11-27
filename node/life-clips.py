@@ -77,7 +77,8 @@ to 0.7, and the next run deletes every clip on the node.
 env: LIFE_KEEP_CLIPS (1), LIFE_CLIPS_ALL_FROM (0.5; above 1 keeps only the band sample), LIFE_CLIPS_PER_BAND (5),
      LIFE_CLIPS_SECONDS (7), LIFE_CLIPS_KEEP_DAYS (365), LIFE_CLIPS_MIN_FREE_MB (2000),
      LIFE_CLIPS_UPLOAD (1; 0 = only a visit takes clips away),
-     LIFE_CLIPS_ANYTIME (0; 1 keeps clips outside the windows too, for a bench), LIFE_API, LIFE_DEVICE_TOKEN,
+     LIFE_CLIPS_ANYTIME (0; 1 keeps clips outside the windows too, for a bench), LIFE_CLIPS_SETTLE_S (900; at least 60,
+     how long after its detection a clip is taken: less for a demo), LIFE_API, LIFE_DEVICE_TOKEN,
      BIRDNET_DIR (/data/birdnet-go), BIRDNET_DB, BIRDNET_CONFIG, BIRDNET_CLIPS, LIFE_CLIPS_DIR (/data/life-clips),
      LIFE_STATE (/data/life-node), LIFE_SCHEDULE_WPI (/usr/local/sbin/life-schedule-wpi), FFMPEG, NODE_TZ,
      LIFE_CLIPS_HOT_C (70), LIFE_CLIPS_TEMP (the processor's temperature file, for tests),
@@ -130,7 +131,10 @@ API = os.environ.get("LIFE_API", "https://life.oncra.org/api/v1").rstrip("/")
 TOKEN = os.environ.get("LIFE_DEVICE_TOKEN", "").strip()
 _ff = os.environ.get("FFMPEG")
 FFMPEG = (shutil.which("ffmpeg") if _ff is None else _ff) or None   # FFMPEG= (empty) means none
-SETTLE_S = 15 * 60   # BirdNET-Go may still be encoding a clip ten minutes after the detection (its ClipRecencyWindow)
+# BirdNET-Go may still be encoding a clip ten minutes after the detection (its ClipRecencyWindow). A node shown at a
+# demo, on a cable or a phone hotspot with little else to do, may wait less (LIFE_CLIPS_SETTLE_S, at least 60), so a
+# clip is heard minutes after its bird; run the timer as often then (a drop-in on life-clips.timer)
+SETTLE_S = max(60, int(float(os.environ.get("LIFE_CLIPS_SETTLE_S") or 15 * 60)))
 ORPHAN_S = 30 * 60   # anything in its export directory longer than this was never going to be kept
 STICK = "LIFECLIPS"
 MOUNT = Path("/run/life-clips-usb")
