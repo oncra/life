@@ -78,7 +78,8 @@ env: LIFE_KEEP_CLIPS (1), LIFE_CLIPS_ALL_FROM (0.5; above 1 keeps only the band 
      LIFE_CLIPS_SECONDS (7), LIFE_CLIPS_KEEP_DAYS (365), LIFE_CLIPS_MIN_FREE_MB (2000),
      LIFE_CLIPS_UPLOAD (1; 0 = only a visit takes clips away),
      LIFE_CLIPS_ANYTIME (0; 1 keeps clips outside the windows too, for a bench), LIFE_CLIPS_SETTLE_S (900; at least 60,
-     how long after its detection a clip is taken: less for a demo), LIFE_API, LIFE_DEVICE_TOKEN,
+     how long after its detection a clip is taken: less for a demo), LIFE_CLIPS_THRESHOLD (0.1; BirdNET-Go's threshold
+     while clips are kept, up to 0.7 for a node that needs no low-score sample), LIFE_API, LIFE_DEVICE_TOKEN,
      BIRDNET_DIR (/data/birdnet-go), BIRDNET_DB, BIRDNET_CONFIG, BIRDNET_CLIPS, LIFE_CLIPS_DIR (/data/life-clips),
      LIFE_STATE (/data/life-node), LIFE_SCHEDULE_WPI (/usr/local/sbin/life-schedule-wpi), FFMPEG, NODE_TZ,
      LIFE_CLIPS_HOT_C (70), LIFE_CLIPS_TEMP (the processor's temperature file, for tests),
@@ -163,7 +164,9 @@ ON = [(("realtime", "audio", "export", "enabled"), "true"),
       (("realtime", "audio", "export", "retention", "keepspectrograms"), "false"),
       (("realtime", "privacyfilter", "enabled"), "true"),
       (("realtime", "privacyfilter", "vad", "enabled"), "true"),
-      (("birdnet", "threshold"), "0.1")]
+      # a demo node needs no low-score sample: LIFE_CLIPS_THRESHOLD (0.1 to 0.7) keeps BirdNET-Go higher, so it writes far
+      # fewer clips beside three models
+      (("birdnet", "threshold"), f'{min(max(float(os.environ.get("LIFE_CLIPS_THRESHOLD") or 0.1), 0.1), 0.7):g}')]
 OFF = [(("realtime", "audio", "export", "enabled"), "false"),
        (("birdnet", "threshold"), "0.7")]
 
