@@ -15,6 +15,8 @@ export const DEMO_MAX_H = 6;
 const POS_FRESH_MS = 10 * 60e3;
 /** on 4G a heartbeat comes with the sound post, three minutes after boot and then every three hours (life-sound.timer) */
 const CELL_FRESH_MS = 190 * 60e3;
+/** a clip belongs to a detection of the same species this close in time (BirdNET-Go stamps both from one hit) */
+const CLIP_MATCH_MS = 20e3;
 
 export type DemoBird = Pick<HeardRow, "key" | "species" | "scientific" | "names" | "image">;
 export type DemoOut = {
@@ -26,7 +28,7 @@ export type DemoOut = {
   /** the last species heard, newest first, one tile each */
   heard: (DemoBird & { t: number; confidence: number })[];
   /** the last detections one by one, newest first; test ones too (a phone played to the mic), marked */
-  feed: { id: string; key: string; t: number; confidence: number; test: boolean }[];
+  feed: { id: string; key: string; t: number; confidence: number; test: boolean; clip: string | null }[];
   /** what the feed's species are called and look like */
   birds: Record<string, DemoBird>;
   /** where the node is now (during a demo only) and the place as the public sees it */
@@ -57,8 +59,21 @@ export async function demoData(place: Place, exact: boolean, now = Date.now()): 
     const key = d.scientific ?? d.species;
     // a species heard only in tests is not in `heard()`: its own row names it
     if (!birds[key]) birds[key] = { key, species: d.species, scientific: d.scientific, names: null, image: null };
-    return { id: String(d.id), key, t: d.ts.getTime(), confidence: d.confidence, test: d.test };
+    return { id: String(d.id), key, t: d.ts.getTime(), confidence: d.confidence, test: d.test, clip: null as string | null };
   });
+  // the sound of a detection, when the node sent its clip (life-clips upload, over a cable or WiFi only): the clip of the
+  // same species within CLIP_MATCH_MS of it, on the place's own devices
+  if (feed.length) {
+    const from = new Date(Math.min(...feed.map((f) => f.t)) - CLIP_MATCH_MS);
+    const clips = await prisma.clip.findMany({
+      where: { device: { placeId: place.id }, ts: { gte: from }, file: { not: null } },
+      select: { id: true, ts: true, scientific: true, species: true }, orderBy: { ts: "desc" }, take: 200,
+    });
+    for (const f of feed) {
+      const c = clips.find((c) => (c.scientific === f.key || c.species === f.key) && Math.abs(c.ts.getTime() - f.t) <= CLIP_MATCH_MS);
+      if (c) f.clip = c.id;
+    }
+  }
   let pos: DemoOut["pos"] = null;
   for (const d of devices) {
     const live = d.live as { pos?: CellPos; cell?: { plmn?: string } | null; metrics?: Record<string, unknown> } | null;

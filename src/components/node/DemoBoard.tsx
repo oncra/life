@@ -23,6 +23,7 @@ const T = {
     onSince: "on since", nextReport: "next report expected around", wifiSignal: "WiFi signal", via: "via",
     lastHeard: "Last heard", listeningSince: "Listening since", noBirdYet: "no bird recognised yet. The first one appears here the moment it does.",
     offline: "The node is not sending live now: on 4G it reports every few hours, on WiFi or a cable every 20 seconds.",
+    play: "Play", playing: "Playing", soundOn: "Sound on", soundOff: "Sound off", noClip: "no recording yet",
   },
   nl: {
     live: "Live", listening: "Luistert", awake: "Wakker", on: "Aan", asleep: "Slaapt", saving: "Spaart stroom", quiet: "Stil", silent: "Zwijgt", never: "Nog niets gehoord",
@@ -36,6 +37,7 @@ const T = {
     onSince: "aan sinds", nextReport: "volgend bericht rond", wifiSignal: "wifi-signaal", via: "via",
     lastHeard: "Laatst gehoord", listeningSince: "Luistert sinds", noBirdYet: "nog geen vogel herkend. De eerste verschijnt hier zodra hij er een hoort.",
     offline: "De node stuurt nu niet live: over 4G meldt hij zich om de paar uur, over wifi of een kabel elke 20 seconden.",
+    play: "Luister", playing: "Speelt", soundOn: "Geluid aan", soundOff: "Geluid uit", noClip: "nog geen opname",
   },
 } as const;
 
@@ -78,7 +80,27 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
   const [fresh, setFresh] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const lastId = useRef<string | null>(initial.feed[0]?.id ?? null);
+  // one player for the whole board; with sound on, a clip that arrives after the switch was turned on plays by itself
+  // (a browser plays sound only after a tap on the page, which the switch is)
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [auto, setAuto] = useState(false);
+  const heardClips = useRef<Set<string>>(new Set(initial.feed.map((f) => f.clip).filter((c): c is string => !!c)));
+  function play(clip: string) {
+    if (!audio.current) {
+      audio.current = new Audio();
+      audio.current.onended = () => setPlaying(null);
+      audio.current.onerror = () => setPlaying(null);
+    }
+    const a = audio.current;
+    if (!a.paused && a.src.endsWith(`/api/clips/${clip}/audio`)) { a.pause(); setPlaying(null); return; }
+    a.src = `/api/clips/${clip}/audio`;
+    setPlaying(clip);
+    a.play().catch(() => setPlaying(null));
+  }
   const t = T[lang];
+  const autoRef = useRef(auto);
+  useEffect(() => { autoRef.current = auto; }, [auto]);
 
   useEffect(() => {
     let stop = false;
@@ -97,6 +119,9 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
               }
               lastId.current = top;
               setD(next);
+              const newest = next.feed.find((f) => f.clip && !heardClips.current.has(f.clip));
+              for (const f of next.feed) if (f.clip) heardClips.current.add(f.clip);
+              if (newest?.clip && autoRef.current) play(newest.clip);
             }
           }
         } catch { /* the next round tries again */ }
@@ -156,6 +181,9 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                 {d.demo.on ? t.stop : t.start}
               </button>
             )}
+            <button type="button" onClick={() => { setAuto((a) => !a); if (!audio.current) { audio.current = new Audio(); audio.current.onended = () => setPlaying(null); } }} className={`rounded-full px-3 py-1 text-xs border transition-colors ${auto ? "bg-[#5ee08a] text-[#0b1510] border-[#5ee08a]" : "border-white/20 hover:bg-white/10"}`}>
+              {auto ? t.soundOn : t.soundOff}
+            </button>
             <div className="flex rounded-full border border-white/15 text-xs overflow-hidden">
               {(["nl", "en"] as const).map((l) => (
                 <button key={l} type="button" onClick={() => setLang(l)} className={`px-2.5 py-1 ${lang === l ? "bg-white/15" : "hover:bg-white/5"}`}>{l.toUpperCase()}</button>
@@ -197,6 +225,11 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                       {top.test && <span className="rounded-full border border-amber-300/50 text-amber-200 px-2 py-0.5 text-xs">{t.test}</span>}
                     </div>
                     <div className="mt-3 h-1.5 w-56 rounded-full bg-white/10 overflow-hidden"><div className="h-full rounded-full bg-[#5ee08a]" style={{ width: pct(top.confidence) }} /></div>
+                    {top.clip ? (
+                      <button type="button" onClick={() => play(top.clip!)} className={`mt-6 inline-flex items-center gap-3 rounded-full px-5 py-2.5 text-base font-semibold transition-colors ${playing === top.clip ? "bg-white/15 text-[#eef3ea]" : "bg-[#5ee08a] text-[#0b1510] hover:bg-[#7ff0a4]"}`}>
+                        <PlayIcon on={playing === top.clip} /> {playing === top.clip ? t.playing : t.play}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               ) : (
@@ -267,6 +300,11 @@ export default function DemoBoard({ initial, src, canRun, lang: firstLang }: { i
                         ) : <span className="h-5 w-5 rounded-full bg-white/10" />}
                       </span>
                       <span className="flex-1 truncate text-sm">{name(b, lang)}{f.test ? <span className="ml-2 text-[10px] text-amber-200">{t.test}</span> : null}</span>
+                      {f.clip ? (
+                        <button type="button" aria-label={t.play} onClick={() => play(f.clip!)} className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center ${playing === f.clip ? "bg-[#5ee08a] text-[#0b1510]" : "bg-white/10 hover:bg-white/20"}`}>
+                          <PlayIcon on={playing === f.clip} small />
+                        </button>
+                      ) : <span className="h-7 w-7 shrink-0" />}
                       <span className="w-16 h-1 rounded-full bg-white/10 overflow-hidden shrink-0"><span className="block h-full bg-[#5ee08a]" style={{ width: pct(f.confidence) }} /></span>
                     </li>
                   );
@@ -310,6 +348,15 @@ function ConnStrip({ s, now, lang, isLive, hhmm }: { s: DemoOut["status"]; now: 
       <span className="text-sm text-[#c9d6cb]">{bits.join(" · ")}</span>
       {!isLive && <span className="basis-full text-xs text-[#9fb5a3]">{t.offline}</span>}
     </div>
+  );
+}
+
+function PlayIcon({ on, small }: { on: boolean; small?: boolean }) {
+  const s = small ? 12 : 18;
+  return on ? (
+    <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
+  ) : (
+    <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden><path d="M4 2.2v11.6a.8.8 0 0 0 1.2.7l9.3-5.8a.8.8 0 0 0 0-1.4L5.2 1.5A.8.8 0 0 0 4 2.2z" fill="currentColor" /></svg>
   );
 }
 
